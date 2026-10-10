@@ -23,6 +23,12 @@ shows the order in which the runtime created them.
 | `StartupBanner`          | `@LocalBean`       | `private`, created through reflection; depends on `Greeter` (resolved to the `@Primary` one) and `Settings.MessageFormat` |
 | `ComplaintDesk`          | `@LocalBean`       | asks for `@Qualifier("grumpy") Greeter` in its constructor and in an auto-invoked function |
 
+### Listeners
+
+| Listener          | Demonstrates                                                                                  |
+|-------------------|-----------------------------------------------------------------------------------------------|
+| `WelcomeListener` | not a bean; created with `Greeter` and `Settings.MessageFormat` injected and registered with Bukkit because it implements `Listener`; greets joining players |
+
 ### Auto-invoked functions
 
 | Function                   | Phase                    | Demonstrates                                                        |
@@ -44,6 +50,7 @@ shows the order in which the runtime created them.
 [MessageFormat] created for VersatiaDIExample 0.0.1
 [StartupBanner] created with the FriendlyGreeter
 [ComplaintDesk] created with the UnfriendlyGreeter
+[WelcomeListener] created, greets every player who joins
 [ComplaintDesk] desk opened, the clerk says: What do you want?
 [StartupBanner] *** [VersatiaDIExample] Welcome! You are visitor #1. ***
 [StartupBanner] banner shown at ...

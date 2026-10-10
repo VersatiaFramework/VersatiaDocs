@@ -28,6 +28,7 @@ const sidebars: SidebarsConfig = {
       items: ['lifecycle/auto-invoke', 'lifecycle/phases'],
     },
     'resources',
+    'events',
     {
       type: 'category',
       label: 'Utilities',

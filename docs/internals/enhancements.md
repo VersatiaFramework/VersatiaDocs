@@ -158,6 +158,7 @@ The built-in processors, all in VersatiaCore:
 | `.di.ExposePrototypeEnhancementProcessor`                     | `ClassTarget`s of `@ExposePrototype`                          |
 | `.lifecycle.AutoInvokeEnhancementProcessor`                   | `FunctionTarget`s of `@AutoInvoke`                            |
 | `.resources.ExtractResourcesEnhancementProcessor`             | the `PluginTarget` of the main class, sent by `@ExtractResources` |
+| `.event.RegisterListenersEnhancementProcessor`                | every `Listener` of the plugin, sent by `@RegisterListeners` |
 
 ## Defining your own scope
 

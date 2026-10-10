@@ -58,8 +58,8 @@ This buys three things:
 - **Fast, predictable start-up.** The runtime walks a list; it does not search.
 - **Encapsulation kept.** Beans, constructors and functions may be `private`. Generated code calls
   visible members directly and uses reflection only where it has to.
-- **Nothing to boilerplate.** The main class is a bean, and the files under `resources/` in the
-  JAR land in the data folder, without a line of code.
+- **Nothing to boilerplate.** The main class is a bean, the files under `resources/` in the JAR
+  land in the data folder, and every `Listener` is registered, without a line of code.
 
 ## What is in the box
 

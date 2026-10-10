@@ -165,6 +165,16 @@ files that already exist and refusing paths that would escape the data folder. I
 `process` itself, so the files are there before the bean session creates anything; a JAR without
 a `resources/` entry leaves the data folder untouched. See [Plugin resources](../resources.md).
 
+## Event listeners
+
+`RegisterListenersEnhancementProcessor` receives the elements that `@RegisterListeners` on
+`VersatiaPlugin` produced for every `Listener` of the plugin. Once every processor has run, so the
+beans exist, it registers one instance per element with the server's plugin manager: the plugin
+itself for the main class, the bean instance when the class is a bean, otherwise a new instance
+created through the element's instantiator with the constructor parameters resolved by the
+plugin's `BeanResolver`. Bukkit unregisters the listeners when the plugin is disabled. See
+[Event listeners](../events.md).
+
 ## What the tests cover
 
 VersatiaCore's tests need no server. Unit tests drive the enhancer with hand-written descriptors
