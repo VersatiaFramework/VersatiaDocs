@@ -9,7 +9,7 @@ page is for building the framework itself; plugin authors only need the
 | Repository                   | Produces                                                             |
 |------------------------------|----------------------------------------------------------------------|
 | `VersatiaAPI`                | `VersatiaAPI` (API) and `VersatiaAPI-ksp` (processor), published to the local Maven repository |
-| `VersatiaCore`               | the server plugin JAR, bundling the VersatiaAPI classes              |
+| `VersatiaCore`               | the server plugin JAR, bundling the VersatiaAPI classes; a private repository, built by the Versatia team |
 | `VersatiaExample-*`          | the example plugins, one repository per feature; see [Example plugins](../examples/index.md) |
 | `VersatiaDocs`               | this site                                                            |
 

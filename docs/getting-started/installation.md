@@ -17,9 +17,10 @@ list Kotlin itself (see [below](#pluginyml)).
 
 :::info[Where do the JARs come from?]
 
-Versatia is not published to a public repository yet. Build VersatiaCore and VersatiaAPI
-from source and publish the latter to your local Maven repository; the steps are in
-[Building the framework](../contributing/building.md).
+Versatia is not published to a Maven repository yet. VersatiaAPI is open source: build it and
+publish it to your local Maven repository, the steps are in
+[Building the framework](../contributing/building.md). VersatiaCore is distributed as a plugin
+JAR; its repository is private and access to the sources is granted by the Versatia team.
 
 :::
 

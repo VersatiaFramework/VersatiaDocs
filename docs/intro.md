@@ -35,7 +35,7 @@ plugin enables, `start` runs once they exist, and everything is dropped when the
 | Project             | What it is      | Where it runs                                                                      |
 |---------------------|-----------------|------------------------------------------------------------------------------------|
 | **VersatiaAPI** | a library       | in your build: the API you compile against and a compile-time code generator        |
-| **VersatiaCore**    | a server plugin | on the server, next to your plugin: the runtime that gives the API its behaviour    |
+| **VersatiaCore**    | a server plugin | on the server, next to your plugin: the runtime that gives the API its behaviour; distributed as a JAR, its sources are private |
 
 Your plugin depends on VersatiaAPI at compile time and lists VersatiaCore under `depend:` in
 its `plugin.yml`. It never compiles against VersatiaCore.
