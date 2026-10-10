@@ -1,8 +1,14 @@
 # Dependency injection
 
+import ExampleCard from '@site/src/components/ExampleCard';
+
 Versatia wires objects through **constructor injection** driven entirely by the generated
 descriptor. There is no container to configure, no module to write and nothing to look up at
 runtime: you annotate classes, the build validates the graph, the runtime instantiates it.
+
+<ExampleCard repo="VersatiaExample-DI-Beans" file="src/main/kotlin/com/github/marcoral/versatia/example/beans/Beans.kt">
+Three local beans created in dependency order, one of them taking the plugin instance.
+</ExampleCard>
 
 ## Declaring a bean
 

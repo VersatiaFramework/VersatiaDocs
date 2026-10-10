@@ -1,10 +1,16 @@
 # Beans across plugins
 
+import ExampleCard from '@site/src/components/ExampleCard';
+
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
 Beans marked `@ExposeSingleton` or `@ExposePrototype` can be injected into other plugins. This page
 is written from the consumer's side; the providing plugin only has to pick the scope.
+
+<ExampleCard repo="VersatiaExample-DI-SharedBeans" file="provider/src/main/kotlin/com/github/marcoral/versatia/example/sharedbeans/SharedBeans.kt">
+A provider plugin exposing a singleton and a prototype, and a consumer plugin injecting both.
+</ExampleCard>
 
 ## Set-up in the consumer
 

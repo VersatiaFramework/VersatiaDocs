@@ -1,5 +1,7 @@
 # Enhancements and processors
 
+import ExampleCard from '@site/src/components/ExampleCard';
+
 Versatia does not hardcode what any annotation means. Every annotation the framework acts on is an
 **enhancement**, and the behaviour behind it lives in an **enhancement processor**. The bean scopes
 and `@AutoInvoke` are built this way, with nothing special about them.
@@ -165,6 +167,10 @@ The built-in processors, all in VersatiaCore:
 The supported way to extend the framework from a plugin without writing a processor is a **scope
 annotation that inherits a built-in one**. It costs one declaration and changes nothing at runtime:
 
+<ExampleCard repo="VersatiaExample-DI-CustomScope" file="src/main/kotlin/com/github/marcoral/versatia/example/customscope/Service.kt">
+A <code>@Service</code> annotation inheriting <code>@LocalBean</code>, and a bean declared with it.
+</ExampleCard>
+
 ```kotlin
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
@@ -182,6 +188,10 @@ A class enhancement written on the main class, or on any of its supertypes, prod
 with the main class as its `PluginTarget`. That is how `VersatiaPlugin` gives every plugin its
 bean container (`@PluginBean`) and its [resources](../resources.md) (`@ExtractResources`), and it
 works for your own base classes too:
+
+<ExampleCard repo="VersatiaExample-Enhancements-FeatureSwitches" file="src/main/kotlin/com/github/marcoral/versatia/example/switches/SwitchesPlugin.kt">
+A base plugin class switching extraction off and a main class switching listener registration off.
+</ExampleCard>
 
 ```kotlin
 @Audited("console")
@@ -241,6 +251,10 @@ instance asks `context.state[BeanResolver.KEY]` first and instantiates only when
 A new feature is an annotation, optionally some attributes, and a processor. The conventions a
 processor follows (naming, packages, state, errors) are collected in
 [Best practices](../best-practices.md).
+
+<ExampleCard repo="VersatiaExample-Enhancements-Custom" file="library/src/main/kotlin/com/github/marcoral/versatia/example/timing/TimedEnhancementProcessor.kt">
+A library plugin providing <code>@Timed</code> and its processor, and a plugin running a function every few ticks with it.
+</ExampleCard>
 
 ```kotlin
 // In a library plugins compile against

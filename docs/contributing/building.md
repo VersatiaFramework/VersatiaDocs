@@ -10,8 +10,7 @@ page is for building the framework itself; plugin authors only need the
 |------------------------------|----------------------------------------------------------------------|
 | `VersatiaAPI`                | `VersatiaAPI` (API) and `VersatiaAPI-ksp` (processor), published to the local Maven repository |
 | `VersatiaCore`               | the server plugin JAR, bundling the VersatiaAPI classes              |
-| `VersatiaDIExample`          | an example plugin; also published locally so the consumer can compile against it |
-| `VersatiaDIConsumerExample`  | an example plugin consuming beans of the previous one                |
+| `VersatiaExample-*`          | the example plugins, one repository per feature; see [Example plugins](../examples/index.md) |
 | `VersatiaDocs`               | this site                                                            |
 
 Requirements: JDK 21 or newer. Gradle comes from the wrapper in each repository.
@@ -29,12 +28,11 @@ cd VersatiaCore && ./gradlew build
 ```
 
 ```bash
-cd VersatiaDIExample && ./gradlew publishToMavenLocal
+cd VersatiaExample-DI-Beans && ./gradlew build
 ```
 
-```bash
-cd VersatiaDIConsumerExample && ./gradlew build
-```
+Every example repository builds the same way; the two-plugin examples are single Gradle builds
+with one module per plugin.
 
 Repeat `publishToMavenLocal` in VersatiaAPI after every change that a dependent project should
 see; `build` runs the tests everywhere.
@@ -78,7 +76,7 @@ VersatiaCore's end-to-end test compile sample plugins with it in-process.
   `kotlin-stdlib` and `kotlin-reflect` stay under `libraries:`; VersatiaCore is the only plugin that
   lists them.
 - Example plugins depend on `VersatiaAPI` with `implementation` and on `VersatiaAPI-ksp`
-  with `ksp`; the consumer adds `VersatiaDIExample` as `compileOnly`.
+  with `ksp`; in the two-plugin examples the second module adds the first as `compileOnly`.
 
 ## This documentation
 

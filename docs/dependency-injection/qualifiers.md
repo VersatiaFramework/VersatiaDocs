@@ -1,7 +1,13 @@
 # Names, qualifiers and primary beans
 
+import ExampleCard from '@site/src/components/ExampleCard';
+
 Most of the time one bean provides a requested type and nothing needs to be declared. When two
 beans implement the same interface, two annotations decide which one is injected.
+
+<ExampleCard repo="VersatiaExample-DI-Qualifiers" file="src/main/kotlin/com/github/marcoral/versatia/example/qualifiers/Greeters.kt">
+Two greeters behind one interface, one <code>@Primary</code>, the other reached by <code>@Qualifier("grumpy")</code>.
+</ExampleCard>
 
 ## Bean names
 

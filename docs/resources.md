@@ -1,8 +1,14 @@
 # Plugin resources
 
+import ExampleCard from '@site/src/components/ExampleCard';
+
 Every Versatia plugin extracts the files it ships under a `resources` directory into its data
 folder when it starts. Nothing has to be declared: put the files there and they appear on the
 server.
+
+<ExampleCard repo="VersatiaExample-Resources-Extraction" file="src/main/resources/resources" fileLabel="resources/">
+A plugin shipping two files under <code>resources/</code> and logging them from its data folder.
+</ExampleCard>
 
 ## Where the files go
 

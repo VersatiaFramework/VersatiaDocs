@@ -1,5 +1,7 @@
 # The descriptor
 
+import ExampleCard from '@site/src/components/ExampleCard';
+
 The descriptor is the generated `object VersatiaDescriptor`, placed in the package of the plugin's
 main class so that the runtime can load it by name: for `com.example.MyPlugin` it is
 `com.example.VersatiaDescriptor`. It implements `VersatiaPluginDescriptor` from
@@ -70,6 +72,10 @@ class as a bean) and `@ExtractResources` (the plugin's resources).
 
 Encapsulation is preserved: beans, constructors, functions and their parameter types may be
 `private`. The generator picks per element:
+
+<ExampleCard repo="VersatiaExample-DI-PrivateBeans" file="src/main/kotlin/com/github/marcoral/versatia/example/privatebeans/Vault.kt">
+Private beans and a private auto-invoked function; compare the direct and reflective entries in its descriptor.
+</ExampleCard>
 
 - **`Instantiator.Direct` / `Invoker.Direct`** when the class, the member and every parameter type
   are `public` or `internal`. The generated code contains the call itself:
