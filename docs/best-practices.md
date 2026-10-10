@@ -72,6 +72,8 @@ There are no packages named after layers (`core`, `service`, `impl`): a reader l
   base class applies to every main class extending it, so a feature every plugin needs
   (`@PluginBean`, `@ExtractResources`) is one annotation there, never a special case in the
   compile-time step or the runtime. Its processor accepts only the `PluginTarget`, exactly once.
+  If plugins may opt out, the feature gets a `Boolean` in `@DisableVersatiaFeatures`, marked with
+  `@VersatiaDisabler`; no feature has a switch annotation of its own.
 - **Read facts from the element**, not from the classes: the attributes on the target and its
   parameters, the arguments of the producing annotation. A processor that needs reflection on the
   plugin's classes to find out what was annotated is working around the descriptor.

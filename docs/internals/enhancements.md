@@ -190,7 +190,50 @@ class MyPlugin : AuditedPlugin()   // the descriptor carries an @Audited element
 ```
 
 Only the main class collects enhancements from its supertypes; beans are described by the
-annotations written on them.
+annotations written on them. The **nearest declaration wins**: when the same enhancement
+annotation appears on the main class and on a base class, the main class's occurrence is the one
+recorded, with its own arguments.
+
+A feature declared on a base class can be switched off further down. `@DisableVersatiaFeatures`
+holds one `Boolean` per switchable framework feature (`extractResources` today); setting it to
+`true` on the main class or on a base class leaves the enhancement out of the descriptor. The
+mapping from a parameter to the enhancement it switches off is `@VersatiaDisabler(Enhancement::class)`
+on that parameter, so a library may define a switch for its own base-class enhancements the same
+way:
+
+```kotlin
+annotation class DisableAuditing(@VersatiaDisabler(Audited::class) val audited: Boolean = true)
+```
+
+Plugin enhancements and switches are accepted only on the main class and on its base classes
+(subclasses of `JavaPlugin`); anywhere else they are a compile error, as is a switch that turns
+nothing off and a class that both carries and switches off the same enhancement.
+
+## Subclass enhancements
+
+`@VersatiaSubclassEnhancement` is the second way to declare an enhancement. Instead of waiting
+for the annotation to be written on each class, it names a type and enhances **every class in the
+plugin assignable to it**:
+
+```kotlin
+@Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.BINARY)
+@VersatiaSubclassEnhancement("com.example.audit.AuditEnhancementProcessor", Auditable::class, EventType.PLUGIN_START_ONLY)
+annotation class AuditSubclasses
+
+@AuditSubclasses
+abstract class AuditedPlugin : VersatiaPlugin()   // every Auditable in a plugin extending it is audited
+```
+
+The carrying annotation is written on the main class or on a base class, like any plugin
+enhancement, and can be switched off the same way. Each matching class becomes an element as if
+the annotation were written on it: a concrete class with one injectable constructor as a
+`ClassTarget` (validated like a bean, with its dependencies checked at compile time), an `object`
+as a `ClassTarget` with an object instantiator, the main class as its `PluginTarget`. Abstract
+classes and interfaces are skipped. The element's `origin` names the class the carrying annotation
+was written on (`AuditedPlugin` above), so a processor can tell the elements of one rule from
+another. A class that is both a bean and a match produces both elements; a processor needing the
+instance asks `context.state[BeanResolver.KEY]` first and instantiates only when there is no bean.
 
 ## Defining your own enhancement
 

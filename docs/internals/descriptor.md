@@ -18,8 +18,9 @@ The descriptor is deliberately **flat**: a format version and a list of `Enhance
 |----------------------------|---------------------------------------------------------------------------|
 | `processorClass`           | the processor that interprets it, for example `com.github.marcoral.versatia.di.LocalBeanEnhancementProcessor` |
 | `phase`                    | the `EventType` at which it runs; see [Phases and events](../lifecycle/phases.md) |
-| `annotation`               | the enhancement annotation that produced it, with all its arguments; `null` for the main class |
+| `annotation`               | the enhancement annotation that produced it, with all its arguments        |
 | `target`                   | what was annotated: a `ClassTarget`, a `FunctionTarget` or a `PluginTarget` |
+| `origin`                   | the class the annotation is physically written on: the target's own class, a base class of the main class for inherited enhancements, or the class carrying a [subclass enhancement](enhancements.md#subclass-enhancements) |
 
 No iteration order, grouping or phase structure is baked into the file; the runtime decides how to
 walk it. Changing how VersatiaCore iterates therefore never requires regenerating plugins.
@@ -83,6 +84,9 @@ Encapsulation is preserved: beans, constructors, functions and their parameter t
 - **`Instantiator.Reflective` / `Invoker.Reflective`** otherwise. They store JVM binary names and
   at runtime load the class **without initialising it** (`Class.forName(name, false, loader)`),
   find the matching declared constructor or method and make it accessible.
+- A Kotlin `object` reached through a subclass enhancement is named directly
+  (`Instantiator.Direct { _ -> Console }`) when visible and read from its `INSTANCE` field
+  (`Instantiator.ObjectInstance`) otherwise.
 
 ## A generated file
 

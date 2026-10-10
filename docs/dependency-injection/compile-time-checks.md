@@ -92,3 +92,16 @@ With the option set, `main:` is read from that file and the sources are not sear
 class must still exist, in the sources or on the classpath, since the descriptor records it as a
 bean; otherwise the build stops with
 `Main class com.example.Missing from .../plugin.yml is neither in the sources nor on the classpath`.
+
+Enhancements that apply to the main class (such as `@ExtractResources`) and the switches of
+`@DisableVersatiaFeatures` are checked too; see
+[Enhancements on a base class](../internals/enhancements.md#enhancements-on-a-base-class):
+
+| Problem                                                              | Example message                                                                 |
+|----------------------------------------------------------------------|---------------------------------------------------------------------------------|
+| a plugin enhancement or a switch on a class that is not a `JavaPlugin` subclass | `@ExtractResources on Config has no effect: it belongs on the plugin's main class or on a base class of it` |
+| `@DisableVersatiaFeatures` with every switch left `false`            | `@DisableVersatiaFeatures on MyPlugin switches nothing off`                      |
+| a switch for an enhancement the plugin does not have                 | `BarePlugin disables @ExtractResources, which neither BarePlugin nor its supertypes carry` |
+| the same class carries and switches off an enhancement               | `MyPlugin both carries and disables @ExtractResources`                           |
+| a class matched by a subclass enhancement that is inner, generic or has several constructors | `Twice is enhanced by @AuditSubclasses on AlphaPlugin and must have exactly one constructor` |
+| a matched class whose constructor parameters are not injectable      | the bean declaration messages above, such as `Injected parameter missing must not be nullable` |

@@ -47,3 +47,18 @@ from the plugin's own JAR, never from a dependency.
 
 The classpath directory is fixed to `resources` (`ExtractResources.DIRECTORY`). Files placed
 anywhere else in `src/main/resources`, such as `plugin.yml`, stay inside the JAR.
+
+## Switching it off
+
+A plugin that wants to handle its files itself switches the feature off on its main class:
+
+```kotlin
+@DisableVersatiaFeatures(extractResources = true)
+class MyPlugin : VersatiaPlugin()
+```
+
+The descriptor then carries no extraction element at all; nothing happens at runtime. The
+annotation is accepted on the main class and on its base classes only, and the nearest declaration
+wins: a base class may switch the feature off and a subclass may declare `@ExtractResources` again.
+Writing `@DisableVersatiaFeatures` without switching anything on, or next to `@ExtractResources`
+on the same class, is a compile error.
