@@ -27,6 +27,7 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: ['lifecycle/auto-invoke', 'lifecycle/phases'],
     },
+    'resources',
     {
       type: 'category',
       label: 'Utilities',

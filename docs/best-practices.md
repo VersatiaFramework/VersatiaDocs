@@ -68,6 +68,10 @@ There are no packages named after layers (`core`, `service`, `impl`): a reader l
   lifecycle functions need beans, and a processor in another plugin injects the same way.
 - **Defer work that needs the whole plugin** with `context.onPluginEnhanced { }`. Beans are created
   there, after all scopes declared theirs; functions run there, after the beans exist.
+- **What every plugin gets is an annotation on `VersatiaPlugin`.** An enhancement declared on a
+  base class applies to every main class extending it, so a feature every plugin needs
+  (`@PluginBean`, `@ExtractResources`) is one annotation there, never a special case in the
+  compile-time step or the runtime. Its processor accepts only the `PluginTarget`, exactly once.
 - **Read facts from the element**, not from the classes: the attributes on the target and its
   parameters, the arguments of the producing annotation. A processor that needs reflection on the
   plugin's classes to find out what was annotated is working around the descriptor.

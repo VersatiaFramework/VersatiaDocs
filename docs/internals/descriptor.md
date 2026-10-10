@@ -59,11 +59,11 @@ A function the runtime may call.
 
 ### `PluginTarget`
 
-The plugin's main class, registered as a local bean of its own plugin. It carries `className`,
-`assignableTypes` and `annotations` like a `ClassTarget`, but no parameters and no instantiator:
-Bukkit creates the instance, the runtime only hands it out. It is the one element no annotation
-produces, so its `annotation` is `null`. Every descriptor has exactly one, listed first and sent to
-`PluginBeanEnhancementProcessor`.
+The plugin's main class. It carries `className`, `assignableTypes` and `annotations` like a
+`ClassTarget`, but no parameters and no instantiator: Bukkit creates the instance, the runtime
+only hands it out. One element is produced per class enhancement written on the main class or on
+one of its supertypes, all listed first; `VersatiaPlugin` contributes `@PluginBean` (the main
+class as a bean) and `@ExtractResources` (the plugin's resources).
 
 ## Direct access versus reflection
 
@@ -115,12 +115,18 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
       EnhancedElement(
         processorClass = "com.github.marcoral.versatia.di.PluginBeanEnhancementProcessor",
         phase = EventType.PLUGIN_START_ONLY,
-        annotation = null,
+        annotation = AnnotationOccurrence("com.github.marcoral.versatia.di.PluginBean"),
         target = PluginTarget(
           className = "com.example.alpha.AlphaPlugin",
           assignableTypes = listOf("com.example.alpha.AlphaPlugin", "com.github.marcoral.versatia.VersatiaPlugin", "org.bukkit.plugin.java.JavaPlugin", "org.bukkit.plugin.Plugin", /* ... */),
           annotations = emptyList(),
         ),
+      ),
+      EnhancedElement(
+        processorClass = "com.github.marcoral.versatia.resources.ExtractResourcesEnhancementProcessor",
+        phase = EventType.PLUGIN_START_ONLY,
+        annotation = AnnotationOccurrence("com.github.marcoral.versatia.resources.ExtractResources"),
+        target = PluginTarget(/* the same */),
       ),
       EnhancedElement(
         processorClass = "com.github.marcoral.versatia.di.ExposeSingletonEnhancementProcessor",

@@ -10,8 +10,8 @@ class PriceList(config: ShopConfig)
 One instance, created when the plugin enables, injectable only into that plugin's own beans and
 functions. Other plugins never see it, even if they list this plugin under `depend:`.
 
-The plugin's main class is a local bean too, without being annotated; the instance is the one
-Bukkit created. See [The plugin itself](index.md#the-plugin-itself).
+The plugin's main class is a local bean too, through `@PluginBean` on `VersatiaPlugin`; the
+instance is the one Bukkit created. See [The plugin itself](index.md#the-plugin-itself).
 
 ## `@ExposeSingleton`
 
@@ -58,8 +58,8 @@ the descriptor:
 | `@ExposePrototype`  | `com.github.marcoral.versatia.di.ExposePrototypeEnhancementProcessor` |
 
 All three run at `PLUGIN_START_ONLY`, and a scope that would send one of them another phase is a
-compile error. The main class has a processor of its own, `PluginBeanEnhancementProcessor`. The
-names are kept in `BeanProcessors`.
+compile error. The main class has a processor of its own, `PluginBeanEnhancementProcessor`,
+behind `@PluginBean`. The names are kept in `BeanProcessors`.
 
 ## Lifetime
 

@@ -95,12 +95,18 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
       EnhancedElement(
         processorClass = "com.github.marcoral.versatia.di.PluginBeanEnhancementProcessor",
         phase = EventType.PLUGIN_START_ONLY,
-        annotation = null,
+        annotation = AnnotationOccurrence("com.github.marcoral.versatia.di.PluginBean"),
         target = PluginTarget(
           className = "com.example.myplugin.MyPlugin",
           assignableTypes = listOf("com.example.myplugin.MyPlugin", "com.github.marcoral.versatia.VersatiaPlugin", /* ... */),
           annotations = emptyList(),
         ),
+      ),
+      EnhancedElement(
+        processorClass = "com.github.marcoral.versatia.resources.ExtractResourcesEnhancementProcessor",
+        phase = EventType.PLUGIN_START_ONLY,
+        annotation = AnnotationOccurrence("com.github.marcoral.versatia.resources.ExtractResources"),
+        target = PluginTarget(/* the same */),
       ),
       EnhancedElement(
         processorClass = "com.github.marcoral.versatia.di.LocalBeanEnhancementProcessor",

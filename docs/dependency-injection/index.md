@@ -55,8 +55,9 @@ these is a compile error; see [Compile-time checks](compile-time-checks.md).
 
 ## The plugin itself
 
-Your main class is a local bean without any annotation. Bukkit creates the instance, and the
-runtime registers it before creating anything else, so any bean or auto-invoked function can ask
+Your main class is a local bean: `VersatiaPlugin` carries `@PluginBean`, and an enhancement on a
+base class applies to every plugin extending it. Bukkit creates the instance, and the runtime
+registers it before creating anything else, so any bean or auto-invoked function can ask
 for it, by its own type or by any supertype such as `JavaPlugin`:
 
 ```kotlin

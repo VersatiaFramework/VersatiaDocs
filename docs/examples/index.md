@@ -16,9 +16,10 @@ shows the order in which the runtime created them.
 |--------------------------|--------------------|------------------------------------------------------------------------------|
 | `Clock`                  | `@ExposeSingleton` | no dependencies; one instance that plugins loaded later may inject           |
 | `PluginSession`          | `@ExposePrototype` | depends on `Clock`; every later plugin that needs it gets its own instance with a new id |
-| `FriendlyGreeter`        | `@Service`         | a scope defined by the plugin itself (inherits `@LocalBean`); `internal`; implements `Greeter`; `@Primary` |
+| `FriendlyGreeter`        | `@Service`         | a scope defined by the plugin itself (inherits `@LocalBean`); `internal`; implements `Greeter`; `@Primary`; its text comes from `Messages` |
 | `UnfriendlyGreeter`      | `@Service`         | the second `Greeter`; `@Qualifier("grumpy")` names it                        |
-| `Settings.MessageFormat` | `@LocalBean`       | a nested class; depends on `DIExamplePlugin`, the plugin instance, which is a bean without any annotation |
+| `Messages`               | `@LocalBean`       | reads `messages.yml`, extracted from the JAR's `resources/` directory before any bean exists |
+| `Settings.MessageFormat` | `@LocalBean`       | a nested class; depends on `DIExamplePlugin`, the plugin instance, which is a bean through `@PluginBean` on `VersatiaPlugin` |
 | `StartupBanner`          | `@LocalBean`       | `private`, created through reflection; depends on `Greeter` (resolved to the `@Primary` one) and `Settings.MessageFormat` |
 | `ComplaintDesk`          | `@LocalBean`       | asks for `@Qualifier("grumpy") Greeter` in its constructor and in an auto-invoked function |
 
@@ -37,6 +38,7 @@ shows the order in which the runtime created them.
 ```
 [Clock] created, instance ..., server time is ...
 [PluginSession] created session #1 at ...
+[Messages] loaded 2 messages from VersatiaDIExample/messages.yml
 [FriendlyGreeter] created for session #1
 [UnfriendlyGreeter] created
 [MessageFormat] created for VersatiaDIExample 0.0.1
@@ -60,8 +62,11 @@ function name). On disable, `farewell` logs `Shutting down.` and the beans are d
   the build fails with `Dependency cycle: Chicken -> Egg -> Chicken`.
 - Annotate `DIExamplePlugin` with `@LocalBean`: the build fails with
   `DIExamplePlugin is the plugin's main class and a local bean already; remove @LocalBean`.
-- Open `build/generated/ksp/main/kotlin/.../VersatiaDescriptor.kt`. The first element is a
-  `PluginTarget` for `DIExamplePlugin` with `annotation = null`; `FriendlyGreeter` is sent to
+- Edit `plugins/VersatiaDIExample/messages.yml` and restart: the greeting changes, because the
+  extracted file is never overwritten. Delete it and restart: the original is back.
+- Open `build/generated/ksp/main/kotlin/.../VersatiaDescriptor.kt`. The first two elements are
+  `PluginTarget`s for `DIExamplePlugin`, produced by `@PluginBean` and `@ExtractResources` on
+  `VersatiaPlugin`; `FriendlyGreeter` is sent to
   `LocalBeanEnhancementProcessor` although it is annotated `@Service`, and `@Primary` appears among its
   recorded attributes; its `assignableTypes` include `Greeter`; `ComplaintDesk`'s parameter carries
   the `@Qualifier("grumpy")` occurrence; `StartupBanner` has an `Instantiator.Reflective` with the

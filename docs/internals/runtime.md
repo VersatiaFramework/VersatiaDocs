@@ -101,7 +101,7 @@ The definition is where the descriptor's facts become DI concepts: the bean name
 each constructor parameter becomes a dependency of its type and the `@Qualifier` on it.
 
 `PluginBeanEnhancementProcessor` receives the descriptor's `PluginTarget`, the plugin's main class,
-and declares it in the same session as a local bean named `plugin` whose instantiator returns the
+sent there by `@PluginBean` on `VersatiaPlugin`, and declares it in the same session as a local bean named `plugin` whose instantiator returns the
 `Plugin` from the context: the instance Bukkit created becomes injectable under its own type and
 every supertype, is never exposed, and nothing is constructed for it.
 
@@ -155,6 +155,15 @@ name). For each function the processor
 2. resolves the parameters through the bean session with the rules above;
 3. calls the `Invoker`. Any exception is wrapped in an `EnhancementException` naming the function
    and the event, with the original as cause.
+
+## Plugin resources
+
+`ExtractResourcesEnhancementProcessor` receives the `PluginTarget` produced by `@ExtractResources`
+on `VersatiaPlugin`. It finds the plugin's JAR through the main class's code source and copies
+every file under the JAR's `resources/` entry into the data folder, keeping the layout, skipping
+files that already exist and refusing paths that would escape the data folder. It works in
+`process` itself, so the files are there before the bean session creates anything; a JAR without
+a `resources/` entry leaves the data folder untouched. See [Plugin resources](../resources.md).
 
 ## What the tests cover
 

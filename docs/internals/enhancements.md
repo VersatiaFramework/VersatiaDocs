@@ -153,10 +153,11 @@ The built-in processors, all in VersatiaCore:
 | Processor class (`com.github.marcoral.versatia…`) | Handles                                                       |
 |----------------------------------------------------|---------------------------------------------------------------|
 | `.di.LocalBeanEnhancementProcessor`                           | `ClassTarget`s of `@LocalBean`                                |
-| `.di.PluginBeanEnhancementProcessor`                          | the `PluginTarget` of the main class                          |
+| `.di.PluginBeanEnhancementProcessor`                          | the `PluginTarget` of the main class, sent by `@PluginBean`   |
 | `.di.ExposeSingletonEnhancementProcessor`                     | `ClassTarget`s of `@ExposeSingleton`                          |
 | `.di.ExposePrototypeEnhancementProcessor`                     | `ClassTarget`s of `@ExposePrototype`                          |
 | `.lifecycle.AutoInvokeEnhancementProcessor`                   | `FunctionTarget`s of `@AutoInvoke`                            |
+| `.resources.ExtractResourcesEnhancementProcessor`             | the `PluginTarget` of the main class, sent by `@ExtractResources` |
 
 ## Defining your own scope
 
@@ -173,6 +174,23 @@ annotation class Service
 The descriptor records `@Service` as the producing annotation (with its arguments, if any), while
 the processor class and phase come from the inherited `@LocalBean`. An annotation may inherit two
 enhancements and then produces two elements per occurrence.
+
+## Enhancements on a base class
+
+A class enhancement written on the main class, or on any of its supertypes, produces an element
+with the main class as its `PluginTarget`. That is how `VersatiaPlugin` gives every plugin its
+bean container (`@PluginBean`) and its [resources](../resources.md) (`@ExtractResources`), and it
+works for your own base classes too:
+
+```kotlin
+@Audited("console")
+abstract class AuditedPlugin : VersatiaPlugin()
+
+class MyPlugin : AuditedPlugin()   // the descriptor carries an @Audited element for MyPlugin
+```
+
+Only the main class collects enhancements from its supertypes; beans are described by the
+annotations written on them.
 
 ## Defining your own enhancement
 
@@ -193,7 +211,7 @@ class TimedEnhancementProcessor : EnhancementProcessor {
         val beans = context.state[BeanResolver.KEY]
         for (element in elements) {
             val target = element.target as FunctionTarget
-            val ticks = element.annotation!!.arguments["everyTicks"] as Long
+            val ticks = element.annotation.arguments["everyTicks"] as Long
             val description = target.className + "." + target.functionName + "()"
             val arguments = beans?.resolve(description, target.parameters).orEmpty()
             // schedule target.invoker.invoke(context.classLoader, context.plugin, arguments) every `ticks` ...
