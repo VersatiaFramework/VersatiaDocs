@@ -59,7 +59,8 @@ This buys three things:
 - **Encapsulation kept.** Beans, constructors and functions may be `private`. Generated code calls
   visible members directly and uses reflection only where it has to.
 - **Nothing to boilerplate.** The main class is a bean, the files under `resources/` in the JAR
-  land in the data folder, and every `Listener` is registered, without a line of code.
+  land in the data folder, and every `Listener` is registered, without a line of code. An
+  integration with a plugin that may be absent is one annotation, `@ConditionalOnPlugin`.
 
 ## What is in the box
 
@@ -80,7 +81,8 @@ This buys three things:
       <h3>Lifecycle hooks</h3>
       <p>
         <code>@AutoInvoke(phase)</code> runs a function at plugin start, reload or stop, with its
-        parameters injected. It replaces <code>onEnable</code> and <code>onDisable</code>.
+        parameters injected. It replaces <code>onEnable</code> and <code>onDisable</code>;
+        <code>/versatia reload</code> runs the reload phase on demand.
       </p>
       <a href="lifecycle/auto-invoke">Auto-invoked functions →</a>
     </div>

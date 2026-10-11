@@ -24,6 +24,15 @@ JAR; its repository is private and access to the sources is granted by the Versa
 
 :::
 
+### Soft dependencies
+
+VersatiaCore works on its own. Some of its features appear only when another plugin is installed
+next to it; VersatiaCore lists these under `softdepend:` and nothing else changes without them.
+
+| Plugin                                   | Version | What it enables                                              |
+|------------------------------------------|---------|--------------------------------------------------------------|
+| [CommandAPI](https://commandapi.dev/)    | 12.x    | the `/versatia` command, today [`/versatia reload`](../lifecycle/reload.md) |
+
 ## In your build
 
 A Versatia plugin is an ordinary Kotlin/JVM Gradle project with the KSP plugin applied.

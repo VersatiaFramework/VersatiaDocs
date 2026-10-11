@@ -51,6 +51,14 @@ A function marked `@AutoInvoke` is rejected when it
   (`start must not be suspend to be enhanced`);
 - has a parameter the bean rules above would reject, or an ambiguous one.
 
+## Attributes the runtime reads
+
+- `@FriendlyName` anywhere but on the main class (`@FriendlyName on Config has no effect: it
+  belongs on the plugin's main class`), or with a name that is not one word;
+- `@ConditionalOnPlugin` on the main class, on a class that is neither enhanced nor declares an
+  enhanced function, on a function without an enhancement (`@ConditionalOnPlugin on Tools.plain() has no
+  effect: the function is not enhanced`), or naming no plugin.
+
 ## Enhancement annotations
 
 These concern authors of [custom scopes and enhancements](../internals/enhancements.md):

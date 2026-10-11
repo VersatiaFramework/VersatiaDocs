@@ -21,11 +21,13 @@ dispatches only the elements whose phase applies.
 | `LifecycleEvent` | Triggered by                                          |
 |------------------|-------------------------------------------------------|
 | `START`          | the plugin's `onEnable`                               |
-| `RELOAD`         | a Versatia reload. Versatia has no reload command today, so the event is defined but never fired on a server |
+| `RELOAD`         | `/versatia reload`, or `VersatiaEngine.reload(plugin)`; see [Reloading plugins](reload.md) |
 | `STOP`           | the plugin's `onDisable`                              |
 
 The bean scopes run at `PLUGIN_START_ONLY`: beans are created once and kept. Functions pick their
-phase per occurrence.
+phase per occurrence; put what reads configuration at `PLUGIN_RELOAD_OR_START`, so that a
+[reload](reload.md#designing-for-reload) re-reads it, and keep `PLUGIN_START_ONLY` for what the
+server allows once.
 
 ## How an annotation declares its phase
 

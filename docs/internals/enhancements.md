@@ -84,6 +84,11 @@ reads them. Argument values may be strings, booleans, numbers, chars, enum entri
 name), classes (recorded by name) and lists of those; anything else, such as a nested annotation,
 is a compile error at the place the attribute is used.
 
+Two attributes are read by the runtime itself rather than by a processor, because they are not
+about one feature: [`@ConditionalOnPlugin`](../optional-plugins.md) decides whether an element is
+dispatched at all, and [`@FriendlyName`](../lifecycle/reload.md#friendly-names) names the plugin in
+the runtime's registry. The compile-time step checks their placement.
+
 ## Processors
 
 ```kotlin

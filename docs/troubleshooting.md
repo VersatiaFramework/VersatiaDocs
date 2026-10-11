@@ -39,6 +39,17 @@ Two beans share a name (by default the decapitalised simple class name). Rename 
 `@AutoInvoke` sits on a function of a plain class. Move it to the main class, an `object` or a
 bean, or make the class a bean.
 
+### `@FriendlyName on X has no effect: it belongs on the plugin's main class`
+
+`@FriendlyName` names the plugin, so it goes on the main class, as one word. See
+[Friendly names](lifecycle/reload.md#friendly-names).
+
+### `@ConditionalOnPlugin on X has no effect`
+
+The annotation sits on a class that is neither enhanced nor declares an enhanced function, on a
+function without an enhancement, or on the main class. Put it on a bean, a listener, an `object`
+with `@AutoInvoke` functions, or such a function. See [Optional plugins](optional-plugins.md).
+
 ### Unresolved reference to a Versatia annotation
 
 The `ksp` plugin or the `VersatiaAPI-ksp` dependency is missing, or VersatiaAPI is not in
@@ -99,7 +110,8 @@ VersatiaCore), or the processor belongs to another plugin that is not installed 
 ### `Plugin X: Y.f() failed at START`
 
 Your auto-invoked function threw. The original exception is the cause; the message names the
-function and the lifecycle event.
+function and the lifecycle event. At `RELOAD` the same message reaches the sender of
+`/versatia reload` and the console, and the other plugins are still reloaded.
 
 ### `Plugin X: Y takes its consuming plugin as T, which Z is not`
 
@@ -107,6 +119,16 @@ A prototype exposed by another plugin has a plugin-typed parameter, and your plu
 instance of that type (for example, the prototype asks for `VersatiaPlugin` and your main class
 extends `JavaPlugin` directly). Extend `VersatiaPlugin`, or ask the prototype's author for a wider
 type. See [Scopes](dependency-injection/scopes.md#exposeprototype).
+
+### `Plugin X: the friendly name "n" is already used by Y`
+
+Two running plugins declare the same `@FriendlyName`, or one declares as its friendly name the
+`plugin.yml` name of another. Rename one of them; the second plugin stays disabled until then.
+
+### `/versatia` is an unknown command
+
+VersatiaCore declares the command only when the [CommandAPI](https://commandapi.dev/) plugin is
+installed. Drop its JAR into `plugins/` and restart; see [Reloading plugins](lifecycle/reload.md).
 
 ## Looking at what was generated
 

@@ -29,20 +29,30 @@ sequenceDiagram
 ```
 
 1. `VersatiaCore.onEnable` registers the runtime in Bukkit's `ServicesManager` under the
-   `VersatiaEngine` interface from VersatiaAPI. That interface is the only link between a
-   plugin and the runtime; plugins never compile against VersatiaCore.
+   `VersatiaEngine` interface from VersatiaAPI (`VersatiaEngine.instance` looks it up), then
+   enhances VersatiaCore itself: the runtime has
+   a descriptor like any plugin, which is how its own `/versatia` command is hooked in. The
+   interface is the only link between a plugin and the runtime; plugins never compile against
+   VersatiaCore.
 2. A plugin's main class extends `VersatiaPlugin`. Its final `onEnable` looks the engine up and
    calls `enhance(this)`; `onDisable` calls `disable(this)`. If the engine is missing, the plugin
    fails with `VersatiaCore is not running. Add it to depend: in plugin.yml.`
 3. The runtime derives the descriptor class name from the plugin's main class
    (`<package>.VersatiaDescriptor`), loads it through the plugin's class loader, reads the Kotlin
    `object` instance and checks its format version. Nothing is scanned.
-4. The enhancer keeps the elements whose phase applies to the current event, groups them by
-   processor class, loads every one of those classes (a missing one fails the plugin before
-   anything ran), hands each group to its processor, and finally runs the completion actions the
-   processors registered.
-5. When the plugin is disabled, the runtime runs its `PLUGIN_STOP` elements and then drops the
-   plugin's state, closing every entry that implements `AutoCloseable`.
+4. The enhancer keeps the elements whose phase applies to the current event and whose
+   [`@ConditionalOnPlugin`](../optional-plugins.md) plugins are enabled, groups them by processor
+   class, loads every one of those classes (a missing one fails the plugin before anything ran),
+   hands each group to its processor, and finally runs the completion actions the processors
+   registered.
+5. Once the start event went through, the runtime registers the plugin under its friendly name:
+   `@FriendlyName` recorded on the main class, or the plugin's name. The registry is a
+   `PluginRegistry` (VersatiaAPI), reachable as `VersatiaEngine.registry` and exposed by
+   VersatiaCore as a bean; `/versatia reload` addresses plugins by that name and runs the `RELOAD`
+   event for them, as does `VersatiaPlugin.versatiaReload()` for the plugin itself; see
+   [Reloading plugins](../lifecycle/reload.md).
+6. When the plugin is disabled, the runtime runs its `PLUGIN_STOP` elements, drops the plugin's
+   state, closing every entry that implements `AutoCloseable`, and forgets the registration.
 
 Errors surface as an `EnhancementException` thrown out of the plugin's `onEnable`, so Bukkit logs
 them and disables that plugin only.
@@ -70,8 +80,26 @@ closed. See [Enhancements and processors](enhancements.md#plugin-state).
 | Event    | Triggered by                                 | Phases dispatched                              |
 |----------|----------------------------------------------|------------------------------------------------|
 | `START`  | `VersatiaPlugin.onEnable`                    | `PLUGIN_START_ONLY`, `PLUGIN_RELOAD_OR_START`  |
-| `RELOAD` | a Versatia reload (no command exists today)  | `PLUGIN_RELOAD_ONLY`, `PLUGIN_RELOAD_OR_START` |
+| `RELOAD` | `/versatia reload`, `VersatiaEngine.reload`  | `PLUGIN_RELOAD_ONLY`, `PLUGIN_RELOAD_OR_START` |
 | `STOP`   | `VersatiaPlugin.onDisable`                   | `PLUGIN_STOP`                                  |
+
+## Conditions
+
+Next to the phase, the enhancer applies one more generic filter: an element whose target carries
+`@ConditionalOnPlugin` is dispatched only when every plugin it names is enabled, asked from the
+server's `PluginManager`. A function element also records the attributes of its declaring class,
+so a conditional bean or `object` takes its `@AutoInvoke` functions with it. Skipped
+elements are logged at `FINE` with the missing plugins. The filter reads the recorded attribute
+and knows no feature; see [Optional plugins](../optional-plugins.md).
+
+## Commands
+
+VersatiaCore's commands live in `engine.command` and are written with the CommandAPI Kotlin DSL.
+`VersatiaCommand` is an `object` whose `register` function is auto-invoked at start and
+conditional on the CommandAPI plugin, so VersatiaCore only lists CommandAPI under `softdepend:`
+and ships nothing but the DSL. `/versatia reload [plugin]` reads the runtime's registry, runs the
+reload event for the selected plugins, reports each failure to the sender and the console and
+continues with the next plugin; its permission is `versatia.core.command.reload`.
 
 ## Descriptor format compatibility
 
@@ -183,4 +211,6 @@ the plugin instance as a bean, phases, missing processors), cover processor load
 cover descriptor lookup and the format-version rule. An end-to-end test compiles three sample
 plugins with the real VersatiaAPI KSP processor (`kotlin-compile-testing`), builds class loaders
 that delegate the way Bukkit's plugin loaders do, and runs the runtime over the generated
-descriptors at start, reload and stop.
+descriptors at start, reload and stop. The runtime's registry, friendly names, the reload event and
+`@ConditionalOnPlugin` are covered with hand-written descriptors; the command itself needs a
+server and is not unit-tested.

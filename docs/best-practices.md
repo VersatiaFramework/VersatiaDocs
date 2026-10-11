@@ -45,6 +45,7 @@ its processors in VersatiaCore.
 | the root                                       | the enhancement mechanism (`@VersatiaEnhancement`, `@VersatiaAttribute`, `EnhancementProcessor`, `EnhancementContext`, `StateStore`, the phases) and the plugin bootstrap (`VersatiaPlugin`, `VersatiaEngine`); in VersatiaCore also the runtime pipeline |
 | `engine.*`                                     | technical internals that deliver no feature of their own but are needed for the framework to work, such as `engine.descriptor` |
 | `di`, `lifecycle`, …                           | one feature each: definitions in the API, processors in the runtime             |
+| `<anything>.command`                           | the commands of a feature or of a plugin, always in a subpackage named `command` (`engine.command` holds `/versatia`) |
 | `util.*`                                       | independent helpers over the Paper API, grouped by the domain they touch        |
 | `ksp`, `ksp.<feature>`                         | the compile-time step: generic parts in `ksp`, feature-specific collectors and checks in `ksp.di`, `ksp.lifecycle` |
 
@@ -77,6 +78,41 @@ There are no packages named after layers (`core`, `service`, `impl`): a reader l
 - **Read facts from the element**, not from the classes: the attributes on the target and its
   parameters, the arguments of the producing annotation. A processor that needs reflection on the
   plugin's classes to find out what was annotated is working around the descriptor.
+
+## Reloadable plugins
+
+- **Configuration is read at `PLUGIN_RELOAD_OR_START`, never in a constructor.** Constructors
+  wire dependencies and run once; a `PLUGIN_RELOAD_OR_START` function reads files and rebuilds
+  what derives from them, so `/versatia reload` picks changes up. `PLUGIN_RELOAD_ONLY` is for what
+  a reload adds on top of a start, `PLUGIN_START_ONLY` for what the server allows once.
+- **Listeners and tasks read the beans' current state** instead of copying values when they are
+  created; a reload does not re-register them. See [Reloading plugins](lifecycle/reload.md#designing-for-reload).
+
+## Commands
+
+- **Commands live in a `command` subpackage** of the feature or plugin they belong to, one class
+  or object per command: `com.github.marcoral.versatia.engine.command.VersatiaCommand`.
+- **Commands are written with the [CommandAPI](https://commandapi.dev/) Kotlin DSL**, declared in
+  an `@AutoInvoke(EventType.PLUGIN_START_ONLY)` function and unregistered at `PLUGIN_STOP`. The
+  CommandAPI plugin is a soft dependency, so the object carries
+  `@ConditionalOnPlugin("CommandAPI")` and is never loaded without it.
+- **Permissions are named `versatia.<plugin>.command.<command>`**; VersatiaCore's reload is
+  `versatia.core.command.reload`. Declare them in `plugin.yml` with a default.
+
+## Entry points
+
+**A basic use case is one call on an injected object.** Reloading the plugin is
+`plugin.versatiaReload()` on the injected plugin instance, the running plugins are an injected
+`PluginRegistry`, the engine itself is `VersatiaEngine.instance`; nothing a plugin does every day
+goes through `ServicesManager`, a cast or a reflective helper. When a documented snippet needs such
+a lookup, the API is missing a method and gets one.
+
+## Attributes the runtime reads itself
+
+Two attributes are read by the pipeline rather than by a processor, because they concern every
+element or the plugin as a whole: `@ConditionalOnPlugin` decides whether an element is dispatched
+at all, like the phase does, and `@FriendlyName` names the plugin in the runtime's registry.
+Keep that list short. A fact that only one feature interprets belongs to that feature's processor.
 
 ## Errors
 

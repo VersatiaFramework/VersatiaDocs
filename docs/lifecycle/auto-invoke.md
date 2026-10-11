@@ -87,12 +87,14 @@ object Metrics {
 | `EventType`              | The function runs at                 |
 |--------------------------|--------------------------------------|
 | `PLUGIN_START_ONLY`      | plugin enable                        |
-| `PLUGIN_RELOAD_ONLY`     | a Versatia reload                    |
+| `PLUGIN_RELOAD_ONLY`     | [a Versatia reload](reload.md)       |
 | `PLUGIN_RELOAD_OR_START` | both of the above                    |
 | `PLUGIN_STOP`            | plugin disable                       |
 
 The phase is per occurrence: `@AutoInvoke` declares `enhancementPhaseParamRefName = "phase"`, so
-the processor reads it from each annotation. See [Phases and events](phases.md).
+the processor reads it from each annotation. See [Phases and events](phases.md). Prefer
+`PLUGIN_RELOAD_OR_START` for anything that reads configuration, so that
+[`/versatia reload`](reload.md#designing-for-reload) picks changes up without a restart.
 
 ## Failures
 

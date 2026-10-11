@@ -25,10 +25,11 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Lifecycle',
       collapsed: false,
-      items: ['lifecycle/auto-invoke', 'lifecycle/phases'],
+      items: ['lifecycle/auto-invoke', 'lifecycle/phases', 'lifecycle/reload'],
     },
     'resources',
     'events',
+    'optional-plugins',
     {
       type: 'category',
       label: 'Utilities',

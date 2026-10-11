@@ -59,6 +59,7 @@ A function the runtime may call.
 | `annotations`     | the attributes written on the function                                      |
 | `parameters`      | one `Parameter` per parameter                                               |
 | `invoker`         | how to call it with a receiver and resolved arguments                        |
+| `classAnnotations` | the attributes written on the declaring class, for what applies to a whole class such as `@ConditionalOnPlugin` |
 
 ### `PluginTarget`
 
