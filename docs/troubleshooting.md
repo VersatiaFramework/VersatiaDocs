@@ -113,12 +113,29 @@ Your auto-invoked function threw. The original exception is the cause; the messa
 function and the lifecycle event. At `RELOAD` the same message reaches the sender of
 `/versatia reload` and the console, and the other plugins are still reloaded.
 
+### `Plugin X: Y failed to reload`
+
+A bean implementing `Reloadable` threw from `reload()`; the original exception is the cause. The
+runtime calls `reload()` right after creating the bean and at every reload of the plugin, so at
+start-up the plugin does not enable, and at a reload the message reaches the sender of
+`/versatia reload`. The bean may belong to a module (an instance made for your plugin), in which
+case the message still names your plugin, whose data folder it reads. See
+[Reloadable beans](lifecycle/reload.md#reloadable-beans).
+
 ### `Plugin X: Y takes its consuming plugin as T, which Z is not`
 
 A prototype exposed by another plugin has a plugin-typed parameter, and your plugin is not an
 instance of that type (for example, the prototype asks for `VersatiaPlugin` and your main class
 extends `JavaPlugin` directly). Extend `VersatiaPlugin`, or ask the prototype's author for a wider
 type. See [Scopes](dependency-injection/scopes.md#exposeprototype).
+
+### `Plugin X has no message "k"; ...`
+
+`messages[key]` of the [Messages module](modules/messages.md) found no such key; the message lists
+the keys that start the same way, or says the plugin has no messages at all, which usually means
+the `messages/` directory is missing from its data folder: ship the files under
+`src/main/resources/resources/messages/`. A key is dotted, `shop.bought`, and never contains the
+file name.
 
 ### `Plugin X: the friendly name "n" is already used by Y`
 

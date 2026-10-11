@@ -131,7 +131,17 @@ each constructor parameter becomes a dependency of its type and the `@Qualifier`
 `PluginBeanEnhancementProcessor` receives the descriptor's `PluginTarget`, the plugin's main class,
 sent there by `@PluginBean` on `VersatiaPlugin`, and declares it in the same session as a local bean named `plugin` whose instantiator returns the
 `Plugin` from the context: the instance Bukkit created becomes injectable under its own type and
-every supertype, is never exposed, and nothing is constructed for it.
+every supertype, is never exposed, and nothing is constructed for it. Its element runs at
+`PLUGIN_RELOAD_OR_START`: at the reload event the processor reloads the session instead.
+
+### Reloadable beans
+
+The session adopts every instance it makes or obtains, its own beans and the prototype instances
+made for its plugin, and an adopted instance implementing `Reloadable` is reloaded at once and
+remembered in creation order. At the reload event the plugin-bean processor reloads them all in
+that order, synchronously, while auto-invoked functions run in a completion action, so
+reload-phase functions always see reloaded beans. A throwing `reload()` is wrapped as
+`Plugin X: <class> failed to reload`. Exposed singletons belong to their owner's session only.
 
 ### Resolution
 
@@ -159,10 +169,17 @@ still detected and reported.
 | `@LocalBean`        | kept in the plugin's session, injectable only into that plugin                                 |
 | the main class      | a local bean backed by the existing plugin instance                                            |
 | `@ExposeSingleton`  | the instance is registered and handed to every later plugin that asks                          |
-| `@ExposePrototype`  | a factory is registered; it creates a new instance per consuming plugin, reusing the constructor arguments resolved when the owner started, except that a parameter the owner's plugin bean satisfied receives the consuming plugin |
+| `@ExposePrototype`  | a factory is registered; it creates a new instance per consuming plugin from the constructor arguments resolved when the owner started, except for the arguments that depend on the consumer (below) |
 
 A prototype used by two beans (or functions) of the same plugin is created once for that plugin.
-The owning plugin's own instance is never handed out.
+The owning plugin's own instance is never handed out. When the owner starts, each constructor
+parameter of a prototype is classified once; an instance for a consumer is then built from:
+
+| The owner resolved the parameter to    | The consumer's instance receives                                   |
+|----------------------------------------|--------------------------------------------------------------------|
+| its plugin bean                        | the consuming plugin, checked with `isInstance` against the parameter type |
+| a prototype, its own or an exposed one | the instance of that prototype made for the consumer, resolved by the consumer's session with its own rules, so the consumer's beans share it |
+| anything else                          | the owner's argument                                               |
 
 ### Lifetime
 

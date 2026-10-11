@@ -28,6 +28,7 @@ same standard, so that the descriptor stays neutral and every feature reads it t
 | an enhancement annotation              | what it does to the element, no `Versatia` prefix            | `@LocalBean`, `@AutoInvoke`               |
 | an attribute annotation                | the fact it records                                          | `@Qualifier`, `@Primary`                  |
 | a reserved bean name                   | a constant next to the feature                               | `BeanNames.PLUGIN`                        |
+| a module                               | API repository, Maven artifact and plugin name `VersatiaModule-<Name>`; implementation repository `VersatiaModule-<Name>Impl`; package `com.github.marcoral.versatia.<name>` | `VersatiaModule-Text`, `VersatiaModule-TextImpl`, `com.github.marcoral.versatia.text` |
 
 The suffix makes a processor recognisable wherever its name appears: in a descriptor, in an error
 message, in a stack trace. The constants exist because `@VersatiaEnhancement` takes the processor
@@ -81,7 +82,11 @@ There are no packages named after layers (`core`, `service`, `impl`): a reader l
 
 ## Reloadable plugins
 
-- **Configuration is read at `PLUGIN_RELOAD_OR_START`, never in a constructor.** Constructors
+- **A bean whose state comes from files implements `Reloadable`** and reads them in `reload()`,
+  which the runtime calls after creation and at every reload, dependencies first and before any
+  auto-invoked function. The consumer of such a bean, or of a module built this way, writes nothing
+  to make `/versatia reload` work.
+- **Configuration is otherwise read at `PLUGIN_RELOAD_OR_START`, never in a constructor.** Constructors
   wire dependencies and run once; a `PLUGIN_RELOAD_OR_START` function reads files and rebuilds
   what derives from them, so `/versatia reload` picks changes up. `PLUGIN_RELOAD_ONLY` is for what
   a reload adds on top of a start, `PLUGIN_START_ONLY` for what the server allows once.
@@ -106,6 +111,22 @@ There are no packages named after layers (`core`, `service`, `impl`): a reader l
 `PluginRegistry`, the engine itself is `VersatiaEngine.instance`; nothing a plugin does every day
 goes through `ServicesManager`, a cast or a reflective helper. When a documented snippet needs such
 a lookup, the API is missing a method and gets one.
+
+## Modules
+
+- **Features beyond the runtime are modules, never packages of VersatiaCore.** A module is a
+  plugin written against VersatiaAPI alone; VersatiaCore knows nothing about it. See [Modules](modules/index.md).
+- **The entry point is an `@ExposePrototype` behind an interface.** Each consumer gets its own
+  instance; per-plugin state and registrations live there, and a prototype that reads from the
+  consumer implements `Reloadable`.
+- **Nothing is kept in the module's own plugin:** no data folder, no logger, no reference to its
+  main class. Everything belongs to the consumer, reached through a `JavaPlugin` (or `Plugin`)
+  parameter of the prototype.
+- **API and implementation are separate repositories**, `VersatiaModule-<Name>` (public) and
+  `VersatiaModule-<Name>Impl` (private). Consumers compile against the API only (`compileOnly`);
+  the implementation is `internal`, and its JAR carries the API classes.
+- **A module building on another injects its prototype** and relies on the runtime to make the
+  whole chain for the consumer; it never looks the other module up.
 
 ## Attributes the runtime reads itself
 

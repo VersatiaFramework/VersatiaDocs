@@ -94,7 +94,7 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
     get() = listOf(
       EnhancedElement(
         processorClass = "com.github.marcoral.versatia.di.PluginBeanEnhancementProcessor",
-        phase = EventType.PLUGIN_START_ONLY,
+        phase = EventType.PLUGIN_RELOAD_OR_START,
         annotation = AnnotationOccurrence("com.github.marcoral.versatia.di.PluginBean"),
         target = PluginTarget(
           className = "com.example.myplugin.MyPlugin",

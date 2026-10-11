@@ -24,8 +24,9 @@ dispatches only the elements whose phase applies.
 | `RELOAD`         | `/versatia reload`, or `VersatiaEngine.reload(plugin)`; see [Reloading plugins](reload.md) |
 | `STOP`           | the plugin's `onDisable`                              |
 
-The bean scopes run at `PLUGIN_START_ONLY`: beans are created once and kept. Functions pick their
-phase per occurrence; put what reads configuration at `PLUGIN_RELOAD_OR_START`, so that a
+The bean scopes run at `PLUGIN_START_ONLY`: beans are created once and kept. The main class's
+`@PluginBean` runs at `PLUGIN_RELOAD_OR_START`: at a reload it reloads the plugin's
+[`Reloadable` beans](reload.md#reloadable-beans) instead. Functions pick their phase per occurrence; put what reads configuration at `PLUGIN_RELOAD_OR_START`, so that a
 [reload](reload.md#designing-for-reload) re-reads it, and keep `PLUGIN_START_ONLY` for what the
 server allows once.
 

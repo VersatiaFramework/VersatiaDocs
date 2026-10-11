@@ -76,10 +76,12 @@ Nothing marks `Clock` as foreign. It is requested like any other dependency.
 | `@LocalBean`              | nothing: local beans are invisible outside their plugin             |
 
 A prototype is created by the owner's factory, with the constructor arguments the owner resolved at
-its own start, except that a parameter typed `VersatiaPlugin` (or a supertype) receives the
-consumer's own instance: a `PluginSession(val plugin: VersatiaPlugin, ...)` made for the consumer
-knows which plugin it serves. In the log the line comes from Shop's class, but on behalf of the
-consumer.
+its own start, except for what depends on the consumer: a parameter typed `VersatiaPlugin` (or a
+supertype) receives the consumer's own instance, so a `PluginSession(val plugin: VersatiaPlugin, ...)`
+made for the consumer knows which plugin it serves, and a parameter typed by another prototype
+receives the instance of that prototype made for the consumer. In the log the line comes from
+Shop's class, but on behalf of the consumer. A prototype instance implementing `Reloadable` is
+reloaded with the consumer, not with Shop; see [Reloading plugins](../lifecycle/reload.md#reloadable-beans).
 
 ## When the bean is missing
 

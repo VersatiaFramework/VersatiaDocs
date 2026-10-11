@@ -10,6 +10,9 @@ page is for building the framework itself; plugin authors only need the
 |------------------------------|----------------------------------------------------------------------|
 | `VersatiaAPI`                | `VersatiaAPI` (API) and `VersatiaAPI-ksp` (processor), published to the local Maven repository |
 | `VersatiaCore`               | the server plugin JAR, bundling the VersatiaAPI classes; a private repository, built by the Versatia team |
+| `VersatiaModule-<Name>`      | a [module](../modules/index.md)'s API, published to the local Maven repository                |
+| `VersatiaModule-<Name>Impl`  | the module's plugin JAR, bundling its API classes; private, like VersatiaCore                 |
+| `VersatiaStarter`            | `VersatiaStarter`, the one dependency a plugin build needs: it exports VersatiaAPI and the module APIs |
 | `VersatiaExample-*`          | the example plugins, one repository per feature; see [Example plugins](../examples/index.md) |
 | `VersatiaDocs`               | this site                                                            |
 
@@ -28,8 +31,27 @@ cd VersatiaCore && ./gradlew build
 ```
 
 ```bash
+cd VersatiaModule-Text && ./gradlew publishToMavenLocal
+```
+
+```bash
+cd VersatiaModule-Messages && ./gradlew publishToMavenLocal
+```
+
+```bash
+cd VersatiaStarter && ./gradlew publishToMavenLocal
+```
+
+```bash
+cd VersatiaModule-TextImpl && ./gradlew build
+```
+
+```bash
 cd VersatiaExample-DI-Beans && ./gradlew build
 ```
+
+The module APIs and the starter are needed only by the module examples and the template; the
+examples of single framework features build with VersatiaAPI alone.
 
 Every example repository builds the same way; the two-plugin examples are single Gradle builds
 with one module per plugin.
@@ -75,8 +97,10 @@ VersatiaCore's end-to-end test compile sample plugins with it in-process.
   VersatiaAPI is not published remotely and Paper's `libraries:` mechanism cannot fetch it.
   `kotlin-stdlib` and `kotlin-reflect` stay under `libraries:`; VersatiaCore is the only plugin that
   lists them.
-- Example plugins depend on `VersatiaAPI` with `implementation` and on `VersatiaAPI-ksp`
-  with `ksp`; in the two-plugin examples the second module adds the first as `compileOnly`.
+- Example plugins depend on `VersatiaAPI` (or, where they use modules, on `VersatiaStarter`) with
+  `implementation` and on `VersatiaAPI-ksp` with `ksp`; in the two-plugin examples the second
+  module adds the first as `compileOnly`. Module JARs bundle their own API classes the way
+  VersatiaCore bundles VersatiaAPI.
 
 ## This documentation
 

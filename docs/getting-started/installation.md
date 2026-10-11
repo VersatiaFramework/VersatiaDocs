@@ -33,6 +33,17 @@ next to it; VersatiaCore lists these under `softdepend:` and nothing else change
 |------------------------------------------|---------|--------------------------------------------------------------|
 | [CommandAPI](https://commandapi.dev/)    | 12.x    | the `/versatia` command, today [`/versatia reload`](../lifecycle/reload.md) |
 
+### Modules
+
+Features beyond the runtime come as [modules](../modules/index.md), one plugin JAR each, installed
+next to VersatiaCore when a plugin on the server needs them; each plugin lists the modules it uses
+under `depend:`.
+
+| Module JAR                          | Plugin name               | Needs                      |
+|-------------------------------------|---------------------------|----------------------------|
+| `VersatiaModule-Text-0.0.1.jar`     | `VersatiaModule-Text`     | VersatiaCore               |
+| `VersatiaModule-Messages-0.0.1.jar` | `VersatiaModule-Messages` | VersatiaCore, VersatiaModule-Text |
+
 ## In your build
 
 A Versatia plugin is an ordinary Kotlin/JVM Gradle project with the KSP plugin applied.
@@ -59,7 +70,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.marcoral.versatia:VersatiaAPI:0.0.1")
+    implementation("com.github.marcoral.versatia:VersatiaStarter:0.0.1")
     ksp("com.github.marcoral.versatia:VersatiaAPI-ksp:0.0.1")
 }
 
@@ -75,7 +86,8 @@ kotlin {
 }
 ```
 
-1. VersatiaAPI is resolved from the local Maven repository until it is published remotely.
+1. The Versatia artifacts are resolved from the local Maven repository until they are published
+   remotely.
 2. VersatiaAPI exports the Paper API, but Gradle never inherits repositories, so the Paper
    repository has to be declared here.
 
@@ -100,8 +112,11 @@ Two dependencies, nothing else:
 
 | Dependency                | Configuration    | Role                                                                 |
 |---------------------------|------------------|----------------------------------------------------------------------|
-| `VersatiaAPI`             | `implementation` | the API: annotations, `VersatiaPlugin`, utilities. Also brings the Paper API, `kotlin-stdlib` and `kotlin-reflect` onto the compile classpath, so you do not declare those |
-| `VersatiaAPI-ksp`         | `ksp`            | the code generator. Lives on the annotation-processing classpath only and never reaches the server |
+| `VersatiaStarter`         | `implementation` | the starter, in the spirit of Spring Boot's: no code, it exports `VersatiaAPI` (annotations, `VersatiaPlugin`, utilities, and with it the Paper API, `kotlin-stdlib` and `kotlin-reflect`) and the API of every [module](../modules/index.md), so you declare none of those |
+| `VersatiaAPI-ksp`         | `ksp`            | the code generator. Lives on the annotation-processing classpath only and never reaches the server; it cannot come through the starter, because Gradle does not fill the `ksp` configuration transitively |
+
+A plugin that uses no module may depend on `com.github.marcoral.versatia:VersatiaAPI` instead of
+the starter; the [examples](../examples/index.md) of single framework features do.
 
 There is no configuration block for the processor. It finds your plugin's main class on its own
 and places the generated descriptor next to it.

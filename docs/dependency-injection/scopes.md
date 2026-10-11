@@ -46,6 +46,11 @@ not need to provide (or even know) the prototype's other dependencies. Because a
 that parameter must be typed `VersatiaPlugin` or one of its supertypes (`JavaPlugin`, `Plugin`);
 the owner's concrete class is a compile error. The owner's own instance is never handed out.
 
+A parameter satisfied by another prototype, the owner's own or one exposed by a third plugin, is
+resolved for the consumer as well: the instance is the one the consumer's own beans share. A
+`Messages` prototype taking a `Text` prototype therefore gives each consumer a chain of instances
+made for it, which is how [modules](../modules/index.md) build on each other.
+
 ## Processors
 
 Each scope is interpreted by its own runtime processor, named in the annotation and recorded in

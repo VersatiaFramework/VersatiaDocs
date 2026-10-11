@@ -46,6 +46,12 @@ Two plugins: a provider exposing a singleton and a prototype, and a consumer inj
 <ExampleCard repo="VersatiaExample-Enhancements-Custom" file="library/src/main/kotlin/com/github/marcoral/versatia/example/timing/TimedEnhancementProcessor.kt">
 An enhancement of your own: a library plugin defines <code>@Timed</code> and its processor, another plugin uses it.
 </ExampleCard>
+<ExampleCard repo="VersatiaExample-Modules-Text" file="src/main/kotlin/com/github/marcoral/versatia/example/text/TextPlugin.kt">
+The Text module: MiniMessage with runtime arguments, <code>&lt;offer:price&gt;</code> and <code>&lt;player:location&gt;</code> decided by the text.
+</ExampleCard>
+<ExampleCard repo="VersatiaExample-Modules-Messages" file="src/main/resources/resources/messages" fileLabel="messages/">
+The Messages module: files under <code>messages/</code> become a bank reloaded with the plugin, sent with arguments.
+</ExampleCard>
 </ExampleGrid>
 
 ## Adding an example

@@ -32,6 +32,12 @@ const sidebars: SidebarsConfig = {
     'optional-plugins',
     {
       type: 'category',
+      label: 'Modules',
+      link: {type: 'doc', id: 'modules/index'},
+      items: ['modules/text', 'modules/messages'],
+    },
+    {
+      type: 'category',
       label: 'Utilities',
       link: {type: 'doc', id: 'utilities/index'},
       items: ['utilities/configuration', 'utilities/collections', 'utilities/misc'],
