@@ -88,8 +88,9 @@ closed. See [Enhancements and processors](enhancements.md#plugin-state).
 Next to the phase, the enhancer applies one more generic filter: an element whose target carries
 `@ConditionalOnPlugin` is dispatched only when every plugin it names is enabled, asked from the
 server's `PluginManager`. A function element also records the attributes of its declaring class,
-so a conditional bean or `object` takes its `@AutoInvoke` functions with it. Skipped
-elements are logged at `FINE` with the missing plugins. The filter reads the recorded attribute
+so a conditional bean or `object` takes its `@AutoInvoke` functions with it. The skipped
+classes and the missing plugins are logged at `INFO` when the plugin starts
+(`Skipped VersatiaCommand: CommandAPI is not installed`). The filter reads the recorded attribute
 and knows no feature; see [Optional plugins](../optional-plugins.md).
 
 ## Commands

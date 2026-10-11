@@ -70,7 +70,7 @@ class, and when it names no plugin.
 The compile-time step records the annotation as an attribute of the element; a function element
 also records the attributes of its declaring class. At every lifecycle event the runtime keeps the
 elements whose phase applies and whose plugins are enabled, and dispatches only those; a skipped
-element is logged at `FINE`. The check is
+element is logged at `INFO` when the plugin starts: `Skipped VersatiaCommand: CommandAPI is not installed`. The check is
 `PluginManager.isPluginEnabled(name)`, nothing is loaded to find out. VersatiaCore's own
 `/versatia reload` is declared this way, conditional on the CommandAPI plugin; see
 [Reloading plugins](lifecycle/reload.md).

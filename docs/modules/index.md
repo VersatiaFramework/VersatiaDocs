@@ -11,7 +11,7 @@ lists the ones it uses.
 
 | Module   | Repository                                                                                  | What it gives you                                                 |
 |----------|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------|
-| Text     | [VersatiaModule-Text](https://github.com/VersatiaFramework/VersatiaModule-Text)             | [MiniMessage text with runtime arguments](text.md): `<player:name>` |
+| Text     | [VersatiaModule-Text](https://github.com/VersatiaFramework/VersatiaModule-Text)             | [MiniMessage text with runtime arguments](text.md): `{player.name}` |
 | Messages | [VersatiaModule-Messages](https://github.com/VersatiaFramework/VersatiaModule-Messages)     | [a bank of messages per plugin](messages.md), read from its `messages/` directory and reloaded with it |
 
 ## Using a module
@@ -56,7 +56,7 @@ your plugin and lets your class loader see its classes.
 @LocalBean
 class Shop(private val text: Text) {
     fun offer(player: Player, item: ItemStack) =
-        player.sendMessage(text.parse("<green>Buy <item> for <price>?", arg("item", item), arg("price", 5)))
+        player.sendMessage(text.parse("<green>Buy {item} for {price}?", arg("item", item), arg("price", 5)))
 }
 ```
 

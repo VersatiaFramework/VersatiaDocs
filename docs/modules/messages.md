@@ -36,8 +36,8 @@ puts them into `plugins/<Name>/messages/` on the first start, where server owner
 ```yaml
 # messages/shop.yml
 shop:
-  open: "<green>The shop is open: <offers> offers today."
-  bought: "<green><player> bought <item> for <gold><price></gold> coins."
+  open: "<green>The shop is open: {offers} offers today."
+  bought: "<green>{player} bought {item} for <gold>{price}</gold> coins."
   closed:
     - "<red>The shop is closed."
     - "<gray>Come back tomorrow."
@@ -51,8 +51,8 @@ shop:
 | the file name and directory      | nothing: files only organise messages, a key may move between them |
 | the same key in two files        | an error naming both files                                         |
 
-The text is [MiniMessage](https://docs.advntr.dev/minimessage/format.html) with the Text module's
-arguments: `<player>`, `<player:name>`, `<item:amount>`, as the
+The text is [MiniMessage](https://docs.advntr.dev/minimessage/format.html) in angle brackets with
+the Text module's arguments in braces: `{player}`, `{player.name}`, `{item.amount}`, as the
 [Text page](text.md#arguments-and-properties) describes.
 
 ## Sending
@@ -64,7 +64,7 @@ messages, `keys` for all of them.
 
 | On a `Message`                       | Does                                                                |
 |--------------------------------------|---------------------------------------------------------------------|
-| `get()`                              | the component, parsed once when the file was read                   |
+| `get()`                              | the component; a message without arguments was parsed once when the file was read, one with arguments fails here with the first missing argument |
 | `get(arg("item", item), ...)`        | the component with the arguments, parsed for the call               |
 | `send(audience, ...arguments)`       | sends it to a player, the console, any `Audience`                   |
 | `broadcast(...arguments)`            | sends it to every online player and the console                     |
