@@ -19,6 +19,9 @@ repository, and runs on a server with VersatiaCore installed. Repositories are n
 <ExampleCard repo="VersatiaExample-Resources-Extraction" file="src/main/resources/resources" fileLabel="resources/">
 Files shipped under <code>resources/</code> in the JAR appear in the data folder when the plugin starts. Nothing to declare.
 </ExampleCard>
+<ExampleCard repo="VersatiaExample-Config-Values" file="src/main/kotlin/com/github/marcoral/versatia/example/values/Shop.kt">
+<code>@Value</code> properties on the main class, an object and a bean, set from two YAML files and re-read with <code>/versatia reload</code>.
+</ExampleCard>
 <ExampleCard repo="VersatiaExample-DI-Beans" file="src/main/kotlin/com/github/marcoral/versatia/example/beans/Beans.kt">
 Three local beans created in dependency order, one of them taking the plugin instance, which is a bean without any annotation.
 </ExampleCard>

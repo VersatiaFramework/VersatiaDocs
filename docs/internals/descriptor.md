@@ -21,18 +21,20 @@ The descriptor is deliberately **flat**: a format version and a list of `Enhance
 | `processorClass`           | the processor that interprets it, for example `com.github.marcoral.versatia.di.LocalBeanEnhancementProcessor` |
 | `phase`                    | the `EventType` at which it runs; see [Phases and events](../lifecycle/phases.md) |
 | `annotation`               | the enhancement annotation that produced it, with all its arguments        |
-| `target`                   | what was annotated: a `ClassTarget`, a `FunctionTarget` or a `PluginTarget` |
+| `target`                   | what was annotated: a `ClassTarget`, a `FunctionTarget`, a `PropertyTarget` or a `PluginTarget` |
 | `origin`                   | the class the annotation is physically written on: the target's own class, a base class of the main class for inherited enhancements, or the class carrying a [subclass enhancement](enhancements.md#subclass-enhancements) |
 
 No iteration order, grouping or phase structure is baked into the file; the runtime decides how to
 walk it. Changing how VersatiaCore iterates therefore never requires regenerating plugins.
 
-### `AnnotationOccurrence` and `Parameter`
+### `AnnotationOccurrence`, `Parameter` and `TypeReference`
 
 An `AnnotationOccurrence` is an annotation as written at one place: its class name and its
 arguments, defaults included. Values are strings, booleans, numbers, chars, enum entry names,
 class names and lists of those. A `Parameter` is a constructor or function parameter: its type and
-the [attributes](enhancements.md#versatiaattribute) written on it.
+the [attributes](enhancements.md#versatiaattribute) written on it. A `TypeReference` is a type as
+written on a property: a Kotlin qualified name, its type arguments and whether it is nullable,
+`kotlin.collections.List<kotlin.Int>?`.
 
 ### `ClassTarget`
 
@@ -55,11 +57,28 @@ A function the runtime may call.
 | `className`       | Kotlin qualified name of the declaring class                                |
 | `binaryClassName` | JVM name of the declaring class (`com.example.Outer$Inner`)                 |
 | `functionName`    | the function                                                                |
-| `owner`           | `PLUGIN`, `OBJECT` or `INSTANCE`: who holds the instance to call it on; `INSTANCE` means the processor must obtain it (for `@AutoInvoke`, the bean of that class) |
+| `owner`           | a `MemberOwner`: `PLUGIN`, `OBJECT` or `INSTANCE`, who holds the instance to call it on; `INSTANCE` means the processor must obtain it (for `@AutoInvoke`, the bean of that class) |
 | `annotations`     | the attributes written on the function                                      |
 | `parameters`      | one `Parameter` per parameter                                               |
 | `invoker`         | how to call it with a receiver and resolved arguments                        |
 | `classAnnotations` | the attributes written on the declaring class, for what applies to a whole class such as `@ConditionalOnPlugin` |
+
+### `PropertyTarget`
+
+A mutable property the runtime may set.
+
+| Field              | Meaning                                                                     |
+|--------------------|-----------------------------------------------------------------------------|
+| `className`        | Kotlin qualified name of the declaring class                                |
+| `binaryClassName`  | JVM name of the declaring class                                             |
+| `propertyName`     | the property                                                                |
+| `owner`            | a `MemberOwner`, as for a function                                          |
+| `type`             | the property's type as a `TypeReference`; what a processor reads for it      |
+| `annotations`      | the attributes written on the property                                      |
+| `setter`           | how to assign it on a receiver                                              |
+| `classAnnotations` | the attributes written on the declaring class                               |
+
+[`@Value`](../configuration.md) produces these.
 
 ### `PluginTarget`
 
@@ -84,13 +103,18 @@ Private beans and a private auto-invoked function; compare the direct and reflec
     ```kotlin
     Instantiator.Direct { args -> ConsoleGreeter(args[0] as Clock) }
     Invoker.Direct { instance, args -> (instance as MyPlugin).start(args[0] as Clock) }
+    Setter.Direct { instance, value -> (instance as Shop).tax = value as Percent }
     ```
 
     No reflection, no `setAccessible`.
 
-- **`Instantiator.Reflective` / `Invoker.Reflective`** otherwise. They store JVM binary names and
+- **`Instantiator.Reflective` / `Invoker.Reflective` / `Setter.Reflective`** otherwise. They store JVM binary names and
   at runtime load the class **without initialising it** (`Class.forName(name, false, loader)`),
-  find the matching declared constructor or method and make it accessible.
+  find the matching declared constructor, method or property and make it accessible. A property
+  with a `private set` is reflective too, however visible the property itself is. A
+  `Setter.Reflective` with a third argument, `"value"`, reads the property and stores into that
+  member of what it holds, which is how a `val` holding a `PreviousValueTracking` is filled;
+  the direct form is `Setter.Direct { _, value -> Limits.max.value = value as Int }`.
 - A Kotlin `object` reached through a subclass enhancement is named directly
   (`Instantiator.Direct { _ -> Console }`) when visible and read from its `INSTANCE` field
   (`Instantiator.ObjectInstance`) otherwise.
@@ -119,7 +143,7 @@ the processor emits (shortened):
 ```kotlin
 object VersatiaDescriptor : VersatiaPluginDescriptor {
   override val formatMajor: Int = 1
-  override val formatMinor: Int = 0
+  override val formatMinor: Int = 1
 
   override val elements: List<EnhancedElement>
     get() = listOf(
@@ -182,7 +206,7 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
 ## Format version
 
 The format has its own `major.minor` version, `VersatiaPluginDescriptor.FORMAT_VERSION`, currently
-**`1.0`**. It is independent of the library version. A runtime accepts exactly the version it was
+**`1.1`**. It is independent of the library version. A runtime accepts exactly the version it was
 built with and rejects any other with a message naming the plugin, both versions and the fix; see
 [The runtime](runtime.md#descriptor-format-compatibility).
 

@@ -28,6 +28,7 @@ const sidebars: SidebarsConfig = {
       items: ['lifecycle/auto-invoke', 'lifecycle/phases', 'lifecycle/reload'],
     },
     'resources',
+    'configuration',
     'events',
     'optional-plugins',
     {

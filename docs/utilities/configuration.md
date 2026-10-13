@@ -1,6 +1,8 @@
 # Configuration
 
-Package `com.github.marcoral.versatia.util.config`.
+Package `com.github.marcoral.versatia.util.config`. A value a plugin only has to hold needs none
+of this: mark the property [`@Value`](../configuration.md) and the runtime reads it with these
+getters.
 
 ## Strict getters
 
@@ -24,9 +26,10 @@ config.ifStringPresent("motd") { server.motd(Component.text(it)) }
 val slots = config.getUIntList("slots")
 ```
 
-Supported `X`: `Boolean`, `Int`, `Long`, `Double`, `UInt`, `ULong`, `String`, `Percent`,
+Supported `X`: `Boolean`, `Int`, `Long`, `Float`, `Double`, `UInt`, `ULong`, `String`, `Percent`,
 `Color`, `ItemStack`, `Location`, `Vector`, `OfflinePlayer`, `ConfigurationSection` and any enum
-(`getEnumElementOrThrow<Material>("block")`). Not every family exists for every type; the IDE
+(`getEnumElementOrThrow<Material>("block")`, or `getEnumElementOrThrow("block", enumClass)` for
+an enum class known only at runtime). Not every family exists for every type; the IDE
 completion shows what is there.
 
 "Invalid" is type-specific and strict:

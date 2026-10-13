@@ -59,7 +59,8 @@ This buys three things:
 - **Encapsulation kept.** Beans, constructors and functions may be `private`. Generated code calls
   visible members directly and uses reflection only where it has to.
 - **Nothing to boilerplate.** The main class is a bean, the files under `resources/` in the JAR
-  land in the data folder, and every `Listener` is registered, without a line of code. An
+  land in the data folder, a configuration value is a `@Value` property set from them and re-read
+  on reload, and every `Listener` is registered, without a line of code. An
   integration with a plugin that may be absent is one annotation, `@ConditionalOnPlugin`.
 
 ## What is in the box

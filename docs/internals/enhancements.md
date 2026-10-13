@@ -17,12 +17,12 @@ implies.
 - **Enhancement**: an annotation whose occurrences the framework acts on. It names its processor
   class and the phase it runs at with `@VersatiaEnhancement` (`com.github.marcoral.versatia`).
 - **Element**: one recorded occurrence in the descriptor, with the processor class, the phase, the
-  annotation as written and the target (a class, a function or the plugin's main class).
+  annotation as written and the target (a class, a function, a property or the plugin's main class).
 - **Processor**: the class, loaded by name, that receives the elements naming it and does something
   with them. Processors live in VersatiaCore, or in any plugin the enhanced plugin depends on.
 - **Attribute**: an annotation marked `@VersatiaAttribute`. Wherever it appears on an enhanced
-  class, its constructor parameters, an enhanced function or its parameters, the descriptor
-  records it with its arguments, so processors can read it. `@Qualifier` and `@Primary` are
+  class, its constructor parameters, an enhanced function or its parameters, or an enhanced
+  property, the descriptor records it with its arguments, so processors can read it. `@Qualifier` and `@Primary` are
   attributes.
 - **Annotation inheritance**: an annotation class annotated with another annotation *inherits* it,
   transitively. When `@LocalBean` is annotated with `@Bean` and `@VersatiaEnhancement`, every
@@ -164,6 +164,7 @@ The built-in processors, all in VersatiaCore:
 | `.di.ExposeSingletonEnhancementProcessor`                     | `ClassTarget`s of `@ExposeSingleton`                          |
 | `.di.ExposePrototypeEnhancementProcessor`                     | `ClassTarget`s of `@ExposePrototype`                          |
 | `.lifecycle.AutoInvokeEnhancementProcessor`                   | `FunctionTarget`s of `@AutoInvoke`                            |
+| `.config.ValueEnhancementProcessor`                           | `PropertyTarget`s of `@Value`                                 |
 | `.resources.ExtractResourcesEnhancementProcessor`             | the `PluginTarget` of the main class, sent by `@ExtractResources` |
 | `.event.RegisterListenersEnhancementProcessor`                | every `Listener` of the plugin, sent by `@RegisterListeners` |
 
@@ -288,7 +289,8 @@ The compile-time step records every function carrying `@Timed` as a `FunctionTar
 plugin's class loader; injected parameters come from the plugin's `BeanResolver`, the same contract
 `@AutoInvoke` uses. Nothing in VersatiaCore changes. The compile-time step still enforces the general
 rules on enhanced functions (no extension, suspend, abstract or generic functions; injectable
-parameters) and on enhanced classes.
+parameters), on enhanced properties (a `var` of the main class, an object or a bean) and on
+enhanced classes.
 
 ## How the compile-time step works
 
@@ -302,12 +304,14 @@ The `ksp` module of VersatiaAPI runs once per compilation:
    (processor class and phase), attributes, constructor parameters with their attributes,
    assignable types, reachability. The main class becomes a plugin declaration under the fixed
    name `plugin`.
-3. It collects functions annotated with an enhancement, checks their owner kind and parameters.
+3. It collects functions annotated with an enhancement, checking their owner kind and parameters,
+   and properties annotated with one, checking their owner kind, mutability and, for `@Value`,
+   their type.
 4. It validates the bean graph, the plugin included: duplicate names, qualifier mismatches,
    ambiguity, cycles.
 5. It builds the descriptor with KotlinPoet and writes it through KSP's `CodeGenerator` as an
    aggregating output depending on all source files.
 
 Any error stops the build and suppresses the descriptor. The module mirrors the feature packages
-of the API (`ksp.di`, `ksp.lifecycle`); the generic parts, among them the resolution of inherited
+of the API (`ksp.di`, `ksp.lifecycle`, `ksp.config`); the generic parts, among them the resolution of inherited
 enhancements and the recording of attributes, sit in `ksp` itself.

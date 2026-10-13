@@ -138,10 +138,13 @@ every supertype, is never exposed, and nothing is constructed for it. Its elemen
 ### Reloadable beans
 
 The session adopts every instance it makes or obtains, its own beans and the prototype instances
-made for its plugin, and an adopted instance implementing `Reloadable` is reloaded at once and
-remembered in creation order. At the reload event the plugin-bean processor reloads them all in
-that order, synchronously, while auto-invoked functions run in a completion action, so
-reload-phase functions always see reloaded beans. A throwing `reload()` is wrapped as
+made for its plugin, and remembers the adopted instances implementing `Reloadable` in creation
+order. They are first reloaded in the completion action of the start event, once every bean
+exists, which is after the value processor set the plugin's `@Value` properties in `process`;
+at the reload event the plugin-bean processor reloads them all in a completion action of its
+own, again after the values. Both actions precede the auto-invoke processor's, so functions
+always see reloaded beans. An instance adopted after that first pass, obtained by a function at
+a later event say, is reloaded as soon as it is adopted. A throwing `reload()` is wrapped as
 `Plugin X: <class> failed to reload`. Exposed singletons belong to their owner's session only.
 
 ### Resolution
@@ -195,12 +198,27 @@ that any processor may use, and registers a completion action, so functions run 
 processor of the event has finished. Functions run in descriptor order (class name, then function
 name). For each function the processor
 
-1. picks the receiver by `FunctionOwner`: the plugin instance from the context, the `INSTANCE` of a
-   Kotlin `object`, or, for `FunctionOwner.INSTANCE`, the bean of that class from the plugin's
+1. picks the receiver by `MemberOwner`: the plugin instance from the context, the `INSTANCE` of a
+   Kotlin `object`, or, for `MemberOwner.INSTANCE`, the bean of that class from the plugin's
    session (`no bean X exists to call X.f() on` otherwise);
 2. resolves the parameters through the bean session with the rules above;
 3. calls the `Invoker`. Any exception is wrapped in an `EnhancementException` naming the function
    and the event, with the original as cause.
+
+## Configuration values
+
+`ValueEnhancementProcessor` receives the `PropertyTarget`s that [`@Value`](../configuration.md)
+produced and works in `process` itself, so the values are in place before any completion
+action: before the reloadable beans reload and before the functions run. The descriptor lists
+the properties after the beans, so by then every scope has declared its beans and the resources
+are extracted; a property of a bean asks the `BeanResolver` for the instance, which makes the
+session create all beans. The processor loads each file named by the elements once, reads every
+value with the strict getters of `util.config` according to the recorded `TypeReference`, or
+through the `ValueMapper` the annotation names (an enum or mapper class is loaded through the
+plugin's class loader), and only then assigns them, each on its receiver by `MemberOwner` like
+a function: so a broken file leaves every property as it was. A missing non-nullable value, a
+wrong shape, a mapper that throws or a missing file is an `EnhancementException` naming the
+plugin, the property and the file.
 
 ## Plugin resources
 
@@ -229,6 +247,8 @@ the plugin instance as a bean, phases, missing processors), cover processor load
 cover descriptor lookup and the format-version rule. An end-to-end test compiles three sample
 plugins with the real VersatiaAPI KSP processor (`kotlin-compile-testing`), builds class loaders
 that delegate the way Bukkit's plugin loaders do, and runs the runtime over the generated
-descriptors at start, reload and stop. The runtime's registry, friendly names, the reload event and
-`@ConditionalOnPlugin` are covered with hand-written descriptors; the command itself needs a
-server and is not unit-tested.
+descriptors at start, reload and stop, and a second one does the same for a plugin with `@Value`
+properties. The runtime's registry, friendly names, the reload event, `@ConditionalOnPlugin` and
+the value processor (every owner, reload, missing and invalid values, private and inline-class
+properties) are covered with hand-written descriptors; the command itself needs a server and is
+not unit-tested.

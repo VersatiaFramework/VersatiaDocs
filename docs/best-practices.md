@@ -45,10 +45,10 @@ its processors in VersatiaCore.
 |------------------------------------------------|---------------------------------------------------------------------------------|
 | the root                                       | the enhancement mechanism (`@VersatiaEnhancement`, `@VersatiaAttribute`, `EnhancementProcessor`, `EnhancementContext`, `StateStore`, the phases) and the plugin bootstrap (`VersatiaPlugin`, `VersatiaEngine`); in VersatiaCore also the runtime pipeline |
 | `engine.*`                                     | technical internals that deliver no feature of their own but are needed for the framework to work, such as `engine.descriptor` |
-| `di`, `lifecycle`, …                           | one feature each: definitions in the API, processors in the runtime             |
+| `di`, `lifecycle`, `config`, …                 | one feature each: definitions in the API, processors in the runtime             |
 | `<anything>.command`                           | the commands of a feature or of a plugin, always in a subpackage named `command` (`engine.command` holds `/versatia`) |
 | `util.*`                                       | independent helpers over the Paper API, grouped by the domain they touch        |
-| `ksp`, `ksp.<feature>`                         | the compile-time step: generic parts in `ksp`, feature-specific collectors and checks in `ksp.di`, `ksp.lifecycle` |
+| `ksp`, `ksp.<feature>`                         | the compile-time step: generic parts in `ksp`, feature-specific collectors and checks in `ksp.di`, `ksp.lifecycle`, `ksp.config` |
 
 There are no packages named after layers (`core`, `service`, `impl`): a reader looking for
 "everything about beans" opens `di` in both repositories and finds it.
@@ -82,14 +82,18 @@ There are no packages named after layers (`core`, `service`, `impl`): a reader l
 
 ## Reloadable plugins
 
-- **A bean whose state comes from files implements `Reloadable`** and reads them in `reload()`,
-  which the runtime calls after creation and at every reload, dependencies first and before any
-  auto-invoked function. The consumer of such a bean, or of a module built this way, writes nothing
-  to make `/versatia reload` work.
-- **Configuration is otherwise read at `PLUGIN_RELOAD_OR_START`, never in a constructor.** Constructors
-  wire dependencies and run once; a `PLUGIN_RELOAD_OR_START` function reads files and rebuilds
-  what derives from them, so `/versatia reload` picks changes up. `PLUGIN_RELOAD_ONLY` is for what
-  a reload adds on top of a start, `PLUGIN_START_ONLY` for what the server allows once.
+- **A plugin's configuration is [`@Value` properties](configuration.md).** The runtime sets them
+  from the shipped files at start and at every reload, before anything else of the event; a type
+  the runtime does not read gets a `ValueMapper`. The default lives in the file, not in the code,
+  and a missing value is reported instead of silently defaulted.
+- **`Reloadable` is for the prototypes of modules.** An instance a module makes for a consuming
+  plugin reads that plugin's files and has no other way to follow its reloads; `reload()` is
+  called once the consumer's values are set and at every reload. A plugin's own bean never
+  implements it: that is a module's job done by hand, and `@Value` does it.
+- **What derives from the values is rebuilt at `PLUGIN_RELOAD_OR_START`, never in a constructor.**
+  Constructors wire dependencies and run once; a `PLUGIN_RELOAD_OR_START` function sees the new
+  values and rebuilds caches, recipes, tasks. `PLUGIN_RELOAD_ONLY` is for what a reload adds on
+  top of a start, `PLUGIN_START_ONLY` for what the server allows once.
 - **Listeners and tasks read the beans' current state** instead of copying values when they are
   created; a reload does not re-register them. See [Reloading plugins](lifecycle/reload.md#designing-for-reload).
 
@@ -154,8 +158,8 @@ Keep that list short. A fact that only one feature interprets belongs to that fe
 
 ## Encapsulation
 
-Beans, constructors, functions and their parameter types may be `private`. The generator emits a
-direct call when the generated code can see the member and a reflective fallback otherwise, never
+Beans, constructors, functions, properties and their types may be `private`. The generator emits a
+direct call or assignment when the generated code can see the member and a reflective fallback otherwise, never
 asking the author to widen visibility and never initialising classes as a side effect. New element
 kinds follow the same rule: offer a `Direct` variant and a `Reflective` one.
 

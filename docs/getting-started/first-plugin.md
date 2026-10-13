@@ -88,7 +88,7 @@ Shortened, it reads:
 ```kotlin
 object VersatiaDescriptor : VersatiaPluginDescriptor {
   override val formatMajor: Int = 1
-  override val formatMinor: Int = 0
+  override val formatMinor: Int = 1
 
   override val elements: List<EnhancedElement>
     get() = listOf(
@@ -128,7 +128,7 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
           className = "com.example.myplugin.MyPlugin",
           binaryClassName = "com.example.myplugin.MyPlugin",
           functionName = "start",
-          owner = FunctionOwner.PLUGIN,
+          owner = MemberOwner.PLUGIN,
           annotations = emptyList(),
           parameters = listOf(Parameter("com.example.myplugin.PriceList")),
           invoker = Invoker.Reflective("com.example.myplugin.MyPlugin", "start", listOf("com.example.myplugin.PriceList")),

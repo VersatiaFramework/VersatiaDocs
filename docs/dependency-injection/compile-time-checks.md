@@ -1,6 +1,6 @@
 # Compile-time checks
 
-The KSP processor validates the plugin's beans and functions and stops the build with an error
+The KSP processor validates the plugin's beans, functions and properties and stops the build with an error
 pointing at the offending declaration. When any check fails, **no descriptor is generated**, so a
 broken graph can never reach a server.
 
@@ -51,12 +51,26 @@ A function marked `@AutoInvoke` is rejected when it
   (`start must not be suspend to be enhanced`);
 - has a parameter the bean rules above would reject, or an ambiguous one.
 
+## Configuration values
+
+A property marked [`@Value`](../configuration.md) is rejected when it
+
+- is a `val` (`Shop.tax must be a var to be enhanced`) that holds no `PreviousValueTracking`, a
+  nullable `PreviousValueTracking`, an extension or abstract property;
+- is top-level (`top cannot be enhanced: it is a top-level property; move it into the plugin's
+  main class, an object or a bean`) or belongs to a plain class;
+- has a type the runtime cannot read (`@Value on Shop.when: Date? is not a supported type;
+  supported are ...`), a nullable element (`the elements of List<Int?> must not be nullable`) or a
+  map with non-`String` keys, and names no mapper;
+- names a mapper that is not an `object` or a class with a no-argument constructor, or whose
+  result the property cannot hold (`mapper TicksFromSeconds maps to Long, which Int cannot hold`).
+
 ## Attributes the runtime reads
 
 - `@FriendlyName` anywhere but on the main class (`@FriendlyName on Config has no effect: it
   belongs on the plugin's main class`), or with a name that is not one word;
 - `@ConditionalOnPlugin` on the main class, on a class that is neither enhanced nor declares an
-  enhanced function, on a function without an enhancement (`@ConditionalOnPlugin on Tools.plain() has no
+  enhanced function or property, on a function without an enhancement (`@ConditionalOnPlugin on Tools.plain() has no
   effect: the function is not enhanced`), or naming no plugin.
 
 ## Enhancement annotations

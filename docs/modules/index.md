@@ -4,7 +4,7 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
 VersatiaCore is a runtime, not a toolkit: it reads descriptors and runs processors, and the only
-features it knows are beans, lifecycle phases, resources and listeners. Everything else a plugin
+features it knows are beans, lifecycle phases, configuration values, resources and listeners. Everything else a plugin
 uses day to day comes as a **module**: a plugin of its own, written against VersatiaAPI like any
 other, that exposes a bean. A server installs the modules it needs next to VersatiaCore; a plugin
 lists the ones it uses.
@@ -90,6 +90,8 @@ and the module fits the ecosystem.
   (or `Plugin`), which a prototype receives as the consuming plugin.
 - **Implement `Reloadable`** on the prototype when it reads anything from the consumer's data
   folder, and read it in `reload()`; see [Reloadable beans](../lifecycle/reload.md#reloadable-beans).
+  This is what the hook exists for: a plugin's own files are `@Value` properties, a module's
+  prototype has no other way to follow the consumer's reloads.
 - **Two repositories, like VersatiaAPI and VersatiaCore.** `VersatiaModule-<Name>` is the public
   API, published as `com.github.marcoral.versatia:VersatiaModule-<Name>`: the interfaces, value
   types and exceptions a consumer sees. `VersatiaModule-<Name>Impl` is the implementation, private,

@@ -41,6 +41,8 @@ class Messages(plugin: JavaPlugin) {
 ```
 
 `loadYamlOrThrow` and the strict getters come from the [configuration utilities](utilities/configuration.md).
+A single value needs none of that: a [`@Value` property](configuration.md) is set from the
+extracted file, so the shipped file is where the defaults live.
 
 ## Why every plugin has it
 

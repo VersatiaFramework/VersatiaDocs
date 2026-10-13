@@ -50,6 +50,26 @@ The annotation sits on a class that is neither enhanced nor declares an enhanced
 function without an enhancement, or on the main class. Put it on a bean, a listener, an `object`
 with `@AutoInvoke` functions, or such a function. See [Optional plugins](optional-plugins.md).
 
+### `X.y must be a var to be enhanced`
+
+`@Value` sits on a `val`. The runtime sets the property, so it must be a `var` (or `lateinit var`).
+The same family of messages rejects a top-level property (`move it into the plugin's main class,
+an object or a bean`) and a property of a plain class. See
+[Configuration values](configuration.md).
+
+### `@Value on X.y: T is not a supported type`
+
+The property's type is not one the runtime can read: the message lists what is
+(scalars, enums, the Bukkit types, `List`, `Set` and `Map<String, T>` of scalars and enums, any of
+them nullable). Name a [mapper](configuration.md#mappers) in `@Value(mapper = ...)` for a
+structured value, or change the type; `MutableList` is not `List`.
+
+### `@Value on X.y: mapper M maps to T, which U cannot hold`
+
+The `ValueMapper<T>` named in the annotation produces a type the property cannot hold; change
+the property's type or the mapper. The related `mapper M must be an object or a class with a
+no-argument constructor` means the runtime could not create the mapper.
+
 ### Unresolved reference to a Versatia annotation
 
 The `ksp` plugin or the `VersatiaAPI-ksp` dependency is missing, or VersatiaAPI is not in
@@ -116,8 +136,8 @@ function and the lifecycle event. At `RELOAD` the same message reaches the sende
 ### `Plugin X: Y failed to reload`
 
 A bean implementing `Reloadable` threw from `reload()`; the original exception is the cause. The
-runtime calls `reload()` right after creating the bean and at every reload of the plugin, so at
-start-up the plugin does not enable, and at a reload the message reaches the sender of
+runtime calls `reload()` once the plugin's beans exist and its values are set, and at every
+reload of the plugin, so at start-up the plugin does not enable, and at a reload the message reaches the sender of
 `/versatia reload`. The bean may belong to a module (an instance made for your plugin), in which
 case the message still names your plugin, whose data folder it reads. See
 [Reloadable beans](lifecycle/reload.md#reloadable-beans).
@@ -128,6 +148,20 @@ A prototype exposed by another plugin has a plugin-typed parameter, and your plu
 instance of that type (for example, the prototype asks for `VersatiaPlugin` and your main class
 extends `JavaPlugin` directly). Extend `VersatiaPlugin`, or ask the prototype's author for a wider
 type. See [Scopes](dependency-injection/scopes.md#exposeprototype).
+
+### `Plugin X: Y.z could not be read from f.yml: ...`
+
+A `@Value` property could not be set: the rest of the message says why, with the full key path.
+`No value present at "k"` means the key is missing and the property is not nullable; `Value at
+"k" is not an int` and friends mean the wrong shape. Nothing was set, so at start the plugin
+stays disabled and at a reload it keeps its previous values. See
+[Configuration values](configuration.md#missing-and-invalid-values).
+
+### `Plugin X: f.yml does not exist in the data folder`
+
+A `@Value` names a file the data folder does not have. Ship it under
+`src/main/resources/resources/` so that it is [extracted](resources.md) at start, or check the
+`file` argument of the annotation; the path is relative to the data folder.
 
 ### `Plugin X has no message "k"; ...`
 
