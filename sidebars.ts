@@ -34,7 +34,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Modules',
       link: {type: 'doc', id: 'modules/index'},
-      items: ['modules/text', 'modules/messages'],
+      items: ['modules/messages'],
     },
     {
       type: 'category',

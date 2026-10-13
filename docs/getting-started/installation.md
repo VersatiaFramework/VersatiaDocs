@@ -39,10 +39,9 @@ Features beyond the runtime come as [modules](../modules/index.md), one plugin J
 next to VersatiaCore when a plugin on the server needs them; each plugin lists the modules it uses
 under `depend:`.
 
-| Module JAR                          | Plugin name               | Needs                      |
-|-------------------------------------|---------------------------|----------------------------|
-| `VersatiaModule-Text-0.0.1.jar`     | `VersatiaModule-Text`     | VersatiaCore               |
-| `VersatiaModule-Messages-0.0.1.jar` | `VersatiaModule-Messages` | VersatiaCore, VersatiaModule-Text |
+| Module JAR                          | Plugin name               | Needs        |
+|-------------------------------------|---------------------------|--------------|
+| `VersatiaModule-Messages-0.0.1.jar` | `VersatiaModule-Messages` | VersatiaCore |
 
 ## In your build
 

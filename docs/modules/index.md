@@ -11,12 +11,11 @@ lists the ones it uses.
 
 | Module   | Repository                                                                                  | What it gives you                                                 |
 |----------|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------|
-| Text     | [VersatiaModule-Text](https://github.com/VersatiaFramework/VersatiaModule-Text)             | [MiniMessage text with runtime arguments](text.md): `{player.name}` |
-| Messages | [VersatiaModule-Messages](https://github.com/VersatiaFramework/VersatiaModule-Messages)     | [a bank of messages per plugin](messages.md), read from its `messages/` directory and reloaded with it |
+| Messages | [VersatiaModule-Messages](https://github.com/VersatiaFramework/VersatiaModule-Messages)     | [a bank of messages per plugin](messages.md), read from its `messages/` directory and reloaded with it, in MiniMessage with runtime arguments: `{player.name}` |
 
 ## Using a module
 
-Every module follows the same three steps, shown here for Text. With
+Every module follows the same three steps, shown here for Messages. With
 [VersatiaStarter](../getting-started/installation.md#in-your-build) the first one is already done:
 the starter exports the API of every module.
 
@@ -28,7 +27,7 @@ dependencies {
     implementation("com.github.marcoral.versatia:VersatiaAPI:0.0.1")
     ksp("com.github.marcoral.versatia:VersatiaAPI-ksp:0.0.1")
 
-    compileOnly("com.github.marcoral.versatia:VersatiaModule-Text:0.0.1")
+    compileOnly("com.github.marcoral.versatia:VersatiaModule-Messages:0.0.1")
 }
 ```
 
@@ -43,7 +42,7 @@ API only; the implementation lives in the plugin JAR.
 ```yaml
 depend:
   - VersatiaCore
-  - VersatiaModule-Text
+  - VersatiaModule-Messages
 ```
 
 The module's plugin name is the repository name. Listing it guarantees the module is up before
@@ -54,9 +53,9 @@ your plugin and lets your class loader see its classes.
 
 ```kotlin
 @LocalBean
-class Shop(private val text: Text) {
+class Shop(private val messages: Messages) {
     fun offer(player: Player, item: ItemStack) =
-        player.sendMessage(text.parse("<green>Buy {item} for {price}?", arg("item", item), arg("price", 5)))
+        messages["shop.offer"].send(player, arg("item", item), arg("price", 5))
 }
 ```
 
@@ -65,7 +64,7 @@ Nothing marks the type as foreign: it is a dependency like any other.
 </TabItem>
 </Tabs>
 
-On the server, drop the module's JAR (`VersatiaModule-Text-0.0.1.jar`) into `plugins/` next to
+On the server, drop the module's JAR (`VersatiaModule-Messages-0.0.1.jar`) into `plugins/` next to
 VersatiaCore. Like VersatiaCore, modules are not on a Maven repository yet: build the module and
 run `./gradlew publishToMavenLocal` in its checkout to get the artifact.
 
@@ -76,8 +75,8 @@ so every plugin that injects it gets an **instance of its own**: what your plugi
 `Text` is invisible to other plugins, the instance disappears with your plugin, and a module that
 keeps state for you, such as a bank of messages read from your data folder, is reloaded by
 `/versatia reload <your plugin>` like your own beans, because it belongs to your plugin's bean
-session. A module built on another module (Messages uses Text) receives, inside your instance, the
-instances made for your plugin as well.
+session. A prototype built on another one, from the same module or another (`Messages` takes
+`Text`), receives, inside your instance, the instances made for your plugin as well.
 
 ## Writing a module
 

@@ -110,8 +110,8 @@ This buys three things:
 </div>
 
 Beyond the runtime, [modules](modules/index.md) add what plugins use every day, each as a plugin of its own
-that exposes a bean: MiniMessage text with runtime arguments in braces, and a bank of messages per plugin,
-read from its data folder and reloaded with it. [VersatiaStarter](getting-started/installation.md#in-your-build)
+that exposes a bean, such as a bank of messages per plugin, read from its data folder, reloaded with it
+and written in MiniMessage with runtime arguments in braces. [VersatiaStarter](getting-started/installation.md#in-your-build)
 brings the API of all of them into a build with one dependency.
 
 ## Versions

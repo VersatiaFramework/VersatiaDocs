@@ -31,10 +31,6 @@ cd VersatiaCore && ./gradlew build
 ```
 
 ```bash
-cd VersatiaModule-Text && ./gradlew publishToMavenLocal
-```
-
-```bash
 cd VersatiaModule-Messages && ./gradlew publishToMavenLocal
 ```
 
@@ -43,7 +39,7 @@ cd VersatiaStarter && ./gradlew publishToMavenLocal
 ```
 
 ```bash
-cd VersatiaModule-TextImpl && ./gradlew build
+cd VersatiaModule-MessagesImpl && ./gradlew build
 ```
 
 ```bash

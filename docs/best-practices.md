@@ -28,7 +28,7 @@ same standard, so that the descriptor stays neutral and every feature reads it t
 | an enhancement annotation              | what it does to the element, no `Versatia` prefix            | `@LocalBean`, `@AutoInvoke`               |
 | an attribute annotation                | the fact it records                                          | `@Qualifier`, `@Primary`                  |
 | a reserved bean name                   | a constant next to the feature                               | `BeanNames.PLUGIN`                        |
-| a module                               | API repository, Maven artifact and plugin name `VersatiaModule-<Name>`; implementation repository `VersatiaModule-<Name>Impl`; package `com.github.marcoral.versatia.<name>` | `VersatiaModule-Text`, `VersatiaModule-TextImpl`, `com.github.marcoral.versatia.text` |
+| a module                               | API repository, Maven artifact and plugin name `VersatiaModule-<Name>`; implementation repository `VersatiaModule-<Name>Impl`; package `com.github.marcoral.versatia.<name>`, one per part when it has several | `VersatiaModule-Messages`, `VersatiaModule-MessagesImpl`, `com.github.marcoral.versatia.messages` and `.text` |
 
 The suffix makes a processor recognisable wherever its name appears: in a descriptor, in an error
 message, in a stack trace. The constants exist because `@VersatiaEnhancement` takes the processor
@@ -127,6 +127,9 @@ a lookup, the API is missing a method and gets one.
   the implementation is `internal`, and its JAR carries the API classes.
 - **A module building on another injects its prototype** and relies on the runtime to make the
   whole chain for the consumer; it never looks the other module up.
+- **One package per part of a module.** A module made of several parts gives each its own package,
+  in the API and in the implementation alike, and lets dependencies point one way: the Messages
+  module keeps the bank in `messages` and the parser in `text`, which knows nothing of messages.
 
 ## Attributes the runtime reads itself
 

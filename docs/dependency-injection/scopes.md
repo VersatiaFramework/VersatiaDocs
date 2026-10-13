@@ -49,7 +49,8 @@ the owner's concrete class is a compile error. The owner's own instance is never
 A parameter satisfied by another prototype, the owner's own or one exposed by a third plugin, is
 resolved for the consumer as well: the instance is the one the consumer's own beans share. A
 `Messages` prototype taking a `Text` prototype therefore gives each consumer a chain of instances
-made for it, which is how [modules](../modules/index.md) build on each other.
+made for it; this is how the [Messages module](../modules/messages.md) is built, and how
+[modules](../modules/index.md) build on each other.
 
 ## Processors
 
