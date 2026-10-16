@@ -46,14 +46,27 @@ cd VersatiaModule-MessagesImpl && ./gradlew build
 cd VersatiaExample-DI-Beans && ./gradlew build
 ```
 
-The module APIs and the starter are needed only by the module examples and the template; the
-examples of single framework features build with VersatiaAPI alone.
-
-Every example repository builds the same way; the two-plugin examples are single Gradle builds
-with one module per plugin.
+Every example depends on VersatiaStarter, so the starter and the module APIs are published before
+any example builds. Every example repository builds the same way; the two-plugin examples are
+single Gradle builds with one module per plugin.
 
 Repeat `publishToMavenLocal` in VersatiaAPI after every change that a dependent project should
-see; `build` runs the tests everywhere.
+see; `build` runs the tests everywhere. Use `./gradlew build -x deployPlugin` when the JAR should
+not be copied to your server.
+
+## Plugin build scripts
+
+The examples and the template share one layout, the one [Installation](../getting-started/installation.md#in-your-build)
+shows:
+
+- Repositories are declared only in `settings.gradle.kts`, under `dependencyResolutionManagement`
+  with `RepositoriesMode.FAIL_ON_PROJECT_REPOS`; `mavenLocal()` is filtered to the group
+  `com.github.marcoral.versatia`.
+- The Versatia version is one value, `val versatiaVersion = "0.0.1"`, used by the VersatiaStarter
+  and VersatiaAPI-ksp lines.
+- `checkPluginYml`, part of `check` and so of `build`, fails the build when `plugin.yml` does not
+  parse, lacks `name`, `version` or `main`, or does not list `VersatiaCore` under `depend:`.
+  Paper would only skip such a plugin at start, with an error in the server log.
 
 ## Copying plugins to a server
 
@@ -70,6 +83,9 @@ your server's `plugins/` directory. The path is machine-specific and never commi
 Alternatives: `./gradlew build -PpluginsDir="D:/server/plugins"`, or a `pluginsDir=` line in
 `~/.gradle/gradle.properties` for all projects on the machine. Without a value the copy step is
 skipped and the build still succeeds.
+
+The copy is named after the project without the version, `VersatiaExample-DI-Beans.jar`, so a newer
+build replaces the deployed JAR instead of landing next to it.
 
 ## Versions
 
@@ -93,15 +109,19 @@ VersatiaCore's end-to-end test compile sample plugins with it in-process.
   VersatiaAPI is not published remotely and Paper's `libraries:` mechanism cannot fetch it.
   `kotlin-stdlib` and `kotlin-reflect` stay under `libraries:`; VersatiaCore is the only plugin that
   lists them.
-- Example plugins depend on `VersatiaAPI` (or, where they use modules, on `VersatiaStarter`) with
-  `implementation` and on `VersatiaAPI-ksp` with `ksp`; in the two-plugin examples the second
-  module adds the first as `compileOnly`. Module JARs bundle their own API classes the way
+- Example plugins depend on `VersatiaStarter` with `implementation` and on `VersatiaAPI-ksp` with
+  `ksp`; in the two-plugin examples the second module adds the first as `compileOnly`. The library
+  module of VersatiaExample-Enhancements-Custom, which defines an enhancement rather than using
+  modules, depends on `VersatiaAPI` directly.
+- VersatiaStarter exports VersatiaAPI and the module APIs with `compileOnlyApi`: they reach a
+  plugin's compile classpath, never its runtime classpath, so nothing the server provides can be
+  packed into a plugin JAR, shaded or not. Module JARs bundle their own API classes the way
   VersatiaCore bundles VersatiaAPI.
 
 ## This documentation
 
 The site is a [Docusaurus](https://docusaurus.io/) project in the VersatiaDocs repository and
-needs Node.js 20 or newer:
+builds with Node.js 24, the version the publishing workflow uses:
 
 ```bash
 npm ci

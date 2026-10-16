@@ -5,6 +5,8 @@ title: Introduction
 description: What Versatia is, how its two halves cooperate and what the framework provides today.
 ---
 
+import Link from '@docusaurus/Link';
+
 **Versatia** is a framework for [Paper](https://papermc.io/) **1.21.4** plugins written in Kotlin.
 Its mission is to remove the Bukkit boilerplate from plugins: wiring singletons, passing
 dependencies around by hand, registering things in `onEnable` and tearing them down in
@@ -21,14 +23,21 @@ class ShopPlugin : VersatiaPlugin() {
 }
 
 @LocalBean
-class PriceList(config: ShopConfig) { /* ... */ }
+class PriceList(private val config: ShopConfig) {
+    val size get() = config.prices.size
+}
 
 @LocalBean
-class ShopConfig { /* ... */ }
+class ShopConfig {
+    @Value("prices")
+    var prices: Map<String, Int> = emptyMap()
+}
 ```
 
 Nothing is overridden, nothing is registered. The beans are created in dependency order when the
-plugin enables, `start` runs once they exist, and everything is dropped when the plugin disables.
+plugin enables, `prices` is read from `config.yml`, `start` runs once all of that is done, and
+everything is dropped when the plugin disables. `/versatia reload` reads `prices` again and runs
+`start` again.
 
 ## Two projects
 
@@ -74,7 +83,7 @@ This buys three things:
         <code>@ExposePrototype</code>. Beans can be shared between plugins; <code>@Qualifier</code> and
         <code>@Primary</code> resolve ambiguity.
       </p>
-      <a href="dependency-injection/">Dependency injection →</a>
+      <Link to="/docs/dependency-injection">Dependency injection →</Link>
     </div>
   </div>
   <div className="col col--6 margin-bottom--md">
@@ -85,17 +94,18 @@ This buys three things:
         parameters injected. It replaces <code>onEnable</code> and <code>onDisable</code>;
         <code>/versatia reload</code> runs the reload phase on demand.
       </p>
-      <a href="lifecycle/auto-invoke">Auto-invoked functions →</a>
+      <Link to="/docs/lifecycle/auto-invoke">Auto-invoked functions →</Link>
     </div>
   </div>
   <div className="col col--6 margin-bottom--md">
     <div className="card card--full-height padding--md">
       <h3>Utilities</h3>
       <p>
-        Strict configuration getters, deep-merging maps, scheduler and logging shorthands, primary
-        thread checks, reflection helpers and more.
+        One static entry point, <code>VersatiaEngine</code>, for server-wide calls; strict
+        configuration getters, deep-merging maps, scheduler and logging shorthands, reflection
+        helpers and more.
       </p>
-      <a href="utilities/">Utilities →</a>
+      <Link to="/docs/utilities">Utilities →</Link>
     </div>
   </div>
   <div className="col col--6 margin-bottom--md">
@@ -105,7 +115,7 @@ This buys three things:
         Annotations are <em>enhancements</em> interpreted by processors. The descriptor format is the
         contract between the compile-time and runtime halves.
       </p>
-      <a href="internals/architecture">Under the hood →</a>
+      <Link to="/docs/internals/architecture">Under the hood →</Link>
     </div>
   </div>
 </div>

@@ -24,16 +24,16 @@ the starter exports the API of every module.
 
 ```kotlin
 dependencies {
-    implementation("com.github.marcoral.versatia:VersatiaAPI:0.0.1")
-    ksp("com.github.marcoral.versatia:VersatiaAPI-ksp:0.0.1")
-
-    compileOnly("com.github.marcoral.versatia:VersatiaModule-Messages:0.0.1")
+    implementation("com.github.marcoral.versatia:VersatiaStarter:$versatiaVersion")
+    ksp("com.github.marcoral.versatia:VersatiaAPI-ksp:$versatiaVersion")
 }
 ```
 
-`compileOnly`, never `implementation`: on the server the classes come from the module's plugin,
-and a bundled copy would be a second class of the same name; see
-[Beans across plugins](../dependency-injection/cross-plugin.md). The artifact holds the module's
+The starter brings the module's API. A build that depends on `VersatiaAPI` alone adds the module
+as `compileOnly("com.github.marcoral.versatia:VersatiaModule-Messages:0.0.1")`. Either way the API
+is on the compile classpath only: on the server the classes come from the module's plugin, and
+nothing the server provides goes into your JAR; see
+[In your build](../getting-started/installation.md#in-your-build). The artifact holds the module's
 API only; the implementation lives in the plugin JAR.
 
 </TabItem>

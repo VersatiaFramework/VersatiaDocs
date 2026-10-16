@@ -27,14 +27,13 @@
   --versatia-hero-start: #1c1f33;
 }
 
+/* Infima keeps tables display: block with overflow: auto, so a wide table scrolls inside the article */
 .markdown table {
-  display: table;
-  width: 100%;
   font-size: 0.9rem;
 }
 
 .markdown table code {
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .theme-doc-sidebar-menu {

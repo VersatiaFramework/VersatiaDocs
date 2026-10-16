@@ -52,10 +52,14 @@ shop:
 | In the file                      | Becomes                                                            |
 |----------------------------------|--------------------------------------------------------------------|
 | nested sections                  | a dotted key: `shop.bought`                                        |
-| a list                           | one message of several lines                                       |
-| a number or boolean              | its text                                                           |
+| a list                           | one message of several [lines](#lines), each parsed on its own; every line must be text |
+| any other value, `Yes`, `off`, `1.10`, `010` included | its text exactly as written, never a boolean or a number |
+| an empty value, `closed:`        | an empty message                                                   |
 | the file name and directory      | nothing: files only organise messages, a key may move between them |
-| the same key in two files        | an error naming both files                                         |
+| the same key twice, in one file or in two | an error naming the file or both files                    |
+| a key that is a message in one place and a group of messages in another | an error naming the files      |
+
+Files are read as UTF-8; a file in another encoding is an error that says to save it as UTF-8.
 
 Every standard MiniMessage tag works in angle brackets; the arguments are in braces, as
 [below](#arguments-and-properties).
@@ -69,11 +73,38 @@ messages, `keys` for all of them.
 
 | On a `Message`                       | Does                                                                |
 |--------------------------------------|---------------------------------------------------------------------|
-| `get()`                              | the component; a message without arguments was parsed once when the file was read, one with arguments fails here with the first missing argument |
-| `get(arg("item", item), ...)`        | the component with the arguments, parsed for the call               |
+| `get()`                              | the component; a message that uses arguments fails here with the first missing one |
+| `get(arg("item", item), ...)`        | the component with the arguments                                    |
+| `lines(...arguments)`                | one component per [line](#lines), for item lore and other places that take lines |
 | `send(audience, ...arguments)`       | sends it to a player, the console, any `Audience`                   |
 | `broadcast(...arguments)`            | sends it to every online player and the console                     |
 | `key`, `raw`, `file`                 | the key, the text as written, the file relative to the data folder  |
+
+A message is parsed when it is used, never when the file is read, so a
+[tag](#tags-with-access-to-the-arguments) registered after the files were read applies at once.
+A text without braces and without registered tags gives the same component every time, so it is
+parsed on its first use and reused; this holds for each constant line of a message even when the
+call passes arguments. A text with a registered tag is parsed at every use, because the tag may
+answer differently each time.
+
+## Lines
+
+A YAML list is a message of several lines. `get()` joins them with line breaks; `lines()` gives
+them apart, which is what item lore takes:
+
+```yaml
+sword:
+  lore:
+    - "<gray>Damage: <red>{damage}"
+    - "<gray>Forged by {smith}"
+```
+
+```kotlin
+meta.lore(messages["sword.lore"].lines(arg("damage", 7), arg("smith", player)))
+```
+
+Each line is parsed on its own, so formatting never carries over: a `<red>` left open on the
+first line does not colour the second. A message that is a single text is one line.
 
 ## Arguments and properties
 
@@ -94,12 +125,30 @@ rebuild. What a value offers depends on its type:
 | `ItemStack`                        | the item name                     | `name`, `hoverable` (the name with the item's hover), `type`, `amount`, `maxStackSize` |
 | `Location`                         | `x, y, z` as block coordinates    | `x`, `y`, `z`, `blockX`, `blockY`, `blockZ`, `yaw`, `pitch`, `world` |
 | `World`                            | its name                          | `name`, `environment`, `time`, `players`                          |
+| `Material`, `EntityType` and any other translatable value | its name in the viewer's language (`Component.translatable`) | none |
+| a `List`, `Set`, any other `Iterable` or an array | the elements joined with `, `, each shown as an argument would be | `size` |
 | a [`Presentable`](#your-own-values) | what its presentation says        | what its presentation says                                        |
 | anything else                      | its `toString()`                  | none, unless [registered](#types-you-do-not-own)                  |
 
-Properties are evaluated only when the text uses them, and once per call. Argument names consist
+A value of a more specific type keeps its own row: a `Player` or an `ItemStack` is shown as above,
+not as a translatable. Properties are evaluated only when the text uses them, and once per call.
+Argument names consist
 of letters, digits, `_` and `-`; braces around anything else (`{}`, `{ x }`, `{1,2}`) are plain
 text, so JSON or code in a message is left alone.
+
+### Braces inside a tag
+
+In the text a brace inserts the value's component. Inside the argument of a tag, where MiniMessage
+reads a plain string, it inserts the value's plain text instead, escaped so that it can neither
+end the argument nor open a tag:
+
+```yaml
+whisper: "<click:suggest_command:'/msg {player.name} '>Click to answer {player}</click>"
+copy: "<insert:{player.name}>{player}</insert>"
+```
+
+An unquoted argument holding a brace is quoted for you. The text of `<hover:show_text:...>`, which
+MiniMessage parses again, keeps the component.
 
 ## Your own values
 
@@ -142,8 +191,8 @@ The registration applies to everything your plugin parses, its messages included
 else: `Text` is a [module prototype](#one-instance-per-plugin). Among registered types, the one
 nearest to the value's class wins, so a presentation for `Entity` applies to a villager and a more
 specific one for `Player` to players; your registrations take precedence over the built-in ones,
-registering a type again replaces its presentation, and a `Presentable` value always describes
-itself.
+`String`, numbers and collections included, registering a type again replaces its presentation,
+and a `Presentable` value always describes itself.
 
 ## Text without a file
 
@@ -185,7 +234,7 @@ standard tag.
 `/versatia reload <name>` re-reads the files before your reload-phase functions run; nothing in
 your plugin knows about it, because the `Messages` instance made for your plugin is a
 [`Reloadable` bean](../lifecycle/reload.md#reloadable-beans) of your plugin. A file that fails to
-read (invalid YAML, a duplicate key) fails the reload with
+read (invalid YAML, a duplicate key, a value that is not text) fails the reload with
 `Plugin X: ... failed to reload` and a cause naming the file, and the previous messages stay in
 use; at start-up the plugin does not enable.
 
@@ -204,11 +253,13 @@ A missing or unreadable message is a `MessagesException` (package `messages`):
 | Exception                       | When                                                           |
 |---------------------------------|----------------------------------------------------------------|
 | `MissingMessageException`       | `messages["shop.byu"]`: no such key; lists the keys starting the same way |
-| `MessagesLoadException`         | a file is not valid YAML, or a key is defined in two files; names the file |
+| `MessagesLoadException`         | a file is not valid YAML or not UTF-8, a value is not text, a key is defined twice or is both a message and a group of messages; names the file |
+| `MessageRenderException`        | a message cannot be shown; names the key and the file, with the `TextException` below as its cause: `Plugin Shop: message "shop.bought" in messages/shop.yml cannot be shown: No argument "nmae"; the arguments are: player, item, price` |
 
-A text that uses an argument wrongly fails the `get`, `send` or `parse` call with a
-`TextException` (package `text`) naming what is wrong and what is available, so a broken message
-file is found at the first use rather than by a player reading a stray `{player.nmae}`:
+A text that uses an argument wrongly fails the call with a `TextException` (package `text`) naming
+what is wrong and what is available, wrapped in a `MessageRenderException` for a message, so a
+broken message file is found at the first use rather than by a player reading a stray
+`{player.nmae}`:
 
 | Exception                       | When                                                           |
 |---------------------------------|----------------------------------------------------------------|
@@ -221,3 +272,21 @@ file is found at the first use rather than by a player reading a stray `{player.
 
 MiniMessage tags that do not exist are not an error: MiniMessage leaves them as text, as it
 always does.
+
+## Corner cases
+
+- **A key that is a message in one file and a group in another** fails the load:
+  `Plugin Shop: "shop" is a message in messages/general.yml and a group of messages in
+  messages/shop.yml; rename one of them`. Within one file the message reads
+  `"shop" is both a message and a group of messages in messages/shop.yml; rename one of them`.
+- **An empty value** is an empty message, not an error and not a missing key.
+- **YAML types do not apply.** `enabled: Yes` is the text `Yes`, `version: 1.10` is `1.10`, and
+  `code: 010` is `010`, exactly as written.
+- **A brace inside `<pre>`** is not replaced: the message shows an internal placeholder instead of
+  the value. Keep arguments out of `<pre>`.
+- **A tag of your own is called twice per parse**, because MiniMessage reads a text in two passes.
+  Keep it free of side effects.
+- **An `Inventory` is an `Iterable`**, so `{inventory}` lists its items; an empty slot shows as
+  nothing between two commas.
+- **A missing key never falls back** to a copy of the file in the plugin JAR: the bank is what the
+  data folder holds.

@@ -18,10 +18,15 @@ const sample = `class ShopPlugin : VersatiaPlugin() {
 }
 
 @LocalBean
-class PriceList(config: ShopConfig)
+class PriceList(private val config: ShopConfig) {
+    val size get() = config.prices.size
+}
 
 @LocalBean
-class ShopConfig`;
+class ShopConfig {
+    @Value("prices")
+    var prices: Map<String, Int> = emptyMap()
+}`;
 
 function Hero() {
   const {siteConfig} = useDocusaurusContext();

@@ -1,7 +1,7 @@
 # Your first plugin
 
-This page walks through a minimal plugin: a main class, two beans and two lifecycle functions. The
-[installation](installation.md) is assumed to be done.
+This page walks through a minimal plugin: a main class, two beans, a configuration value and two
+lifecycle functions. The [installation](installation.md) is assumed to be done.
 
 ## The main class
 
@@ -24,11 +24,13 @@ A bean is a class annotated with a *scope*. Its constructor parameters are its d
 ```kotlin
 package com.example.myplugin
 
+import com.github.marcoral.versatia.config.Value
 import com.github.marcoral.versatia.di.LocalBean
 
 @LocalBean
 class ShopConfig {
-    val currency = "coins"
+    @Value("currency")
+    lateinit var currency: String
 }
 
 @LocalBean
@@ -43,6 +45,20 @@ class PriceList(private val config: ShopConfig) {
 
 Nothing has to be registered. The processor finds every class carrying a scope annotation and
 records it in the descriptor.
+
+## Configuration
+
+`currency` is a [`@Value` property](../configuration.md): the runtime sets it from `config.yml` in
+the plugin's data folder. Ship the file with its default under `src/main/resources/resources/`:
+
+```yaml
+# src/main/resources/resources/config.yml
+currency: coins
+```
+
+At start the file is [extracted](../resources.md) to `plugins/MyPlugin/config.yml`, where the
+server owner edits it, and `currency` is set from it; at every reload it is set again. `PriceList`
+reads `config.currency` when it describes an item, so it always shows the current value.
 
 ## Lifecycle functions
 
@@ -76,6 +92,19 @@ class MyPlugin : VersatiaPlugin() {
 Auto-invoked functions may also live in Kotlin `object`s and in beans; see
 [Auto-invoked functions](../lifecycle/auto-invoke.md).
 
+## Reaching the server
+
+Server-wide calls start at one class, `VersatiaEngine`. Type `VersatiaEngine.` and the completion
+offers what a plugin needs every day; IntelliJ adds the import:
+
+```kotlin
+VersatiaEngine.broadcast(text("The shop is open"))
+VersatiaEngine.playerOrNull("Notch")?.sendMessage(text("Welcome back"))
+```
+
+Work on an object you already hold stays on that object: `plugin.runTaskLater(20) { }`,
+`player.sendMessage(...)`. The full list is in [Utilities](../utilities/index.md#start-with-versatiaengine).
+
 ## Build and look at the result
 
 ```bash
@@ -88,7 +117,7 @@ Shortened, it reads:
 ```kotlin
 object VersatiaDescriptor : VersatiaPluginDescriptor {
   override val formatMajor: Int = 1
-  override val formatMinor: Int = 1
+  override val formatMinor: Int = 2
 
   override val elements: List<EnhancedElement>
     get() = listOf(
@@ -104,7 +133,7 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
       ),
       EnhancedElement(
         processorClass = "com.github.marcoral.versatia.resources.ExtractResourcesEnhancementProcessor",
-        phase = EventType.PLUGIN_START_ONLY,
+        phase = EventType.PLUGIN_RELOAD_OR_START,
         annotation = AnnotationOccurrence("com.github.marcoral.versatia.resources.ExtractResources"),
         target = PluginTarget(/* the same */),
       ),
@@ -134,7 +163,7 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
           invoker = Invoker.Reflective("com.example.myplugin.MyPlugin", "start", listOf("com.example.myplugin.PriceList")),
         ),
       ),
-      // ShopConfig, stop ...
+      // ShopConfig, its @Value property, stop ...
     )
 }
 ```
@@ -156,6 +185,19 @@ log shows
 ```
 
 and, on shutdown, `Bye`.
+
+## Reload it
+
+Change `currency` to `gems` in `plugins/MyPlugin/config.yml` and run `/versatia reload MyPlugin`
+(the command needs [CommandAPI](installation.md#soft-dependencies) on the server). The runtime
+sets `currency` again, then runs `start`, because its phase is `PLUGIN_RELOAD_OR_START`:
+
+```
+[MyPlugin] Diamond costs 10 gems
+```
+
+No restart and no reload code. What else a reload does is in
+[Reloading plugins](../lifecycle/reload.md).
 
 ## Break it on purpose
 

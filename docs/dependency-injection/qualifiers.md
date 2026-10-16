@@ -52,7 +52,8 @@ class ComplaintDesk(@Qualifier("grumpy") greeter: Greeter)   // UnfriendlyGreete
   parameters without a qualifier.
 
 `@Primary` and `@Qualifier` on a class that is not a bean are compile errors: they would have no
-effect.
+effect. Both also work through an annotation of your own, such as `@Qualifier("fast") annotation
+class Fast`; see [Your own attribute annotations](index.md#your-own-attribute-annotations).
 
 ## Resolution rules
 
@@ -64,6 +65,9 @@ runtime (to beans exposed by other plugins):
    way.
 3. One candidate wins. Among several, a single `@Primary` wins. Otherwise it is an error listing
    the candidates by name and class.
+
+A bean skipped by [`@ConditionalOnPlugin`](../optional-plugins.md#conditional-beans) is no
+candidate at all, so its `@Primary` counts only while its plugins are enabled.
 
 Two consequences worth knowing:
 

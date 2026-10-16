@@ -42,6 +42,10 @@
   font-size: 0.95rem;
 }
 
+.blurb > p {
+  margin: 0;
+}
+
 .actions {
   display: flex;
   gap: 0.5rem;

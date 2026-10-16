@@ -13,24 +13,44 @@ not a number, so a typo in a config file turns into a silent default. The extens
 | Family                    | Key absent        | Value present but invalid              |
 |---------------------------|-------------------|----------------------------------------|
 | `getXOrNull(key)`         | `null`            | throws `ConfigurationValueException`    |
-| `getX(key, default)`      | `default`         | throws                                 |
 | `getXOrThrow(key, msg?)`  | throws            | throws                                 |
-| `isX(key)`                | `false`           | `false`                                |
 | `ifXPresent(key) { }`     | action not run    | throws                                 |
-| `getXList(key)`           | empty list        | throws, naming the element index       |
+| `getX(key, default)`      | `default`         | throws                                 |
+| `isX(key)`                | `false`           | `false`                                |
+| `getXListOrNull(key)`     | `null`            | throws for a single value or an invalid element, naming its index |
+| `getXListOrThrow(key, msg?)` | throws         | the same                               |
+| `getXList(key)`           | empty list        | the same                               |
 
 ```kotlin
 val size = config.getIntOrThrow("chest.size")
+val limit = config.getIntOrNull("chest.limit") ?: 54
 val chance = config.getPercent("drop.chance", Percent.of(50.0))
-config.ifStringPresent("motd") { server.motd(Component.text(it)) }
+config.ifStringPresent("motd") { VersatiaEngine.broadcast(Component.text(it)) }
+val hours = config.getIntListOrThrow("shop.hours")
 val slots = config.getUIntList("slots")
 ```
 
-Supported `X`: `Boolean`, `Int`, `Long`, `Float`, `Double`, `UInt`, `ULong`, `String`, `Percent`,
-`Color`, `ItemStack`, `Location`, `Vector`, `OfflinePlayer`, `ConfigurationSection` and any enum
-(`getEnumElementOrThrow<Material>("block")`, or `getEnumElementOrThrow("block", enumClass)` for
-an enum class known only at runtime). Not every family exists for every type; the IDE
-completion shows what is there.
+Which families exist for which `X`:
+
+| `X`                                                         | Families                                                    |
+|-------------------------------------------------------------|-------------------------------------------------------------|
+| `Boolean`, `Int`, `Long`, `Float`, `Double`, `String`        | `getXOrNull`, `getXOrThrow`, `ifXPresent`, `getXListOrNull`, `getXListOrThrow` |
+| `UInt`, `ULong`, `Percent`, any enum                         | all single-value families, and `getXList`                   |
+| `UByte`, `UShort`                                            | `getXList`                                                  |
+| `Color`, `ItemStack`, `Location`, `Vector`, `OfflinePlayer`, `ConfigurationSection` | `getXOrThrow`, `ifXPresent`            |
+
+Enums are read with `getEnumElementOrThrow<Material>("block")`, or
+`getEnumElementOrThrow("block", enumClass)` for an enum class known only at runtime.
+
+:::warning[Bukkit's members win]
+
+For the types Bukkit reads itself, the lenient Bukkit member of the same name is what Kotlin calls:
+`config.getInt("size", 5)` is Bukkit's `getInt(String, int)`, which returns `5` for a value that
+is not a number, and `config.getIntegerList("hours")` skips elements it cannot read. Members
+always win over extensions, so no strict `getX(key, default)`, `isX` or `getXList` exists for
+those types. Write `getIntOrNull("size") ?: 5` and `getIntListOrThrow("hours")` instead.
+
+:::
 
 "Invalid" is type-specific and strict:
 
@@ -65,4 +85,3 @@ fun ConfigurationSection.getMaterialOrThrow(key: String) =
 - `Plugin.forEachYamlFile(relativePath) { path, config -> }` and `Plugin.mapYamlFiles` walk a
   directory under the plugin's data folder recursively, in path order, and visit only files with a
   `.yml` or `.yaml` extension (`YAML_EXTENSIONS`).
-- `joinPath(vararg elements)` joins path elements with the platform separator.

@@ -9,8 +9,10 @@ the log lines to expect and a few things to try. The catalogue with the learning
 [VersatiaExamples](https://github.com/VersatiaFramework/VersatiaExamples); the cards below follow
 the same order.
 
-Each repository builds on its own with `./gradlew build` once VersatiaAPI is in your local Maven
-repository, and runs on a server with VersatiaCore installed. Repositories are named
+Each repository builds on its own with `./gradlew build` once VersatiaAPI, VersatiaModule-Messages
+and VersatiaStarter are in your local Maven repository (see
+[Building the framework](../contributing/building.md#build-order)), and runs on a server with
+VersatiaCore installed. Repositories are named
 `VersatiaExample-<Topic>-<Feature>`, so they sort by topic on GitHub.
 
 ## Learning path
@@ -58,4 +60,8 @@ The Messages module: files under <code>messages/</code> become a bank reloaded w
 
 Start from [VersatiaExample-Template](https://github.com/VersatiaFramework/VersatiaExample-Template)
 ("Use this template"), keep the README sections, add the example to the catalogue and put an
-example card on the documentation page it illustrates.
+example card on the documentation page it illustrates. The template's build is the one every
+example shares: repositories in `settings.gradle.kts`, the `versatiaVersion` value, the
+VersatiaStarter dependency, the `checkPluginYml` check that fails the build for a `plugin.yml`
+Paper would reject, and `deployPlugin`, which copies the JAR to your server without the version in
+its name; see [Plugin build scripts](../contributing/building.md#plugin-build-scripts).

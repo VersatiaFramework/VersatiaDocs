@@ -28,6 +28,7 @@ same standard, so that the descriptor stays neutral and every feature reads it t
 | an enhancement annotation              | what it does to the element, no `Versatia` prefix            | `@LocalBean`, `@AutoInvoke`               |
 | an attribute annotation                | the fact it records                                          | `@Qualifier`, `@Primary`                  |
 | a reserved bean name                   | a constant next to the feature                               | `BeanNames.PLUGIN`                        |
+| a `VersatiaEngine` shortcut            | an extension on `VersatiaEngine.Companion` in `VersatiaEngineExtensions.kt`; Bukkit's term without `get`; a lookup that can miss ends in `OrNull`, a bare name never misses or throws an exception naming the fix; a property for argument-less state that does not depend on the calling thread, a function otherwise; never a Kotlin standard-library top-level name | `onlinePlayers`, `playerOrNull(id)`, `loadService<T>()`, `reload(name)` |
 | a module                               | API repository, Maven artifact and plugin name `VersatiaModule-<Name>`; implementation repository `VersatiaModule-<Name>Impl`; package `com.github.marcoral.versatia.<name>`, one per part when it has several | `VersatiaModule-Messages`, `VersatiaModule-MessagesImpl`, `com.github.marcoral.versatia.messages` and `.text` |
 
 The suffix makes a processor recognisable wherever its name appears: in a descriptor, in an error
@@ -43,11 +44,11 @@ its processors in VersatiaCore.
 
 | Package (under `com.github.marcoral.versatia`) | Holds                                                                           |
 |------------------------------------------------|---------------------------------------------------------------------------------|
-| the root                                       | the enhancement mechanism (`@VersatiaEnhancement`, `@VersatiaAttribute`, `EnhancementProcessor`, `EnhancementContext`, `StateStore`, the phases) and the plugin bootstrap (`VersatiaPlugin`, `VersatiaEngine`); in VersatiaCore also the runtime pipeline |
+| the root                                       | the enhancement mechanism (`@VersatiaEnhancement`, `@VersatiaAttribute`, `EnhancementProcessor`, `EnhancementContext`, `StateStore`, the phases) and the plugin bootstrap (`VersatiaPlugin`, `VersatiaEngine`), with the static shortcuts over the server (`VersatiaEngineExtensions.kt`); in VersatiaCore also the runtime pipeline |
 | `engine.*`                                     | technical internals that deliver no feature of their own but are needed for the framework to work, such as `engine.descriptor` |
 | `di`, `lifecycle`, `config`, …                 | one feature each: definitions in the API, processors in the runtime             |
 | `<anything>.command`                           | the commands of a feature or of a plugin, always in a subpackage named `command` (`engine.command` holds `/versatia`) |
-| `util.*`                                       | independent helpers over the Paper API, grouped by the domain they touch        |
+| `util.*`                                       | helpers on objects a caller holds and pure functions, grouped by the domain they touch; server-wide work with no receiver is on `VersatiaEngine`, and `util` never imports the root package |
 | `ksp`, `ksp.<feature>`                         | the compile-time step: generic parts in `ksp`, feature-specific collectors and checks in `ksp.di`, `ksp.lifecycle`, `ksp.config` |
 
 There are no packages named after layers (`core`, `service`, `impl`): a reader looking for
@@ -96,6 +97,27 @@ There are no packages named after layers (`core`, `service`, `impl`): a reader l
   top of a start, `PLUGIN_START_ONLY` for what the server allows once.
 - **Listeners and tasks read the beans' current state** instead of copying values when they are
   created; a reload does not re-register them. See [Reloading plugins](lifecycle/reload.md#designing-for-reload).
+- **A value derived from others is read at use, recomputed or reacted to.** A getter
+  (`val priceWithTax get() = ...`) first; a `PLUGIN_RELOAD_OR_START` function when it is
+  expensive; a [`PreviousValueTracking`](configuration.md#reacting-to-a-change) when the work
+  should happen only on a change. A bean that needs a value while it is constructed declares it
+  as a `@Value` [constructor property](configuration.md#in-a-constructor); a constructor never
+  reads another `@Value` property.
+
+## Beans
+
+- **The primary constructor is the injection point.** Its parameters are the dependencies; a
+  secondary constructor is for other callers, never for the runtime.
+- **An optional dependency is a default value**, `class PriceList(format: PriceFormat = PlainFormat)`,
+  never a nullable parameter, a lookup or a try-and-catch: a bean providing the type replaces the
+  default without a change to the class. See [Optional dependencies](dependency-injection/index.md#optional-dependencies).
+- **An integration is a conditional bean with a fallback.** `@ConditionalOnPlugin("Vault")` on
+  the integration, `@Primary` on it where another provider exists, never an `isPluginEnabled`
+  check in code. See [Conditional beans](optional-plugins.md#conditional-beans).
+- **An attribute written in many places becomes an annotation of your own**, meta-annotated with
+  it: `@Qualifier("fast") annotation class Fast`, `@ConditionalOnPlugin("Vault") annotation class
+  WithVault`. It behaves exactly like the attribute written directly. See
+  [Your own attribute annotations](dependency-injection/index.md#your-own-attribute-annotations).
 
 ## Commands
 
@@ -112,9 +134,22 @@ There are no packages named after layers (`core`, `service`, `impl`): a reader l
 
 **A basic use case is one call on an injected object.** Reloading the plugin is
 `plugin.versatiaReload()` on the injected plugin instance, the running plugins are an injected
-`PluginRegistry`, the engine itself is `VersatiaEngine.instance`; nothing a plugin does every day
+`PluginRegistry`, anything server-wide is `VersatiaEngine.<call>`; nothing a plugin does every day
 goes through `ServicesManager`, a cast or a reflective helper. When a documented snippet needs such
 a lookup, the API is missing a method and gets one.
+
+**Server-wide work starts at `VersatiaEngine`.** Finding players and worlds, services,
+broadcasting, console commands, thread checks and reloading another plugin are extensions on the
+companion of `VersatiaEngine`: `VersatiaEngine.playerOrNull(name)`,
+`VersatiaEngine.loadService<Economy>()`, `VersatiaEngine.reload("shop")`; see
+[Utilities](utilities/index.md#start-with-versatiaengine). Work on an object you hold is a call on that
+object (`plugin.runTaskLater(20) { }`, `event.callEvent()`, `section.getIntOrThrow("size")`); the
+facade never takes that object as a parameter. Code and docs use the facade, not `Bukkit.x` or
+`server.x`, for everything it covers, in the main class too. A new member needs no receiver, is
+routine, is at least as good as the Bukkit call it replaces and delegates in one expression to
+Bukkit or `VersatiaEngine.instance`; logic goes into a type that runs without a server
+(`PluginRegistry.getOrThrow`). The helper a shortcut replaces is moved, never kept as an alias.
+`enhance` and `disable` have no shortcut: only `VersatiaPlugin` calls them.
 
 ## Modules
 
@@ -127,7 +162,8 @@ a lookup, the API is missing a method and gets one.
   main class. Everything belongs to the consumer, reached through a `JavaPlugin` (or `Plugin`)
   parameter of the prototype.
 - **API and implementation are separate repositories**, `VersatiaModule-<Name>` (public) and
-  `VersatiaModule-<Name>Impl` (private). Consumers compile against the API only (`compileOnly`);
+  `VersatiaModule-<Name>Impl` (private). Consumers compile against the API only, through
+  VersatiaStarter or `compileOnly`, and never pack it into their JAR;
   the implementation is `internal`, and its JAR carries the API classes.
 - **A module building on another injects its prototype** and relies on the runtime to make the
   whole chain for the consumer; it never looks the other module up.
@@ -152,9 +188,11 @@ Keep that list short. A fact that only one feature interprets belongs to that fe
   `Plugin MyPlugin needs the enhancement processor com.example.MyProcessor, which is not available.
   Is the plugin providing it installed and listed under depend:?` An `EnhancementException` out of
   `onEnable` disables that plugin only.
-- **Fail before acting.** The runtime loads every processor a plugin needs before any of them runs;
+- **Fail before exposing.** The runtime loads every processor a plugin needs before any of them runs;
   the bean session resolves all dependencies before exposing anything. A plugin that cannot be
-  enhanced is left untouched, not half-enhanced.
+  enhanced exposes nothing to other plugins and is not registered; its resources may already be
+  extracted and some of its beans constructed, which is one more reason for constructors without
+  side effects.
 
 ## Encapsulation
 
@@ -193,5 +231,15 @@ one line.
 - Code comments are rare; explanations live in the `docs/*.md` of the repository (implementation
   notes) and on this site (what plugin authors need). The site is updated with every change that
   affects it.
+- Every API convention is written on this page; every edge rule of a feature goes into the
+  "Corner cases" section of that feature's page.
+- **Plugin builds share one layout.** Repositories are declared only in `settings.gradle.kts`,
+  with `RepositoriesMode.FAIL_ON_PROJECT_REPOS` and `mavenLocal()` filtered to the group
+  `com.github.marcoral.versatia`; the version is one `versatiaVersion` value; a plugin depends on
+  `VersatiaStarter` and `VersatiaAPI-ksp`; `checkPluginYml` guards `plugin.yml`. See
+  [Plugin build scripts](contributing/building.md#plugin-build-scripts).
+- **Nothing the server provides goes into a plugin JAR**: not VersatiaAPI, Kotlin, the Paper API,
+  a module API or another plugin's classes. VersatiaStarter exports with `compileOnlyApi`, another
+  plugin is `compileOnly`, and a test needing them at runtime uses `testImplementation`.
 - Machine-specific values (`pluginsDir`) live in a gitignored `local.properties` next to a
   committed `local.properties.example`; the build works without the file.

@@ -22,16 +22,17 @@ Say the plugin **Shop** exposes `Clock` (a singleton) and `PluginSession` (a pro
 
 ```kotlin
 dependencies {
-    implementation("com.github.marcoral.versatia:VersatiaAPI:0.0.1")
-    ksp("com.github.marcoral.versatia:VersatiaAPI-ksp:0.0.1")
+    implementation("com.github.marcoral.versatia:VersatiaStarter:$versatiaVersion")
+    ksp("com.github.marcoral.versatia:VersatiaAPI-ksp:$versatiaVersion")
 
     compileOnly("com.example:Shop:1.0.0")
 }
 ```
 
 1. `compileOnly`, never `implementation`: on the server the `Clock` class is loaded from the
-   Shop plugin itself. Bundling a copy would create a second `Clock` class and break the
-   injection with a `ClassCastException`.
+   Shop plugin itself, and nothing the server provides goes into your JAR. With `implementation`,
+   shading the JAR (Shadow) would bundle a second `Clock` class and break the injection with a
+   `ClassCastException`; see [In your build](../getting-started/installation.md#in-your-build).
 
 </TabItem>
 <TabItem value="plugin-yml" label="plugin.yml">
@@ -94,10 +95,11 @@ EnhancementException: Plugin ReportPlugin: no bean provides com.example.shop.Clo
     required by com.example.report.SessionReport
 ```
 
-Bukkit disables that plugin and leaves the others running. Nothing was created before the failure:
-beans are instantiated depth-first and the missing dependency is detected while resolving the first
-bean that needs it. The same message appears for a typo in a class name or a provider plugin that is
-not installed.
+Bukkit disables that plugin and leaves the others running. Nothing was exposed to other plugins
+before the failure, but the plugin's start was under way: its resources may have been extracted,
+and the beans created before the failing one, the plugin bean among them, have run their
+constructors. Keep constructors free of side effects and this never matters. The same message
+appears for a typo in a class name or a provider plugin that is not installed.
 
 If two plugins expose the same type, the message lists them:
 
@@ -113,7 +115,11 @@ Add @Qualifier at the injection point or mark one bean @Primary
 ## Lifetime across plugins
 
 Exposed beans live as long as their owner. When Shop is disabled, its `Clock` and the
-`PluginSession` factory disappear; since consumers list Shop under `depend:`, Bukkit disables them
-first. A consumer enabled later sees whatever is exposed at that moment.
+`PluginSession` factory disappear. At server stop Bukkit disables plugins in the reverse order of
+enabling, so a consumer that lists Shop under `depend:` stops before Shop and can still use its
+beans in its `PLUGIN_STOP` functions. A plugin manager that disables Shop alone does not disable
+its consumers: they keep the instances they were given, which Shop has dropped and, if they
+are `AutoCloseable`, closed. A consumer
+enabled later sees whatever is exposed at that moment.
 
 A worked example with two real plugins is in [Example plugins](../examples/index.md).

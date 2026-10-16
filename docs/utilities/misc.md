@@ -1,11 +1,12 @@
-# Server, scheduler and more
+# Scheduler, logging and more
 
-The smaller helper packages under `com.github.marcoral.versatia.util`.
+The smaller helper packages under `com.github.marcoral.versatia.util`. Server-wide calls, such as
+finding players, broadcasting or loading a service, are on [`VersatiaEngine`](index.md#start-with-versatiaengine).
 
 ## Logging
 
-Package `util.plugin`. Shorthands over `Plugin.logger` for places where only a `Plugin` reference
-is at hand, for example a bean that looks its plugin up with `JavaPlugin.getProvidingPlugin`:
+Package `util.plugin`. Shorthands over `Plugin.logger` for places that hold a `Plugin`, such as a
+bean that takes the plugin as a constructor parameter:
 
 ```kotlin
 plugin.log("Loaded")                       // INFO
@@ -25,7 +26,7 @@ plugin.runTask { /* next tick, main thread */ }
 plugin.runTaskLater(20) { /* in one second */ }
 plugin.runTaskTimer(periodTicks = 20, delayTicks = 0) { /* every second */ }
 plugin.runTaskAsynchronously { /* off the main thread */ }
-plugin.callSyncMethod { server.onlinePlayers.size }   // Future<Int> from an async thread
+plugin.callSyncMethod { VersatiaEngine.onlinePlayers.size }   // Future<Int> from an async thread
 plugin.cancelAllTasks()
 ```
 
@@ -37,21 +38,6 @@ plugin.runTaskTimerWithContext(periodTicks = 20, delayTicks = 0) { task ->
     if (done) task.cancel()
 }
 ```
-
-## Server
-
-Package `util.server`.
-
-| Function                      | Does                                                        |
-|-------------------------------|-------------------------------------------------------------|
-| `isPrimaryThread()`           | `Bukkit.isPrimaryThread()`                                  |
-| `checkPrimaryThread()`        | throws unless on the main thread                            |
-| `checkNotPrimaryThread()`     | throws when on the main thread                              |
-| `bukkitPrintln(component)`    | sends a `Component` to the console                          |
-| `bukkitBroadcast(component)`  | broadcasts a `Component`; returns the number of recipients  |
-| `forEachOnlinePlayer { }`     | iterates the online players                                 |
-| `loadService<T>()`            | the provider registered for `T` in the `ServicesManager`; `ServiceNotRegisteredException` names the service when there is none |
-| `loadServiceOrNull<T>()`      | the same, or null                                           |
 
 ## Validation
 
@@ -119,7 +105,9 @@ getters use them for enum values.
 ## Text
 
 Package `util.text`. `toSubscript()` and `toSuperscript()` on `Int`, `Long`, `UInt`, `ULong` and
-`String` convert digits to their Unicode sub- and superscript forms (`"x2".toSuperscript()` is `x²`).
+`String` convert digits and a leading minus to their Unicode sub- and superscript forms
+(`12.toSuperscript()` is `¹²`, `"-3".toSubscript()` is `₋₃`). A string holding anything else
+throws `IllegalArgumentException`.
 
 ## Value types
 

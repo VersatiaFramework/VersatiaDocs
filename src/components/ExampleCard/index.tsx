@@ -39,7 +39,7 @@ export default function ExampleCard({repo, children, file, fileLabel}: ExampleCa
           {repo}
         </Link>
       </div>
-      <p className={styles.blurb}>{children}</p>
+      <div className={styles.blurb}>{children}</div>
       <div className={styles.actions}>
         <Link className="button button--primary button--sm" to={repoUrl}>
           Open the repository

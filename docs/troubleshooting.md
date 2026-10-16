@@ -1,7 +1,9 @@
 # Troubleshooting
 
 Messages you may meet, what they mean and what to do. Build-time messages point at a file and
-line; runtime messages come from VersatiaCore while a plugin enables and disable only that plugin.
+line; runtime messages come from VersatiaCore while a plugin enables, reloads or disables and
+affect only that plugin. Every check the build makes, with its message, is listed in
+[Compile-time checks](dependency-injection/compile-time-checks.md).
 
 ## At build time
 
@@ -27,35 +29,62 @@ shared part into a third bean.
 
 Two beans of your plugin provide the requested type. Add `@Qualifier("name")` to the parameter or
 `@Primary` to one of the classes. See
-[Names, qualifiers and primary beans](dependency-injection/qualifiers.md).
+[Names, qualifiers and primary beans](dependency-injection/qualifiers.md). The variant
+`... is ambiguous while "Vault" is enabled` means the candidates exist together only with that
+plugin: mark one of them `@Primary`; see [Conditional beans](optional-plugins.md#conditional-beans).
+
+### `X depends on Y, which exists only with @ConditionalOnPlugin("Vault"); ...`
+
+`Y` is the only provider of what `X` needs, and it does not exist without Vault, while `X` does.
+Make `X` conditional on the same plugins, declare a provider without the condition, or give the
+parameter a default value to make it [optional](dependency-injection/index.md#optional-dependencies).
 
 ### `Bean name "x" is used by A, B`
 
 Two beans share a name (by default the decapitalised simple class name). Rename one with
 `@Qualifier("...")` on the class.
 
+### `X must have a primary constructor or exactly one constructor to be a bean`
+
+The runtime injects the primary constructor. Declare one, or keep a single constructor. The
+related `Injected parameter p of X must not be nullable` (or `must not be generic`, `must not be
+vararg`) rejects a parameter the runtime cannot inject: use a non-null class type, or a default
+value for a dependency that may be absent. See
+[What a bean can be](dependency-injection/index.md#what-a-bean-can-be).
+
+### `X has @Qualifier more than once: written directly and inherited from @Fast; keep one`
+
+An attribute reaches the element twice, here once written and once through an
+[annotation of your own](dependency-injection/index.md#your-own-attribute-annotations). Remove one
+of them. Only `@ConditionalOnPlugin` may be repeated.
+
 ### `X cannot be enhanced: Y is neither the plugin's main class, an object nor a bean`
 
-`@AutoInvoke` sits on a function of a plain class. Move it to the main class, an `object` or a
-bean, or make the class a bean.
+`@AutoInvoke` or `@Value` sits on a member of a plain class. Move it to the main class, an
+`object` or a bean, or make the class a bean.
 
 ### `@FriendlyName on X has no effect: it belongs on the plugin's main class`
 
 `@FriendlyName` names the plugin, so it goes on the main class, as one word. See
 [Friendly names](lifecycle/reload.md#friendly-names).
 
-### `@ConditionalOnPlugin on X has no effect`
+### `@ConditionalOnPlugin on X has no effect: ...`
 
-The annotation sits on a class that is neither enhanced nor declares an enhanced function, on a
-function without an enhancement, or on the main class. Put it on a bean, a listener, an `object`
-with `@AutoInvoke` functions, or such a function. See [Optional plugins](optional-plugins.md).
+The annotation sits on a class that is neither enhanced nor declares an enhanced function or
+property, or on a function without an enhancement. Put it on a bean, a listener, an `object`
+with `@AutoInvoke` functions or `@Value` properties, or such a function. On the main class the
+message is `@ConditionalOnPlugin cannot apply to X, the plugin's main class`: the plugin itself
+cannot be optional. See [Optional plugins](optional-plugins.md).
 
 ### `X.y must be a var to be enhanced`
 
-`@Value` sits on a `val`. The runtime sets the property, so it must be a `var` (or `lateinit var`).
-The same family of messages rejects a top-level property (`move it into the plugin's main class,
-an object or a bean`) and a property of a plain class. See
-[Configuration values](configuration.md).
+`@Value` sits on a `val`. The runtime sets the property, so it must be a `var`, or a `val`
+holding a [`PreviousValueTracking`](configuration.md#reacting-to-a-change). In a constructor the
+message ends with `declare the constructor parameter as a property`: write `var` (or a `val` of a
+`PreviousValueTracking`) before the parameter; see
+[In a constructor](configuration.md#in-a-constructor). The same family of messages rejects a
+top-level property (`move it into the plugin's main class, an object or a bean`), a property of a
+plain class and a function parameter (`only properties can, constructor properties included`).
 
 ### `@Value on X.y: T is not a supported type`
 
@@ -70,11 +99,20 @@ The `ValueMapper<T>` named in the annotation produces a type the property cannot
 the property's type or the mapper. The related `mapper M must be an object or a class with a
 no-argument constructor` means the runtime could not create the mapper.
 
+### `plugin.yml must list VersatiaCore under depend:`
+
+The `checkPluginYml` task of the example and template builds found a `plugin.yml` that would not
+work: it does not parse, lacks `name`, `version` or `main`, or does not depend on VersatiaCore.
+Fix the file; see [plugin.yml](getting-started/installation.md#pluginyml).
+
 ### Unresolved reference to a Versatia annotation
 
-The `ksp` plugin or the `VersatiaAPI-ksp` dependency is missing, or VersatiaAPI is not in
-your local Maven repository. Run `./gradlew publishToMavenLocal` in the VersatiaAPI checkout
-and check the [installation](getting-started/installation.md).
+The build does not see VersatiaAPI: the `VersatiaStarter` (or `VersatiaAPI`) dependency is
+missing, or the artifact is not in your local Maven repository. Run
+`./gradlew publishToMavenLocal` in the VersatiaAPI and VersatiaStarter checkouts and check the
+[installation](getting-started/installation.md). A missing `ksp` plugin or `VersatiaAPI-ksp`
+dependency does not show here: the build succeeds and the plugin fails at start with
+[`Descriptor X not found`](#descriptor-x-not-found).
 
 ## At start-up
 
@@ -83,16 +121,27 @@ and check the [installation](getting-started/installation.md).
 Your plugin enabled before VersatiaCore or without it. Add `VersatiaCore` under `depend:` and make
 sure the JAR is in `plugins/`.
 
+### `Descriptor X not found`
+
+The full message is `Descriptor com.example.VersatiaDescriptor not found. Is the VersatiaAPI KSP
+processor applied to the plugin build?`. The plugin JAR has no descriptor, so the code generator did not run. Apply the
+`com.google.devtools.ksp` plugin and add `ksp("com.github.marcoral.versatia:VersatiaAPI-ksp:...")`;
+see [In your build](getting-started/installation.md#in-your-build). The related
+`com.example.VersatiaDescriptor is not a Kotlin object; it is not a Versatia descriptor` means a
+class of your own uses the reserved name next to the main class: rename it.
+
 ### `LinkageError` at start-up
 
 ```
 java.lang.LinkageError: loader constraint violation: ... kotlin/jvm/functions/Function1 ...
 ```
 
-Your plugin lists `kotlin-stdlib` (or `kotlin-reflect`) under `libraries:` in `plugin.yml`, so
-Paper gave it a second copy of Kotlin in its own class loader. Remove the entry: VersatiaCore is
-the single provider of the Kotlin runtime and your plugin reaches it through `depend:`. The same
-happens when a plugin shades Kotlin or VersatiaAPI into its JAR.
+Your plugin has a second copy of Kotlin in its own class loader. Either it lists `kotlin-stdlib`
+(or `kotlin-reflect`) under `libraries:` in `plugin.yml`, or it lists a library built on Kotlin,
+such as `kotlinx-coroutines-core`, which brings `kotlin-stdlib` along. Remove the entry and shade
+such a library without Kotlin, as shown in [plugin.yml](getting-started/installation.md#pluginyml):
+VersatiaCore is the single provider of the Kotlin runtime and your plugin reaches it through
+`depend:`. The same happens when a plugin shades Kotlin or VersatiaAPI into its JAR.
 
 ### `Plugin X: no bean provides T, required by Y`
 
@@ -102,6 +151,8 @@ No bean of your plugin and no exposed bean of a plugin enabled earlier provides 
   `@ExposePrototype` (a `@LocalBean` is invisible outside its plugin) and be listed under your
   `depend:`.
 - Check for a typo in the class name and that the providing plugin is installed.
+- If your plugin can work without it, give the constructor parameter a default value; see
+  [Optional dependencies](dependency-injection/index.md#optional-dependencies).
 
 ### `Plugin X: T required by Y is ambiguous; candidates: ...`
 
@@ -112,7 +163,8 @@ Add `@Qualifier("name")` to the parameter, or ask the providers to mark one `@Pr
 
 Your plugin bundles its own copy of the other plugin's classes. Declare that plugin as
 `compileOnly`, never `implementation`, so that the class is loaded from the providing plugin
-through `depend:`.
+through `depend:`; nothing the server provides belongs in your JAR, see
+[In your build](getting-started/installation.md#in-your-build).
 
 ### `X was built for descriptor format A, but this VersatiaCore supports B`
 
@@ -126,6 +178,13 @@ The descriptor names a processor class that cannot be loaded through the plugin'
 Either the plugin was built against a VersatiaAPI with enhancements this VersatiaCore lacks (update
 VersatiaCore), or the processor belongs to another plugin that is not installed or not listed under
 `depend:` (install it, add it to `depend:`), or the name in `@VersatiaEnhancement` is mistyped.
+
+### `Plugin X: Y cannot be loaded to ... it`
+
+The descriptor names a class the JAR does not contain, usually because the JAR comes from an
+incomplete or stale build. Run `./gradlew clean build` and deploy the new JAR. The related
+`Y is not a Kotlin object, so there is no instance to ...` means a class recorded as an `object`
+was changed into a class without a rebuild.
 
 ### `Plugin X: Y.f() failed at START`
 
@@ -142,6 +201,12 @@ reload of the plugin, so at start-up the plugin does not enable, and at a reload
 case the message still names your plugin, whose data folder it reads. See
 [Reloadable beans](lifecycle/reload.md#reloadable-beans).
 
+### `Plugin X: Y failed to close`
+
+A bean implementing `AutoCloseable` threw from `close()` while the plugin disabled. The other
+beans are closed all the same; the original exception is the cause. See
+[Lifetime](dependency-injection/scopes.md#lifetime).
+
 ### `Plugin X: Y takes its consuming plugin as T, which Z is not`
 
 A prototype exposed by another plugin has a plugin-typed parameter, and your plugin is not an
@@ -153,15 +218,23 @@ type. See [Scopes](dependency-injection/scopes.md#exposeprototype).
 
 A `@Value` property could not be set: the rest of the message says why, with the full key path.
 `No value present at "k"` means the key is missing and the property is not nullable; `Value at
-"k" is not an int` and friends mean the wrong shape. Nothing was set, so at start the plugin
-stays disabled and at a reload it keeps its previous values. See
-[Configuration values](configuration.md#missing-and-invalid-values).
+"k" is not an int` and friends mean the wrong shape, including a single value where a list
+belongs. Nothing was set, so at start the plugin stays disabled and at a reload it keeps its
+previous values. See [Configuration values](configuration.md#missing-and-invalid-values).
 
-### `Plugin X: f.yml does not exist in the data folder`
+### `Plugin X: f.yml could not be read`
 
-A `@Value` names a file the data folder does not have. Ship it under
-`src/main/resources/resources/` so that it is [extracted](resources.md) at start, or check the
-`file` argument of the annotation; the path is relative to the data folder.
+The file is not valid YAML. The cause is the parser's message with the line and column; a tab
+used for indentation and a missing space after a colon are the usual culprits.
+
+### `Plugin X: f.yml is missing from the data folder; ...`
+
+A `@Value` names a file the data folder does not have. When the plugin JAR ships a default copy,
+the message says `put it back, or reload the plugin to restore the default copy from the plugin
+JAR`: run `/versatia reload <name>` and the file is [extracted](resources.md) again. When it
+does not, the message says `the plugin JAR has no default copy`: create the file, or, as the
+plugin's developer, ship it under `src/main/resources/resources/`. Check the `file` argument of
+the annotation too; the path is relative to the data folder.
 
 ### `Plugin X has no message "k"; ...`
 
@@ -171,15 +244,56 @@ the `messages/` directory is missing from its data folder: ship the files under
 `src/main/resources/resources/messages/`. A key is dotted, `shop.bought`, and never contains the
 file name.
 
+### `Plugin X: messages/f.yml is not valid YAML: ...`
+
+A message file could not be read, so the plugin does not enable, or at a reload keeps its previous
+messages. Its siblings: `is not UTF-8 encoded; save it as UTF-8`,
+`message "k" is defined twice in messages/f.yml`, `message "k" is defined in both messages/a.yml
+and messages/b.yml`, `"k" is a message in ... and a group of messages in ...; rename one of them`,
+`message "k" in messages/f.yml is not text` and `... is a list whose lines must all be text`. Fix
+the file and reload. See [The files](modules/messages.md#the-files).
+
+### `Plugin X: message "k" in messages/f.yml cannot be shown: ...`
+
+The message was read, but using it failed; the rest says why, such as
+`No argument "nmae"; the arguments are: name, item`. Fix the brace in the file, or pass the
+argument in the code. See [Errors](modules/messages.md#errors).
+
 ### `Plugin X: the friendly name "n" is already used by Y`
 
 Two running plugins declare the same `@FriendlyName`, or one declares as its friendly name the
 `plugin.yml` name of another. Rename one of them; the second plugin stays disabled until then.
 
+### `Plugin X: Y expects Z to supply parameter n, which it has not`
+
+For authors of [enhancement processors](internals/enhancements.md): a constructor parameter is
+marked as supplied by processor `Z` (as `@Value` does for a constructor property), but `Z` did not
+call `supply` before the beans were created. The related `the argument of parameter n of Y was
+supplied after the beans had been created` means it called too late: supply in `process`, not in
+`onPluginEnhanced`.
+
+## At a reload
+
 ### `/versatia` is an unknown command
 
-VersatiaCore declares the command only when the [CommandAPI](https://commandapi.dev/) plugin is
-installed. Drop its JAR into `plugins/` and restart; see [Reloading plugins](lifecycle/reload.md).
+VersatiaCore declares the command only when the [CommandAPI](https://commandapi.dev/) plugin,
+release 12.x, is installed. Drop its JAR into `plugins/` and restart; see
+[Reloading plugins](lifecycle/reload.md). Without it a plugin reloads itself with
+`versatiaReload()`. If the log shows `/versatia could not be registered. The installed CommandAPI
+... may not be compatible ...`, CommandAPI is there but in a release VersatiaCore cannot use;
+install a 12.x release.
+
+### `X failed to reload: ...`
+
+The reply of `/versatia reload` names the plugin and the chain of causes. A configuration mistake
+is logged as one warning; anything else as an error with the stack trace. The entries above
+explain the causes; the plugin keeps running with its previous state.
+
+### `Plugin X is not running`, `... is still starting`, `... is already reloading`
+
+The plugin cannot be reloaded right now: it is disabled or its start failed, its start has not
+completed, or a reload is already in progress and a reload-phase function asked for another one.
+See [Reloading plugins](lifecycle/reload.md#from-code).
 
 ## Looking at what was generated
 

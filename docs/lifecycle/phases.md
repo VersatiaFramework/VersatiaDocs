@@ -21,7 +21,7 @@ dispatches only the elements whose phase applies.
 | `LifecycleEvent` | Triggered by                                          |
 |------------------|-------------------------------------------------------|
 | `START`          | the plugin's `onEnable`                               |
-| `RELOAD`         | `/versatia reload`, or `VersatiaEngine.reload(plugin)`; see [Reloading plugins](reload.md) |
+| `RELOAD`         | `/versatia reload`, `plugin.versatiaReload()` or `VersatiaEngine.reload(name)`; see [Reloading plugins](reload.md) |
 | `STOP`           | the plugin's `onDisable`                              |
 
 The bean scopes run at `PLUGIN_START_ONLY`: beans are created once and kept. The main class's

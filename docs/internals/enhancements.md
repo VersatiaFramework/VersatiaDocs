@@ -84,6 +84,12 @@ reads them. Argument values may be strings, booleans, numbers, chars, enum entri
 name), classes (recorded by name) and lists of those; anything else, such as a nested annotation,
 is a compile error at the place the attribute is used.
 
+An annotation of your own annotated with an attribute counts as that attribute, transitively:
+the descriptor records the inherited occurrence next to yours, so a processor finds it as if it
+were written on the element, and the placement checks apply to it as well. A non-repeatable
+attribute may reach an element only once; see
+[Your own attribute annotations](../dependency-injection/index.md#your-own-attribute-annotations).
+
 Two attributes are read by the runtime itself rather than by a processor, because they are not
 about one feature: [`@ConditionalOnPlugin`](../optional-plugins.md) decides whether an element is
 dispatched at all, and [`@FriendlyName`](../lifecycle/reload.md#friendly-names) names the plugin in
@@ -190,7 +196,8 @@ enhancements and then produces two elements per occurrence.
 
 ## Enhancements on a base class
 
-A class enhancement written on the main class, or on any of its supertypes, produces an element
+A class enhancement written on the main class, or on any of its supertypes, base classes and
+interfaces alike, produces an element
 with the main class as its `PluginTarget`. That is how `VersatiaPlugin` gives every plugin its
 bean container (`@PluginBean`) and its [resources](../resources.md) (`@ExtractResources`), and it
 works for your own base classes too:
@@ -271,18 +278,29 @@ annotation class Timed(val everyTicks: Long)
 
 // In the plugin that provides the feature; other plugins list it under depend:
 class TimedEnhancementProcessor : EnhancementProcessor {
-    override fun process(elements: List<EnhancedElement>, context: EnhancementContext) {
+    override fun process(elements: List<EnhancedElement>, context: EnhancementContext) = context.onPluginEnhanced {
         val beans = context.state[BeanResolver.KEY]
         for (element in elements) {
             val target = element.target as FunctionTarget
             val ticks = element.annotation.arguments["everyTicks"] as Long
-            val description = target.className + "." + target.functionName + "()"
+            val description = "${target.className}.${target.functionName}()"
+            val instance = when (target.owner) {
+                MemberOwner.PLUGIN -> context.plugin
+                MemberOwner.OBJECT -> Class.forName(target.binaryClassName, true, context.classLoader).getDeclaredField("INSTANCE").get(null)
+                MemberOwner.INSTANCE -> beans?.instanceOf(target.className)
+            }
             val arguments = beans?.resolve(description, target.parameters).orEmpty()
-            // schedule target.invoker.invoke(context.classLoader, context.plugin, arguments) every `ticks` ...
+            val classLoader = context.classLoader   // the context lives for one event; the task keeps only this
+            context.plugin.runTaskTimer(periodTicks = ticks, delayTicks = ticks) { target.invoker.invoke(classLoader, instance, arguments) }
         }
     }
 }
 ```
+
+The work is deferred with `onPluginEnhanced`, so the beans exist when it runs, and the receiver
+follows the function's `owner`: the plugin, the `object`, or the bean of the declaring class. The
+[example](https://github.com/VersatiaFramework/VersatiaExample-Enhancements-Custom) adds the error
+messages a real processor gives.
 
 The compile-time step records every function carrying `@Timed` as a `FunctionTarget` whose
 `annotation` holds `everyTicks`; the runtime loads `TimedEnhancementProcessor` through the enhanced

@@ -80,7 +80,7 @@ closed. See [Enhancements and processors](enhancements.md#plugin-state).
 | Event    | Triggered by                                 | Phases dispatched                              |
 |----------|----------------------------------------------|------------------------------------------------|
 | `START`  | `VersatiaPlugin.onEnable`                    | `PLUGIN_START_ONLY`, `PLUGIN_RELOAD_OR_START`  |
-| `RELOAD` | `/versatia reload`, `VersatiaEngine.reload`  | `PLUGIN_RELOAD_ONLY`, `PLUGIN_RELOAD_OR_START` |
+| `RELOAD` | `/versatia reload`, `VersatiaEngine.instance.reload(plugin)` (behind `plugin.versatiaReload()` and `VersatiaEngine.reload(name)`) | `PLUGIN_RELOAD_ONLY`, `PLUGIN_RELOAD_OR_START` |
 | `STOP`   | `VersatiaPlugin.onDisable`                   | `PLUGIN_STOP`                                  |
 
 ## Conditions
@@ -188,8 +188,12 @@ parameter of a prototype is classified once; an instance for a consumer is then 
 ### Lifetime
 
 A plugin's bean session, and the beans it exposed, live exactly as long as the plugin: created when
-it starts, closed when the plugin's state is dropped after its `PLUGIN_STOP` elements ran. Beans
-are never re-created on reload; reload-phase functions receive the retained instances.
+it starts, closed when the plugin's state is dropped after its `PLUGIN_STOP` elements ran. Closing
+withdraws the exposed beans and closes every `AutoCloseable` instance the session adopted (its own
+beans and the prototype instances made for it, not foreign singletons) in reverse adoption order,
+which puts dependents before their dependencies; failures are collected, the first is thrown with
+the rest suppressed. Beans are never re-created on reload; reload-phase functions receive the
+retained instances.
 
 ## Auto-invoked functions
 
@@ -218,7 +222,10 @@ through the `ValueMapper` the annotation names (an enum or mapper class is loade
 plugin's class loader), and only then assigns them, each on its receiver by `MemberOwner` like
 a function: so a broken file leaves every property as it was. A missing non-nullable value, a
 wrong shape, a mapper that throws or a missing file is an `EnhancementException` naming the
-plugin, the property and the file.
+plugin, the property and the file. At start, the value of a property declared in a bean's
+primary constructor (`constructorParameter` in its target) is not assigned: the processor hands it
+to the session with `supply`, and the bean's constructor receives it, a filled cell for a
+`PreviousValueTracking`; at a reload it is assigned like any other.
 
 ## Plugin resources
 
@@ -226,8 +233,10 @@ plugin, the property and the file.
 on `VersatiaPlugin`. It finds the plugin's JAR through the main class's code source and copies
 every file under the JAR's `resources/` entry into the data folder, keeping the layout, skipping
 files that already exist and refusing paths that would escape the data folder. It works in
-`process` itself, so the files are there before the bean session creates anything; a JAR without
-a `resources/` entry leaves the data folder untouched. See [Plugin resources](../resources.md).
+`process` itself, so the files are there before the bean session creates anything. Its phase is
+`PLUGIN_RELOAD_OR_START`, so a reload restores a file deleted from the data folder before the
+values are read; a JAR without a `resources/` entry leaves the data folder untouched. See
+[Plugin resources](../resources.md).
 
 ## Event listeners
 

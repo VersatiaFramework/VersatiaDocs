@@ -2,7 +2,8 @@
 
 The KSP processor validates the plugin's beans, functions and properties and stops the build with an error
 pointing at the offending declaration. When any check fails, **no descriptor is generated**, so a
-broken graph can never reach a server.
+broken graph can never reach a server. The errors a plugin can still meet on the server are in
+[Troubleshooting](../troubleshooting.md#at-start-up).
 
 ## Bean graph
 
@@ -17,12 +18,17 @@ broken graph can never reach a server.
 | `@Qualifier` on the plugin's main class                              | `MyPlugin is the plugin's main class and its bean is always named "plugin"; remove @Qualifier` |
 | `@Qualifier` names a bean that does not provide the type             | `Bean "grumpy" (UnfriendlyGreeter) does not provide Clock, required by ComplaintDesk` |
 | `@Primary` or `@Qualifier` on a class that is not a bean             | `@Primary on Helper has no effect: the class is not a bean`                      |
+| a dependency whose only local provider is [conditional](../optional-plugins.md#conditional-beans), required by a bean without the same condition | `Checkout depends on VaultEconomy, which exists only with @ConditionalOnPlugin("Vault"); make Checkout conditional on the same plugins or declare a provider without the condition` |
+| several providers left while some optional plugins are enabled      | `Dependency Economy of Checkout is ambiguous while "Vault" is enabled; candidates: ...` |
+| a non-repeatable attribute reaching an element twice, directly and through an [annotation of your own](index.md#your-own-attribute-annotations) | `Race has @Qualifier more than once: written directly and inherited from @Fast; keep one` |
 
 Class names in the messages are fully qualified; they are shortened here.
 
 A dependency that **no local bean provides is not an error**. It is expected to come from a bean
 exposed by another plugin; the runtime reports it if it does not
-([Beans across plugins](cross-plugin.md#when-the-bean-is-missing)).
+([Beans across plugins](cross-plugin.md#when-the-bean-is-missing)). A constructor parameter with a
+default value may have no provider at all: it is an
+[optional dependency](index.md#optional-dependencies).
 
 ## Bean declarations
 
@@ -30,9 +36,11 @@ A class is rejected as a bean when it
 
 - carries more than one scope annotation;
 - is abstract, an interface, an `object`, an inner class, or generic;
-- does not have exactly one constructor (`Shop must have exactly one constructor to be a bean`);
-- has a constructor parameter that is nullable, generic, `vararg` or a type parameter
-  (`Injected parameter config must not be nullable`).
+- has several constructors and no primary one (`Shop must have a primary constructor or exactly
+  one constructor to be a bean`);
+- has a constructor parameter that is nullable, generic, `vararg`, a function type or a type
+  parameter (`Injected parameter config of Shop must not be nullable`); a `@Value` parameter is
+  checked as a [configuration value](#configuration-values) instead.
 
 ## Prototypes and the plugin
 
@@ -56,7 +64,12 @@ A function marked `@AutoInvoke` is rejected when it
 A property marked [`@Value`](../configuration.md) is rejected when it
 
 - is a `val` (`Shop.tax must be a var to be enhanced`) that holds no `PreviousValueTracking`, a
-  nullable `PreviousValueTracking`, an extension or abstract property;
+  nullable `PreviousValueTracking` (`a PreviousValueTracking must not be nullable; the runtime
+  fills the cell the property holds`), an extension or abstract property;
+- is a constructor parameter that is a `val` or no property at all (`Shop.tax must be a var to be
+  enhanced; declare the constructor parameter as a property`), or a parameter of a function
+  (`Parameter tax of Shop.open() cannot be enhanced; only properties can, constructor properties
+  included`);
 - is top-level (`top cannot be enhanced: it is a top-level property; move it into the plugin's
   main class, an object or a bean`) or belongs to a plain class;
 - has a type the runtime cannot read (`@Value on Shop.when: Date? is not a supported type;
@@ -69,9 +82,16 @@ A property marked [`@Value`](../configuration.md) is rejected when it
 
 - `@FriendlyName` anywhere but on the main class (`@FriendlyName on Config has no effect: it
   belongs on the plugin's main class`), or with a name that is not one word;
-- `@ConditionalOnPlugin` on the main class, on a class that is neither enhanced nor declares an
-  enhanced function or property, on a function without an enhancement (`@ConditionalOnPlugin on Tools.plain() has no
-  effect: the function is not enhanced`), or naming no plugin.
+- `@ConditionalOnPlugin` on the main class (`@ConditionalOnPlugin cannot apply to MyPlugin, the
+  plugin's main class`), on a class that is neither enhanced nor declares an enhanced function or
+  property (`@ConditionalOnPlugin on Tools has no effect: Tools is not enhanced and declares no
+  enhanced function or property`), on a function without an enhancement (`@ConditionalOnPlugin on
+  Tools.plain() has no effect: the function is not enhanced`), or naming no plugin
+  (`@ConditionalOnPlugin on Tools must name plugins, one word each`).
+
+These checks apply to an attribute inherited through an
+[annotation of your own](index.md#your-own-attribute-annotations) exactly as to one written
+directly.
 
 ## Enhancement annotations
 
@@ -125,5 +145,5 @@ Enhancements that apply to the main class (such as `@ExtractResources`) and the 
 | `@DisableVersatiaFeatures` with every switch left `false`            | `@DisableVersatiaFeatures on MyPlugin switches nothing off`                      |
 | a switch for an enhancement the plugin does not have                 | `BarePlugin disables @ExtractResources, which neither BarePlugin nor its supertypes carry` |
 | the same class carries and switches off an enhancement               | `MyPlugin both carries and disables @ExtractResources`                           |
-| a class matched by a subclass enhancement that is inner, generic or has several constructors | `Twice is enhanced by @AuditSubclasses on AlphaPlugin and must have exactly one constructor` |
+| a class matched by a subclass enhancement that is inner, generic or has several constructors and no primary one | `Twice is enhanced by @AuditSubclasses on AlphaPlugin and must have a primary constructor or exactly one constructor` |
 | a matched class whose constructor parameters are not injectable      | the bean declaration messages above, such as `Injected parameter missing must not be nullable` |

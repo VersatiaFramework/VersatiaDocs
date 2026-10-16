@@ -31,8 +31,10 @@ walk it. Changing how VersatiaCore iterates therefore never requires regeneratin
 
 An `AnnotationOccurrence` is an annotation as written at one place: its class name and its
 arguments, defaults included. Values are strings, booleans, numbers, chars, enum entry names,
-class names and lists of those. A `Parameter` is a constructor or function parameter: its type and
-the [attributes](enhancements.md#versatiaattribute) written on it. A `TypeReference` is a type as
+class names and lists of those. A `Parameter` is a constructor or function parameter: its type,
+the [attributes](enhancements.md#versatiaattribute) on it, inherited ones included, `optional`
+for a constructor parameter with a default value, and `suppliedBy`, the processor that supplies
+its argument instead of injection (the `@Value` processor for a constructor property). A `TypeReference` is a type as
 written on a property: a Kotlin qualified name, its type arguments and whether it is nullable,
 `kotlin.collections.List<kotlin.Int>?`.
 
@@ -77,6 +79,7 @@ A mutable property the runtime may set.
 | `annotations`      | the attributes written on the property                                      |
 | `setter`           | how to assign it on a receiver                                              |
 | `classAnnotations` | the attributes written on the declaring class                               |
+| `constructorParameter` | for a property declared in a bean's primary constructor, the index of that parameter: its value is passed to the constructor |
 
 [`@Value`](../configuration.md) produces these.
 
@@ -115,6 +118,9 @@ Private beans and a private auto-invoked function; compare the direct and reflec
   `Setter.Reflective` with a third argument, `"value"`, reads the property and stores into that
   member of what it holds, which is how a `val` holding a `PreviousValueTracking` is filled;
   the direct form is `Setter.Direct { _, value -> Limits.max.value = value as Int }`.
+- **`Instantiator.WithDefaults`** for a constructor with [optional parameters](../dependency-injection/index.md#optional-dependencies),
+  visible or not. It calls the constructor through Kotlin reflection (`callBy`), leaving out every
+  argument given as `DefaultArgument`, so those parameters keep their defaults.
 - A Kotlin `object` reached through a subclass enhancement is named directly
   (`Instantiator.Direct { _ -> Console }`) when visible and read from its `INSTANCE` field
   (`Instantiator.ObjectInstance`) otherwise.
@@ -143,7 +149,7 @@ the processor emits (shortened):
 ```kotlin
 object VersatiaDescriptor : VersatiaPluginDescriptor {
   override val formatMajor: Int = 1
-  override val formatMinor: Int = 1
+  override val formatMinor: Int = 2
 
   override val elements: List<EnhancedElement>
     get() = listOf(
@@ -159,7 +165,7 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
       ),
       EnhancedElement(
         processorClass = "com.github.marcoral.versatia.resources.ExtractResourcesEnhancementProcessor",
-        phase = EventType.PLUGIN_START_ONLY,
+        phase = EventType.PLUGIN_RELOAD_OR_START,
         annotation = AnnotationOccurrence("com.github.marcoral.versatia.resources.ExtractResources"),
         target = PluginTarget(/* the same */),
       ),
@@ -206,7 +212,7 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
 ## Format version
 
 The format has its own `major.minor` version, `VersatiaPluginDescriptor.FORMAT_VERSION`, currently
-**`1.1`**. It is independent of the library version. A runtime accepts exactly the version it was
+**`1.2`**. It is independent of the library version. A runtime accepts exactly the version it was
 built with and rejects any other with a message naming the plugin, both versions and the fix; see
 [The runtime](runtime.md#descriptor-format-compatibility).
 

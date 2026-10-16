@@ -10,6 +10,9 @@ Versatia is split into two projects with independent builds and repositories:
 Plugins compile against VersatiaAPI only. VersatiaCore runs on the server next to them and
 provides the behaviour behind the API. The two meet through one interface, `VersatiaEngine`, which
 VersatiaCore registers in Bukkit's `ServicesManager` and `VersatiaPlugin` looks up in `onEnable`.
+The static shortcuts on `VersatiaEngine` (`VersatiaEngine.broadcast(...)`, `VersatiaEngine.reload(name)`)
+belong to the API alone: they delegate to Bukkit or to the registered engine, and VersatiaCore knows
+nothing of them.
 
 ## Compile time versus runtime
 

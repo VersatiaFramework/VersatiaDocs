@@ -78,6 +78,12 @@ A plugin's beans, including the ones it exposes, live **exactly as long as the p
   instances that were created at start; nothing is re-created on reload.
 - They are dropped when the plugin disables, after its stop-phase functions ran. Exposed beans
   disappear with their owner.
+- A bean that implements `AutoCloseable` is closed at that moment, last created first, so a bean
+  is closed before the beans it depends on, and a stop-phase function can still use all of them.
+  This covers the prototype instances made for the plugin too: a database pool a module made for
+  your plugin closes with your plugin. An exposed singleton is closed with its owner, never by the
+  plugins using it. A failing `close()` is reported as `Plugin X: <class> failed to close` and does
+  not keep the others open.
 
 Nothing is tied to server start. A plugin enabled later, for example through a plugin manager,
 sees the exposed beans of the plugins running at that moment, and re-enabling a plugin replaces its
@@ -85,8 +91,11 @@ beans.
 
 :::warning[Dependants and their providers]
 
-Bukkit enables a plugin after everything under its `depend:` and disables it before them. List
-the plugin whose beans you inject under `depend:` and the order is always right.
+Bukkit enables a plugin after everything under its `depend:`, and at server stop disables it
+before them. List the plugin whose beans you inject under `depend:` and the order is right at
+start and at stop. Disabling one plugin alone, through a plugin manager, is not covered: its
+consumers keep running with the beans it dropped; see
+[Lifetime across plugins](cross-plugin.md#lifetime-across-plugins).
 
 :::
 

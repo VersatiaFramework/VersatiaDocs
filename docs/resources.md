@@ -3,8 +3,8 @@
 import ExampleCard from '@site/src/components/ExampleCard';
 
 Every Versatia plugin extracts the files it ships under a `resources` directory into its data
-folder when it starts. Nothing has to be declared: put the files there and they appear on the
-server.
+folder when it starts and at every reload. Nothing has to be declared: put the files there and
+they appear on the server.
 
 <ExampleCard repo="VersatiaExample-Resources-Extraction" file="src/main/resources/resources" fileLabel="resources/">
 A plugin shipping two files under <code>resources/</code> and logging them from its data folder.
@@ -24,25 +24,31 @@ JAR creates nothing.
 
 A file that already exists in the data folder is left exactly as it is, whatever the JAR contains.
 Server owners edit the extracted copies, and an update of the plugin does not undo their changes.
-To get a fresh copy of a file, delete it and restart the plugin.
+To get a fresh copy of a file, delete it and run [`/versatia reload <name>`](lifecycle/reload.md)
+or restart the plugin.
 
 ## When it happens
 
-Extraction runs at `PLUGIN_START_ONLY`, before any bean is created and before any auto-invoked
-function runs, so a bean may read the files in its constructor:
+Extraction runs at `PLUGIN_RELOAD_OR_START`, first: at start before any bean is created, any
+[`@Value` property](configuration.md) is read or any auto-invoked function runs, and again at
+every reload before the values are read. So a value always finds its file, and a file the
+administrator deleted comes back with its default at the next reload.
+
+Reading the files is the job of the features built on them. A single value is a `@Value` property
+set from the extracted file, so the shipped file is where the defaults live:
 
 ```kotlin
 @LocalBean
-class Messages(plugin: JavaPlugin) {
-    private val config = loadYamlOrThrow(plugin.dataFolder.resolve("messages.yml"))
-
-    operator fun get(key: String) = config.getStringOrThrow(key)
+class Shop {
+    @Value("greeting", file = "messages.yml")
+    lateinit var greeting: String
 }
 ```
 
-`loadYamlOrThrow` and the strict getters come from the [configuration utilities](utilities/configuration.md).
-A single value needs none of that: a [`@Value` property](configuration.md) is set from the
-extracted file, so the shipped file is where the defaults live.
+Texts shown to players belong to the [Messages module](modules/messages.md), which reads
+`messages/`. A file of your own format is read in a `PLUGIN_RELOAD_OR_START` function, so a reload
+picks up its changes, with `loadYamlOrThrow` and the strict getters of the
+[configuration utilities](utilities/configuration.md); never in a constructor, which runs once.
 
 ## Why every plugin has it
 
@@ -70,3 +76,12 @@ annotation is accepted on the main class and on its base classes only, and the n
 wins: a base class may switch the feature off and a subclass may declare `@ExtractResources` again.
 Writing `@DisableVersatiaFeatures` without switching anything on, or next to `@ExtractResources`
 on the same class, is a compile error.
+
+## Corner cases
+
+- **A link counts as a file.** Anything at the destination, a symbolic link included, even one
+  pointing nowhere, keeps the JAR's copy out; a configuration the administrator shares through a
+  link is left alone.
+- **A deleted file comes back** at the next reload or start, with the content of the JAR the
+  server runs now.
+- **Empty directories** in the JAR create nothing in the data folder.

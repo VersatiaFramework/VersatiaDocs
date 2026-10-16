@@ -3,7 +3,8 @@
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-Versatia has two halves. The server needs **VersatiaCore**; your build needs **VersatiaAPI**.
+Versatia has two halves. The server needs **VersatiaCore**; your build needs **VersatiaAPI**,
+which comes with **VersatiaStarter**.
 
 ## On the server
 
@@ -33,6 +34,15 @@ next to it; VersatiaCore lists these under `softdepend:` and nothing else change
 |------------------------------------------|---------|--------------------------------------------------------------|
 | [CommandAPI](https://commandapi.dev/)    | 12.x    | the `/versatia` command, today [`/versatia reload`](../lifecycle/reload.md) |
 
+Without CommandAPI a plugin still reloads itself from code with
+[`versatiaReload()`](../lifecycle/reload.md#from-code). A CommandAPI release VersatiaCore is not
+compatible with costs only the command; VersatiaCore logs one warning:
+
+```
+/versatia could not be registered. The installed CommandAPI 13.0.0 may not be compatible with the
+12.x release VersatiaCore is built against; everything except the command keeps working.
+```
+
 ### Modules
 
 Features beyond the runtime come as [modules](../modules/index.md), one plugin JAR each, installed
@@ -45,7 +55,8 @@ under `depend:`.
 
 ## In your build
 
-A Versatia plugin is an ordinary Kotlin/JVM Gradle project with the KSP plugin applied.
+A Versatia plugin is an ordinary Kotlin/JVM Gradle project with the KSP plugin applied. The
+repositories are declared once, in `settings.gradle.kts`.
 
 <Tabs>
 <TabItem value="build-gradle-kts" label="build.gradle.kts">
@@ -62,15 +73,11 @@ plugins {
 group = "com.example"
 version = "1.0.0"
 
-repositories {
-    mavenLocal()
-    mavenCentral()
-    maven("https://repo.papermc.io/repository/maven-public/")
-}
+val versatiaVersion = "0.0.1"
 
 dependencies {
-    implementation("com.github.marcoral.versatia:VersatiaStarter:0.0.1")
-    ksp("com.github.marcoral.versatia:VersatiaAPI-ksp:0.0.1")
+    implementation("com.github.marcoral.versatia:VersatiaStarter:$versatiaVersion")
+    ksp("com.github.marcoral.versatia:VersatiaAPI-ksp:$versatiaVersion")
 }
 
 java {
@@ -80,15 +87,10 @@ java {
 
 kotlin {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_21)
+        jvmTarget = JvmTarget.JVM_21
     }
 }
 ```
-
-1. The Versatia artifacts are resolved from the local Maven repository until they are published
-   remotely.
-2. VersatiaAPI exports the Paper API, but Gradle never inherits repositories, so the Paper
-   repository has to be declared here.
 
 </TabItem>
 <TabItem value="settings-gradle-kts" label="settings.gradle.kts">
@@ -103,10 +105,27 @@ pluginManagement {
         mavenCentral()
     }
 }
+
+dependencyResolutionManagement {
+    repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
+    repositories {
+        mavenLocal { content { includeGroup("com.github.marcoral.versatia") } }
+        mavenCentral()
+        maven("https://repo.papermc.io/repository/maven-public/")
+    }
+}
 ```
+
+1. `FAIL_ON_PROJECT_REPOS` makes this the only place repositories are declared; a `repositories { }`
+   block in `build.gradle.kts` fails the build.
+2. The Versatia artifacts come from the local Maven repository until they are published remotely.
+   The filter takes nothing else from there, so a stale local copy of another library never wins.
+3. VersatiaAPI exports the Paper API, but Gradle never inherits repositories, so the Paper
+   repository has to be declared here.
 
 </TabItem>
 </Tabs>
+
 Two dependencies, nothing else:
 
 | Dependency                | Configuration    | Role                                                                 |
@@ -114,16 +133,22 @@ Two dependencies, nothing else:
 | `VersatiaStarter`         | `implementation` | the starter, in the spirit of Spring Boot's: no code, it exports `VersatiaAPI` (annotations, `VersatiaPlugin`, utilities, and with it the Paper API, `kotlin-stdlib` and `kotlin-reflect`) and the API of every [module](../modules/index.md), so you declare none of those |
 | `VersatiaAPI-ksp`         | `ksp`            | the code generator. Lives on the annotation-processing classpath only and never reaches the server; it cannot come through the starter, because Gradle does not fill the `ksp` configuration transitively |
 
-A plugin that uses no module may depend on `com.github.marcoral.versatia:VersatiaAPI` instead of
-the starter; the [examples](../examples/index.md) of single framework features do.
+Keep the version in one `versatiaVersion` value; both lines use it. A plugin that uses no module
+may depend on `com.github.marcoral.versatia:VersatiaAPI` instead of the starter.
 
 There is no configuration block for the processor. It finds your plugin's main class on its own
 and places the generated descriptor next to it.
 
-:::tip[Nothing from VersatiaAPI ends up in your JAR]
+:::tip[Nothing the server provides goes into your JAR]
 
-Do not shade or bundle VersatiaAPI. On the server its classes are provided by VersatiaCore,
-which your plugin reaches through `depend:`.
+VersatiaAPI, Kotlin, the Paper API and the module APIs are on the server already: VersatiaCore,
+Paper and the module plugins provide them, and your plugin reaches them through `depend:`. A
+second copy in your JAR is a second class of the same name and breaks at runtime. The starter
+exports everything with `compileOnlyApi`, so it is on the compile classpath only: a plain `jar`
+does not pack it, and neither does Shadow when you shade a third-party library. A test that needs
+these classes at runtime adds them with `testImplementation`. The same rule covers another
+plugin you inject beans from, which you add as
+[`compileOnly`](../dependency-injection/cross-plugin.md#set-up-in-the-consumer).
 
 :::
 
@@ -142,10 +167,29 @@ Two rules:
 
 - `VersatiaCore` goes under `depend:`. It guarantees that the runtime is up before your plugin
   enables and lets your plugin load the Kotlin and VersatiaAPI classes from VersatiaCore.
-- **No `libraries:` entry for Kotlin.** Paper loads each plugin's libraries into a separate class
-  loader. A plugin with its own copy of Kotlin would exchange `kotlin.jvm.functions.Function1`
-  objects with VersatiaCore across two different `Function1` classes, and the JVM rejects that
-  with a `LinkageError`. See [Troubleshooting](../troubleshooting.md#linkageerror-at-start-up).
+- **No `libraries:` entry for Kotlin, nor for a library built on it.** Paper loads each plugin's
+  libraries into a separate class loader. A plugin with its own copy of Kotlin would exchange
+  `kotlin.jvm.functions.Function1` objects with VersatiaCore across two different `Function1`
+  classes, and the JVM rejects that with a `LinkageError`. A Kotlin library such as
+  `kotlinx-coroutines-core` or `kotlinx-serialization-json` brings `kotlin-stdlib` along, so listing
+  it under `libraries:` has the same effect. Shade such a library into your JAR instead and leave
+  Kotlin out:
+
+    ```kotlin
+    plugins {
+        id("com.gradleup.shadow") version "8.3.5"
+    }
+
+    dependencies {
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
+    }
+
+    tasks.shadowJar {
+        dependencies { exclude(dependency("org.jetbrains.kotlin:.*")) }
+    }
+    ```
+
+  See [Troubleshooting](../troubleshooting.md#linkageerror-at-start-up).
 
 ## Check the setup
 

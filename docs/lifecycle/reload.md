@@ -9,13 +9,16 @@ operators have by default.
 | `/versatia reload`        | reloads every running Versatia plugin, in the order in which they started               |
 | `/versatia reload <name>` | reloads the plugin registered under that name; an unknown name lists the registered ones |
 
-Tab completion offers the registered names.
+Tab completion offers the registered names. The command exists only while the
+[CommandAPI](https://commandapi.dev/) plugin, release 12.x, is installed; without it a plugin
+still reloads [from code](#from-code) with `versatiaReload()`.
 
 ## What a reload does
 
 The runtime walks the plugin's descriptor at the `RELOAD` event: the elements whose phase is
-`PLUGIN_RELOAD_ONLY` or `PLUGIN_RELOAD_OR_START` run, nothing else. Beans are not re-created,
-listeners stay registered, resources are not extracted again. First the plugin's
+`PLUGIN_RELOAD_ONLY` or `PLUGIN_RELOAD_OR_START` run, nothing else. Beans are not re-created and
+listeners stay registered. The [resources](../resources.md) are extracted again, which restores a
+file deleted from the data folder and leaves every other file alone. Then the plugin's
 [`@Value` properties](../configuration.md) are set again from the files, then its
 [`Reloadable` beans](#reloadable-beans) are reloaded, then the reload-phase functions run; the
 [order within an event](#the-order-within-an-event) explains why. A
@@ -26,14 +29,22 @@ re-read for you, and the rest is rebuilt in functions such as
 class ShopPlugin : VersatiaPlugin() {
 
     @AutoInvoke(EventType.PLUGIN_RELOAD_OR_START)
-    private fun load(prices: PriceList) = prices.reload()
+    private fun load(prices: PriceList) = prices.rebuild()
 }
 ```
 
 `prices` is the same bean instance the plugin got at start; see
-[Phases and events](phases.md) for which phase runs when. A plugin whose reload throws is reported
-to the command sender and in the console, with the function and the exception, and the remaining
-plugins are still reloaded.
+[Phases and events](phases.md) for which phase runs when. A plugin whose reload fails is reported
+to the command sender and in the console, and the remaining plugins are still reloaded. The reply
+names the plugin and the chain of causes, each said once:
+
+```
+shop failed to reload: com.example.Shop.tax could not be read from config.yml: Value at "shop.tax" is not a percent string such as "12.5%" (0-100): "8"
+```
+
+A configuration mistake (a wrong value, invalid YAML, a file that is not UTF-8) is logged as one
+warning without a stack trace, since the message says everything; any other failure is logged as
+an error with the stack trace.
 
 ## Friendly names
 
@@ -91,49 +102,39 @@ decides what each piece of code can see:
 
 | Step | At `START`                                                     | At `RELOAD`                               |
 |------|----------------------------------------------------------------|-------------------------------------------|
-| 1    | the files under `resources/` are extracted                     |                                           |
-| 2    | the beans are created in dependency order; constructors run    |                                           |
+| 1    | the files under `resources/` are extracted                     | the same, for files missing from the data folder |
+| 2    | the beans are created in dependency order; constructors run, receiving their [constructor values](../configuration.md#in-a-constructor) |                |
 | 3    | the [`@Value` properties](../configuration.md) are set from the files | the `@Value` properties are set again |
 | 4    | the [`Reloadable` beans](#reloadable-beans) are reloaded, in creation order | the same                      |
-| 5    | the [`@AutoInvoke` functions](auto-invoke.md) of the event run, in descriptor order | the same             |
+| 5    | the [listeners](../events.md) are registered                   |                                           |
+| 6    | the [`@AutoInvoke` functions](auto-invoke.md) of the event run, in descriptor order | the same             |
+
+Steps 2 and 3 may interleave at start: a value of the main class or of an `object` can be set
+before the beans exist. A constructor therefore reads no `@Value` property but its own
+constructor values.
 
 ### Why the values come before the reloads
 
 A `reload()` may depend on a value; a value never depends on a `reload()`, because it comes from a
-file and nothing else. Take a bean that rebuilds something from a value:
-
-```kotlin
-@LocalBean
-class Recipes(private val plugin: JavaPlugin) : Reloadable {
-    @Value("recipes.directory")
-    lateinit var directory: String
-
-    private var recipes = emptyList<Recipe>()
-
-    override fun reload() {
-        recipes = plugin.mapYamlFiles(directory) { _, file -> Recipe.from(file) }.values.toList()
-    }
-}
-```
-
-Were the reloads to run first, `reload()` would read the directory the property held *before*
-the event: at start the initializer (here none, so a `lateinit` failure), at a reload the
-directory of the previous configuration. The administrator changes `recipes.directory`, runs
-`/versatia reload`, and the plugin reloads the old directory; only the next reload would use the
-new one. With the values set first, `reload()` sees the current file at both events. Setting a
-property is the smaller operation of the two, so it goes first and the bigger one builds on it.
+file and nothing else. Were the reloads to run first, a `reload()` reading a value would see what
+the property held *before* the event: at start the placeholder, at a reload the previous
+configuration. The administrator edits the file, runs `/versatia reload`, and the change would
+show only at the next reload. With the values set first, `reload()` sees the current file at both
+events. Setting a property is the smaller operation of the two, so it goes first and the bigger
+one builds on it.
 
 ### What follows at start
 
 The first `reload()` of a bean therefore does **not** run inside the bean's creation, as it
 would have to for the constructors of its dependents to see a loaded bean: it runs in step 4, once
-every bean exists and every value is set. A constructor that reads from a `Reloadable` dependency
-sees it empty:
+every bean exists and every value is set. A constructor that reads from a `Reloadable` dependency,
+such as the `Messages` instance the [Messages module](../modules/messages.md) makes for your
+plugin, sees it empty:
 
 ```kotlin
 @LocalBean
-class Shop(prices: Prices) {
-    val diamond = prices["diamond"]          // null: Prices has not been reloaded yet
+class Shop(messages: Messages) {
+    val greeting = messages["shop.open"].get()   // throws: the messages have not been read yet
 }
 ```
 
@@ -142,17 +143,13 @@ dependency when it is needed, or in a function of the event, which runs after th
 
 ```kotlin
 @LocalBean
-class Shop(private val prices: Prices) {
-    val diamond get() = prices["diamond"]     // read on use
+class Shop(private val messages: Messages) {
+    val greeting get() = messages["shop.open"].get()   // read on use
 
     @AutoInvoke(EventType.PLUGIN_RELOAD_OR_START)
-    fun refresh() = logger.info("Diamond costs ${prices["diamond"]}")   // step 5, after the reload
+    fun announce() = messages["shop.open"].broadcast()   // step 6, after the reload
 }
 ```
-
-The same holds for the instances a [module](../modules/index.md) makes for your plugin: a
-`Messages` injected into a bean's constructor is empty while the constructor runs and filled by
-the time any function of your plugin runs.
 
 ### What follows later
 
@@ -171,7 +168,9 @@ A `@Value` property belongs to the plugin that declares the class, and its file 
 On an `@ExposePrototype` it is set on the owner's own instance only; the instances made for
 consumers keep their initializers, because the owner's files say nothing about the consumer. A
 module that needs a setting per consumer reads it in `reload()` from the consumer's data folder,
-which is what the prototype receives the consuming plugin for.
+which is what the prototype receives the consuming plugin for. A value declared in the
+prototype's constructor reaches the consumers' instances as the owner read it at start; see the
+[corner cases of dependency injection](../dependency-injection/index.md#corner-cases).
 
 ## Designing for reload
 
@@ -211,13 +210,36 @@ class AdminActions(private val plugin: ShopPlugin) {
 }
 ```
 
-Reloading other plugins goes through `VersatiaEngine.instance.reload(plugin)`
-(`VersatiaEngine.getInstance()` from Java); the engine's `registry` is a `PluginRegistry`: the running
-Versatia plugins by friendly name, the names alone, the name of a given plugin and a lookup by
-name. VersatiaCore also exposes the registry as a bean, so a bean or an auto-invoked function of
-any plugin can simply take it:
+Another plugin reloads with `VersatiaEngine.reload("shop")`, by its friendly name; an unknown name
+fails and lists the running ones (from Java, `VersatiaEngine.getInstance().reload(plugin)`). The
+running Versatia plugins are a `PluginRegistry`: by friendly name, the names alone, the name of a
+given plugin, and a lookup by name, `get(name)` or `getOrThrow(name)`. VersatiaCore exposes the
+registry as a bean, so a bean or an auto-invoked function of any plugin simply takes it; code the
+runtime does not construct reaches it as `VersatiaEngine.registry`:
 
 ```kotlin
 @AutoInvoke(EventType.PLUGIN_START_ONLY)
 fun greet(registry: PluginRegistry) = logger.info("Running next to ${registry.friendlyNames}")
 ```
+
+A reload the plugin cannot take fails with a message saying why:
+
+| Message                                                                            | When                                                   |
+|------------------------------------------------------------------------------------|--------------------------------------------------------|
+| `Plugin Shop is not running`                                                       | the plugin is disabled, or its start failed            |
+| `Plugin Shop is still starting; it can be reloaded once its start has completed`   | a start-phase function asked for the reload            |
+| `Plugin Shop is already reloading; a reload cannot start another one`              | a reload-phase function asked for the reload           |
+
+## Corner cases
+
+- **A failed start.** A plugin whose start fails is never registered: it is not running, so a
+  reload is refused, and when Bukkit disables it, its `PLUGIN_STOP` functions do not run; only the
+  state built so far is dropped. A plugin that disables itself during its start ends the same way.
+- **Stop is best-effort.** Every `PLUGIN_STOP` element runs even when an earlier one fails; the
+  first failure is reported and the plugin's state is dropped all the same.
+- **One start per plugin.** Enhancing a plugin that is already running, or still starting, fails
+  with `Plugin Shop is already running`.
+- **Conditions stay as decided at start.** A reload never adds or removes elements because a
+  [plugin they depend on](../optional-plugins.md#corner-cases) appeared or went away.
+- **A resource deleted on the server** comes back at the next reload; one that still exists is
+  never touched, whatever the JAR holds.

@@ -38,7 +38,7 @@ default configuration under a user one. For every key of the incoming map:
 | `THROW`              | `IllegalStateException` naming the dotted key path                       |
 
 ```kotlin
-val merged = DeepMergeMap<String>(MergeConflictStrategy.KEEP_EXISTING)
+val merged = DeepMergeMap<String>(conflictStrategy = MergeConflictStrategy.KEEP_EXISTING)
 merged += userConfig.getValues(true)
 merged += defaults.getValues(true)        // fills the gaps, keeps the user's values
 ```

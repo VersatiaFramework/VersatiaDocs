@@ -42,12 +42,18 @@ extracted copy.
 The same places an [auto-invoked function](lifecycle/auto-invoke.md#where-a-function-may-live) may
 live, for the same reason: the runtime has an instance there. On an `@ExposePrototype` the
 property is set on the owner's own instance only, from the owner's files; see
-[`@Value` on a prototype](lifecycle/reload.md#value-on-a-prototype). The property must be a `var`, or a `val` holding a
-[`PreviousValueTracking`](#reacting-to-a-change); a `lateinit var` works for a type without a
-sensible initial value. Visibility does not matter: a
-private property, a `private set` or a private class gets a reflective setter in the descriptor,
-a visible one a direct assignment. Anything else is a compile error: a `val` of any other type,
-a top-level property, a property of a plain class.
+[`@Value` on a prototype](lifecycle/reload.md#value-on-a-prototype). In a bean the property may
+also be declared [in the primary constructor](#in-a-constructor). The property must be a `var`,
+or a `val` holding a [`PreviousValueTracking`](#reacting-to-a-change). Visibility does not
+matter: a private property, a `private set` or a private class gets a reflective setter in the
+descriptor, a visible one a direct assignment. Anything else is a compile error: a `val` of any
+other type, a plain constructor parameter, a parameter of a function, a top-level property, a
+property of a plain class.
+
+The initializer is only a placeholder until the runtime sets the value, so pick what reads best:
+`lateinit var motd: String` for a reference type, `var maxPlayers = 0` or
+`var tax = Percent.of(0.0)` for a primitive or a value class such as `Int`, `UInt` or `Percent`,
+which Kotlin does not allow as `lateinit`.
 
 ## Supported types
 
@@ -56,7 +62,7 @@ a top-level property, a property of a plain class.
 | `Boolean`, `Int`, `Long`, `Float`, `Double`, `UInt`, `ULong`, `String`, `Percent` | one value, with the [strict getters](utilities/configuration.md): `3000000000` is not an `Int`, `-1` is not a `UInt`, `12.5%` is a `Percent` |
 | any enum                                         | one value, matched by constant name ignoring case; `java.time.DayOfWeek` and `Material` included |
 | `Color`, `Location`, `OfflinePlayer`, `Vector`, `ItemStack`, `ConfigurationSection` | one value, with Bukkit's own deserialisation |
-| `List<T>`, `Set<T>`                              | a YAML list of `T`, for `T` among the scalars and enums above   |
+| `List<T>`, `Set<T>`                              | a YAML list of `T`, for `T` among the scalars and enums above, every element checked like a single value; a single value where the list belongs is an error, not a list of one |
 | `Map<String, T>`                                 | a YAML section whose children are `T`, for the same `T`         |
 
 A nullable type makes the value optional: `var closedOn: DayOfWeek? = null` stays `null` when the
@@ -149,20 +155,88 @@ a file that does not exist:
 ```
 Plugin Shop: com.example.Shop.tax could not be read from config.yml: No value present at "shop.tax"
 Plugin Shop: com.example.Shop.tax could not be read from config.yml: Value at "shop.tax" is not a percent string such as "12.5%" (0-100): "8"
-Plugin Shop: limits.yml does not exist in the data folder; ship it under resources/ in the JAR
+Plugin Shop: config.yml could not be read
+Plugin Shop: limits.yml is missing from the data folder; put it back, or reload the plugin to restore the default copy from the plugin JAR
 ```
 
-There is no default value in the annotation on purpose: the default is in the shipped file, where
-the administrator sees it, and a key that disappears is a mistake worth reporting rather than a
-silent fallback. At start such an error keeps the plugin disabled; at a reload it reaches the
-sender of `/versatia reload`. Every value of the plugin is read before any property is set, so a
-broken file leaves the plugin running with the values it had.
+The third line comes with the YAML parser's message as its cause, pointing at the line. When the
+JAR has no `resources/limits.yml` either, the last message says so and tells the developer to
+ship one. There is no default value in the annotation on purpose: the default is in the shipped
+file, where the administrator sees it, and a key that disappears is a mistake worth reporting
+rather than a silent fallback. At start such an error keeps the plugin disabled; at a reload it
+reaches the sender of `/versatia reload` and is logged as one warning, without a stack trace.
+Every value of the plugin is read before any property is set, so a broken file leaves the plugin
+running with the values it had.
+
+## In a constructor
+
+A bean may declare a value as a property of its primary constructor:
+
+```kotlin
+@LocalBean
+class Shop(
+    private val plugin: JavaPlugin,
+    @Value("shop.tax") var tax: Percent,
+    @Value("announce.interval-seconds") val interval: PreviousValueTracking<Int>,
+)
+```
+
+The value is read before the bean is created and passed to the constructor, so the constructor
+already sees it, and it needs no placeholder initializer. At every reload the property is set
+again like any other. The parameter must be a property: `var`, or a `val` holding a
+`PreviousValueTracking`, which receives a cell already holding the value. A `val` of another type
+or a plain parameter is a compile error,
+`Shop.tax must be a var to be enhanced; declare the constructor parameter as a property`.
+
+## Values that derive from others
+
+A reload sets the `@Value` properties and nothing else. A value computed from them is kept
+current in one of three ways, from the simplest:
+
+1. **Compute it where it is used.** A getter costs nothing and is never stale:
+
+    ```kotlin
+    @LocalBean
+    class Shop {
+        @Value("shop.price")
+        var price = 0
+
+        @Value("shop.tax")
+        var tax = Percent.of(0.0)
+
+        val priceWithTax get() = price * (1 + tax.normalizedValue)
+    }
+    ```
+
+2. **Recompute it in a `PLUGIN_RELOAD_OR_START` function**, when it is expensive or built once
+   per configuration. The function runs after the values are set, at start and at every reload:
+
+    ```kotlin
+    @LocalBean
+    class Shop {
+        @Value("shop.name")
+        lateinit var name: String
+
+        var label = text("")
+            private set
+
+        @AutoInvoke(EventType.PLUGIN_RELOAD_OR_START)
+        fun recompute() {
+            label = MiniMessage.miniMessage().deserialize("<gold>$name")
+        }
+    }
+    ```
+
+3. **React to a change** with a [`PreviousValueTracking`](#reacting-to-a-change), when the work
+   should happen only if the value changed, such as rescheduling a task: the `Announcer` above
+   checks `interval.changed`.
 
 ## When the values are set
 
-Values are set at `PLUGIN_RELOAD_OR_START`, first: at start once the files are extracted and
-the beans exist, at a reload before anything else. The plugin's
-[`Reloadable` beans](lifecycle/reload.md#reloadable-beans) are reloaded afterwards, so a
+Values are set at `PLUGIN_RELOAD_OR_START`. At start the files are extracted first; a value
+declared in a bean's constructor is read before that bean is created, and a value of a bean's
+body is set once the bean exists. At a reload the values are set before anything else. The
+plugin's [`Reloadable` beans](lifecycle/reload.md#reloadable-beans) are reloaded afterwards, so a
 `reload()` may read a value, and the [auto-invoked functions](lifecycle/auto-invoke.md) of the
 event run last, so a function reading a `@Value` property always sees the current file. Why this
 order and what follows from it, with examples, is under
@@ -191,10 +265,30 @@ created, like any other [reloadable state](lifecycle/reload.md#designing-for-rel
   module's job done by hand.
 - **Reading a file in a constructor.** Constructors run once; the value never changes on reload.
 - **A default in the code.** The initializer of a `@Value` property is overwritten at start and
-  never consulted again; a `lateinit var` says so honestly. The default belongs in the shipped
-  file, where the administrator sees it; an optional value is a nullable property.
+  never consulted again, so it is a placeholder, not a default: `lateinit` where Kotlin allows it,
+  `0` or `Percent.of(0.0)` where it does not. The default belongs in the shipped file, where the
+  administrator sees it; an optional value is a nullable property.
 - **Copying a value into a listener or task.** Read the property when the event or tick
   happens; a reload changes the property, not the copy.
+
+## Corner cases
+
+- **A copy made in a constructor is not updated.** With `class Shop(@Value("shop.tax") var tax:
+  Percent) { val rate = tax.normalizedValue }` a reload sets `tax`, but `rate` keeps the value of
+  the start. Derive it with one of the [three patterns](#values-that-derive-from-others).
+- **A constructor reads no other `@Value` property.** At start the values of the main class and
+  of `object`s may be set before or after the beans are created, so a constructor reading them may
+  see the placeholder. A bean that needs a value at construction declares it
+  [in its constructor](#in-a-constructor).
+- **Values come before functions.** At start and at every reload all values are set before any
+  `@AutoInvoke` function of the event runs, and a failed read leaves every value as it was and runs
+  no function.
+- **A single value where a list belongs** (`hours: 9` for a `List<Int>`) is an error, not a list
+  of one. An absent key is never an empty list: it is a missing value, `null` for a nullable
+  `List<Int>?` and an error otherwise; write `hours: []` for an empty one.
+- **Both annotation targets work on a constructor property.** `@Value("k") var x: Int` and
+  `@property:Value("k") var x: Int` in a primary constructor are the same: the value is passed to
+  the constructor and updated at every reload.
 
 ## Under the hood
 
