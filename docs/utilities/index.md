@@ -28,9 +28,9 @@ VersatiaEngine.reload("shop")
 | `offlinePlayer(id)`                            | the player behind a UUID, online or not; never null, never a web lookup | `Bukkit.getOfflinePlayer(id)`              |
 | `worldOrNull(name)`                            | the world with this name                                             | `Bukkit.getWorld(name)`                       |
 | `broadcast(message)`, `broadcast(message, permission)` | sends a `Component` to every player and the console, or to everyone holding `permission`; returns the number of recipients | `Bukkit.broadcast(...)` |
-| `dispatchConsoleCommand(line)`                 | runs a command, without the slash, as the console; main thread only  | `Bukkit.dispatchCommand(Bukkit.getConsoleSender(), line)` |
+| `dispatchConsoleCommand(line)`                 | runs a command, without the slash, as the console; off the main thread it throws `IllegalStateException` | `Bukkit.dispatchCommand(Bukkit.getConsoleSender(), line)` |
 | `loadService<T>()`, `loadServiceOrNull<T>()`   | the provider registered for `T` in the `ServicesManager`; `ServiceNotRegisteredException` names the service when there is none | `Bukkit.getServicesManager().load(...)` |
-| `isPrimaryThread()`, `checkPrimaryThread()`, `checkNotPrimaryThread()` | where the code runs; the checks throw when it is the wrong thread | `Bukkit.isPrimaryThread()` |
+| `isPrimaryThread()`, `checkPrimaryThread(action)`, `checkNotPrimaryThread(action)` | where the code runs; the checks throw `IllegalStateException` on the wrong thread, naming the optional `action` and the scheduler call that fixes it | `Bukkit.isPrimaryThread()` |
 
 Work on something you already hold is a call on that object, not on `VersatiaEngine`:
 
@@ -66,7 +66,7 @@ companion of `VersatiaEngine`; from Java, use `VersatiaEngine.getInstance()` and
 | `world`        | `Location` helpers                                                                        | [Scheduler, logging and more](misc.md#world) |
 | `lang`         | enum lookups ignoring case                                                                | [Scheduler, logging and more](misc.md#enums) |
 | `text`         | subscript and superscript digits                                                          | [Scheduler, logging and more](misc.md#text) |
-| `type`         | small value types: `Percent`, `LevelWithExp`                                              | [Scheduler, logging and more](misc.md#value-types) |
+| `type`         | small value type `Percent`                                                                | [Scheduler, logging and more](misc.md#value-types) |
 
 None of the helpers needs VersatiaCore's runtime; they are plain Kotlin extension functions and
 small types. Everything in VersatiaAPI without a visibility modifier is part of the contract;

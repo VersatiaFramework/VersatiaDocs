@@ -105,6 +105,13 @@ The `checkPluginYml` task of the example and template builds found a `plugin.yml
 work: it does not parse, lacks `name`, `version` or `main`, or does not depend on VersatiaCore.
 Fix the file; see [plugin.yml](../getting-started/installation.md#pluginyml).
 
+### `Versatia plugins use plugin.yml; remove paper-plugin.yml` {/* #versatia-plugins-use-pluginyml-remove-paper-pluginyml */}
+
+The same task found `src/main/resources/paper-plugin.yml`. Paper would load the JAR as a Paper
+plugin, with an isolated class loader, instead of a Bukkit plugin depending on VersatiaCore.
+Delete the file and keep the plugin's settings in `plugin.yml`; see
+[plugin.yml, not paper-plugin.yml](../getting-started/coming-from-bukkit.md#pluginyml-not-paper-pluginyml).
+
 ### Unresolved reference to a Versatia annotation {/* #unresolved-reference-to-a-versatia-annotation */}
 
 The build does not see VersatiaAPI: the `VersatiaStarter` (or `VersatiaAPI`) dependency is
@@ -140,7 +147,8 @@ own, such as `com.example.myplugin`.
 ### `Skipped X: Y is not installed` {/* #skipped-x-y-is-not-installed */}
 
 Not an error: `X` is marked [`@ConditionalOnPlugin("Y")`](../optional-plugins.md) and `Y` was not
-enabled when your plugin started, so `X` does not exist until the next start. The variant `Y is
+enabled when your plugin started, so `X` does not exist until the next start; an `X` written
+`Class.function()` is a function that is not called, while its class exists. The variant `Y is
 installed but was not enabled before X; list it under softdepend: in plugin.yml` means the server
 started `Y` after your plugin: add `Y` under `softdepend:`.
 
@@ -308,6 +316,19 @@ supplied after the beans had been created` means it called too late: supply in `
 
 ## At a reload {/* #at-a-reload */}
 
+### `Plugin X: reload must run on the server's main thread; ...` {/* #plugin-x-reload-must-run-on-the-servers-main-thread- */}
+
+The reload was asked for from an asynchronous task or another thread; nothing was reloaded. Hand
+it over to the main thread with `plugin.runTask { plugin.versatiaReload() }`; see
+[On the main thread](../lifecycle/reload.md#on-the-main-thread). `start must run ...` and `stop
+must run ...` mean the same for a hand-made `enhance` or `disable` call.
+
+### `dispatchConsoleCommand("...") must run on the server's main thread; ...` {/* #dispatchconsolecommand-must-run-on-the-servers-main-thread- */}
+
+`VersatiaEngine.dispatchConsoleCommand` was called off the main thread, which Bukkit does not
+allow; the command did not run. Wrap the call in `plugin.runTask { ... }`. The same wording, with
+the name you pass, comes from `VersatiaEngine.checkPrimaryThread("...")` in your own code.
+
 ### `/versatia` is an unknown command {/* #versatia-is-an-unknown-command */}
 
 VersatiaCore declares the command only when the [CommandAPI](https://commandapi.dev/) plugin,
@@ -342,6 +363,25 @@ another one's beans already follows it; drop the call.
 The plugin cannot be reloaded right now: it is disabled or its start failed, its start has not
 completed, or a reload is already in progress and a reload-phase function asked for another one.
 See [Reloading plugins](../lifecycle/reload.md#from-code).
+
+## Debug mode {/* #debug-mode */}
+
+When a plugin does not behave as its code suggests, set `debug: true` in
+`plugins/VersatiaCore/config.yml` and run `/versatia reload VersatiaCore`, then reload or restart
+the plugin. VersatiaCore logs every step of each plugin's start, reload and stop at `INFO`:
+
+```text
+[debug] Shop START: descriptor format 1.3, 9 elements, 8 for this event
+[debug] Shop START: skipped VaultBridge: @ConditionalOnPlugin(Vault) is not met
+[debug] Shop START: AutoInvokeEnhancementProcessor receives Counter.report()
+[debug] Shop START: created 2 beans: "plugin" (com.example.shop.ShopPlugin), "counter" (com.example.shop.Counter)
+[debug] Economy RELOAD: set 3 values, config.yml: base, rate, tax
+[debug] Economy RELOAD: goes on to Shop, holding beans that follow its reloads
+```
+
+Values are logged by key only, never with what the file holds. Turn it off again the same way;
+while it is off nothing is written. `/versatia info <plugin>` shows the same state at a glance;
+see [Commands](../commands.md#versatia-info).
 
 ## Looking at what was generated {/* #looking-at-what-was-generated */}
 

@@ -1,9 +1,15 @@
 # Optional plugins
 
+import ExampleCard from '@site/src/components/ExampleCard';
+
 `@ConditionalOnPlugin("Vault")` keeps an element out of the runtime's work unless every named
 plugin is enabled on the server. It is how a Versatia plugin integrates with a plugin that may or
 may not be installed, without `Class.forName` checks and without a `NoClassDefFoundError` when the
 other plugin is missing.
+
+<ExampleCard repo="VersatiaExample-DI-OptionalPlugins" file="src/main/kotlin/com/github/marcoral/versatia/example/optionalplugins/VaultPayments.kt">
+A <code>Payments</code> bean backed by Vault when it is installed, <code>@ConditionalOnPlugin("Vault")</code> and <code>@Primary</code>, a fallback otherwise, and the condition written once as <code>@NeedsVault</code>.
+</ExampleCard>
 
 ```kotlin
 import com.github.marcoral.versatia.ConditionalOnPlugin
@@ -151,7 +157,9 @@ attributes of its declaring class, which is how the values of a conditional clas
 plugins are enabled and dispatches only those; the skipped classes are logged at `INFO`, one line
 per missing plugin: `Skipped VersatiaCommand: CommandAPI is not installed`, or `Skipped
 VaultBridge: Vault is installed but was not enabled before MyPlugin; list it under softdepend: in
-plugin.yml` when the plugin exists but the server started it later. The check is
+plugin.yml` when the plugin exists but the server started it later. A function or property
+skipped by a condition of its own, in a class without it, is named as the member, since its class
+still exists: `Skipped VaultPayments, JoinBonus.vaultFound(): Vault is not installed`. The check is
 `PluginManager.isPluginEnabled(name)`, nothing is loaded to find out. VersatiaCore's own
 `/versatia reload` is declared this way, conditional on the CommandAPI plugin; see
 [Reloading plugins](lifecycle/reload.md).
@@ -165,3 +173,6 @@ plugin.yml` when the plugin exists but the server started it later. The check is
 - **A skipped `@Primary`** gives way: the remaining providers are resolved as if it were not
   declared.
 - **The main class** can never be conditional; the plugin itself is always there.
+- **The skip log names what is gone.** A conditional class is named by its simple name, its
+  functions and properties with it; a member conditional on its own, in a class that stays, is
+  named `Class.function()` or `Class.property`.

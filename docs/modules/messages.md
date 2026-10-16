@@ -66,6 +66,29 @@ Invalid YAML is reported with the file and the place:
 Every standard MiniMessage tag works in angle brackets; the arguments are in braces, as
 [below](#arguments-and-properties).
 
+### Legacy colour codes {/* #legacy-colour-codes */}
+
+MiniMessage shows `&a` and `§l` as text. A message using them is reported once per load, through
+your plugin's logger, with the tags to write instead:
+
+```text
+[Shop] Message "shop.sale" in messages/shop.yml uses legacy colour codes, which MiniMessage shows as text: &a -> <green>, &l -> <bold>; write the tags instead, or turn this warning off with "legacy-color-warnings: false" in messages/.versatia.yml
+```
+
+A code is `&` or `§` followed by `0`-`9`, `a`-`f`, `k`-`o` or `r`, in either case, with no letter
+or digit right before it, unless that character ends another code: `&a&lSale` has two codes,
+`R&D` and `B&B` have none. To keep codes on purpose, such as a help message explaining them, turn
+the warning off for your plugin in `messages/.versatia.yml`, which you can ship with the other
+files:
+
+```yaml
+# messages/.versatia.yml
+legacy-color-warnings: false
+```
+
+This file holds settings, not messages: a file whose name starts with a dot is never read for
+messages. An unknown setting, or a value other than `true` or `false`, fails the load.
+
 ## Sending {/* #sending */}
 
 `messages[key]` is a `Message`; a key that does not exist throws `MissingMessageException` with the
@@ -137,6 +160,17 @@ not as a translatable. Properties are evaluated only when the text uses them, an
 Argument names consist
 of letters, digits, `_` and `-`; braces around anything else (`{}`, `{ x }`, `{1,2}`) are plain
 text, so JSON or code in a message is left alone.
+
+A backslash escapes a brace, as MiniMessage's `\<` escapes a tag, in the text and inside tag
+arguments alike:
+
+```yaml
+help: "Write \\{nick} in the template to insert your name, {player}."   # shows {nick}
+copy: "<click:suggest_command:'/template \\{nick}'>Copy</click>"        # suggests /template {nick}
+```
+
+In a double-quoted YAML string the backslash itself is written twice, as above; in a plain or
+single-quoted one it is written once: `help: Write \{nick} ...`.
 
 ### Braces inside a tag {/* #braces-inside-a-tag */}
 
@@ -264,7 +298,7 @@ A missing or unreadable message is a `MessagesException` (package `messages`):
 | Exception                       | When                                                           |
 |---------------------------------|----------------------------------------------------------------|
 | `MissingMessageException`       | `messages["shop.byu"]`: no such key; lists the keys starting the same way |
-| `MessagesLoadException`         | a file cannot be read, is not valid YAML or not UTF-8, a value is not text, a key is defined twice or is both a message and a group of messages; names the file |
+| `MessagesLoadException`         | a file cannot be read, is not valid YAML or not UTF-8, a value is not text, a key is defined twice or is both a message and a group of messages, `messages/.versatia.yml` holds an unknown setting; names the file |
 | `MessageRenderException`        | a message cannot be shown; names the key and the file, with the `TextException` below as its cause: `Plugin Shop: message "shop.bought" in messages/shop.yml cannot be shown: No argument "nmae"; the arguments are: player, item, price` |
 
 A text that uses an argument wrongly fails the call with a `TextException` (package `text`) naming
@@ -307,3 +341,17 @@ always does.
   (`{player.location}`, `{world.players}`), which is safe on the main thread only.
 - **A missing key never falls back** to a copy of the file in the plugin JAR: the bank is what the
   data folder holds.
+- **Backslashes before a brace pair up.** An odd number escapes it; in the text and in a quoted
+  tag argument, where MiniMessage reads `\\` as one backslash, `\\{nick}` shows `\Steve` (with
+  `nick` = `Steve`) and `\\\{nick}` shows `\{nick}`. A backslash before anything else is left to
+  MiniMessage. `argumentNames` skips
+  escaped braces, and a text whose only braces are escaped is parsed once like any constant text.
+- **Inside an unquoted tag argument** the brace escape is the only backslash rule: MiniMessage
+  reads every other backslash there literally, so `<insert:\{nick}>` inserts `{nick}` and
+  `<insert:\\{nick}>` inserts `\\Steve`.
+- **Legacy codes are found by the character before them.** `x&a` and `5&l` are not reported, since
+  a letter or digit precedes the code; `&a&l` is two codes. Hex forms (`&#55ff55`, `&x&5&5...`)
+  are not detected. The warning comes again at every reload until the message or the setting
+  changes.
+- **Files starting with a dot** (`messages/.versatia.yml`, `messages/.draft.yml`) hold no
+  messages; only `messages/.versatia.yml` is read, for settings.

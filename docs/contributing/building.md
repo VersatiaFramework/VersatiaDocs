@@ -8,7 +8,7 @@ page is for building the framework itself; plugin authors only need the
 
 | Repository                   | Produces                                                             |
 |------------------------------|----------------------------------------------------------------------|
-| `VersatiaAPI`                | `VersatiaAPI` (API) and `VersatiaAPI-ksp` (processor), published to the local Maven repository |
+| `VersatiaAPI`                | `VersatiaAPI` (API), `VersatiaAPI-ksp` (processor) and `VersatiaCatalog` (shared versions), published to the local Maven repository |
 | `VersatiaCore`               | the server plugin JAR, bundling the VersatiaAPI classes; a private repository, built by the Versatia team |
 | `VersatiaModule-<Name>`      | a [module](../modules/index.md)'s API, published to the local Maven repository                |
 | `VersatiaModule-<Name>Impl`  | the module's plugin JAR, bundling its API classes; private, like VersatiaCore                 |
@@ -62,11 +62,16 @@ shows:
 - Repositories are declared only in `settings.gradle.kts`, under `dependencyResolutionManagement`
   with `RepositoriesMode.FAIL_ON_PROJECT_REPOS`; `mavenLocal()` is filtered to the group
   `com.github.marcoral.versatia`.
-- The Versatia version is one value, `val versatiaVersion = "0.0.1"`, used by the VersatiaStarter
-  and VersatiaAPI-ksp lines.
+- Versions come from [VersatiaCatalog](#versions): `settings.gradle.kts` imports it as `libs` at
+  `versatiaVersion` from `gradle.properties`, the only place the Versatia version is written, and
+  the build script uses `alias(libs.plugins.kotlin.jvm)`, `alias(libs.plugins.ksp)`,
+  `libs.versatia.starter`, `libs.versatia.ksp` and `libs.snakeyaml`.
 - `checkPluginYml`, part of `check` and so of `build`, fails the build when `plugin.yml` does not
   parse, lacks `name`, `version` or `main`, or does not list `VersatiaCore` under `depend:`.
-  Paper would only skip such a plugin at start, with an error in the server log.
+  Paper would only skip such a plugin at start, with an error in the server log. It also fails
+  when `src/main/resources/paper-plugin.yml` exists, which Paper would load in preference to
+  `plugin.yml` as a Paper plugin; see
+  [plugin.yml, not paper-plugin.yml](../getting-started/coming-from-bukkit.md#pluginyml-not-paper-pluginyml).
 
 ## Copying plugins to a server {/* #copying-plugins-to-a-server */}
 
@@ -89,9 +94,17 @@ build replaces the deployed JAR instead of landing next to it.
 
 ## Versions {/* #versions */}
 
-Shared versions live in `gradle.properties` of VersatiaAPI: `versatiaVersion`, `kspVersion`,
-`kotlinPoetVersion` and `kctforkVersion`. The Kotlin Gradle plugin version is declared in each
-build script.
+Every third-party version (Kotlin, KSP, KotlinPoet, kctfork, Paper API, CommandAPI, SnakeYAML)
+lives in one file, `gradle/libs.versions.toml` of VersatiaAPI. Its `catalog` module publishes the
+file as the version catalog `com.github.marcoral.versatia:VersatiaCatalog`, adding the version
+`versatia` and the libraries `versatia-api`, `versatia-ksp`, `versatia-starter` and
+`versatia-messages`. The framework version itself is `versatiaVersion` in each repository's
+`gradle.properties`; every other repository imports the catalog at that version in
+`settings.gradle.kts`, so VersatiaAPI's `publishToMavenLocal` must run first (`scripts/build-all.sh`
+does). A version bump is one edit in `libs.versions.toml`.
+
+VersatiaModule-Messages is the exception: it builds without any Versatia artifact (its own CI
+builds it alone), so it keeps literal Kotlin and Paper API versions, which must match the catalog.
 
 When bumping Kotlin, pick the `kotlin-compile-testing` fork (`dev.zacsweers.kctfork`) release built
 against the same Kotlin and KSP versions; its POM lists them. Both the `ksp` module tests and

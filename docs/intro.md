@@ -134,4 +134,6 @@ brings the API of all of them into a build with one dependency.
 | KSP       | `2.3.12` |
 
 Ready? Start with the [installation](getting-started/installation.md), or browse the
-[example plugins](examples/index.md), one feature each.
+[example plugins](examples/index.md), one feature each. Coming from a Bukkit plugin? See
+[Coming from Bukkit](getting-started/coming-from-bukkit.md) for its everyday code next to the same
+plugin with Versatia.

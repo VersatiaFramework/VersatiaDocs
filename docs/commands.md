@@ -121,14 +121,15 @@ it.
 
 ## VersatiaCore's `/versatia` {/* #versatiacores-versatia */}
 
-VersatiaCore declares [`/versatia reload [plugin]`](lifecycle/reload.md) the same way, in
-`com.github.marcoral.versatia.engine.command.VersatiaCommand`:
+VersatiaCore declares [`/versatia reload [plugin]`](lifecycle/reload.md) and
+`/versatia info [plugin]` the same way, in `com.github.marcoral.versatia.engine.command.VersatiaCommand`:
 
 ```kotlin
 @ConditionalOnPlugin("CommandAPI")
 object VersatiaCommand {
     const val NAME = "versatia"
     const val RELOAD_PERMISSION = "versatia.core.command.reload"
+    const val INFO_PERMISSION = "versatia.core.command.info"
 
     private var registered = false
 
@@ -142,6 +143,13 @@ object VersatiaCommand {
                 }
                 anyExecutor { sender, args -> reload(core, sender, args["plugin"] as? String) }
             }
+            subcommand("info") {
+                withPermission(INFO_PERMISSION)
+                stringArgument("plugin", optional = true) {
+                    replaceSuggestions(ArgumentSuggestions.stringCollection { core.runtime.registry.friendlyNames })
+                }
+                anyExecutor { sender, args -> info(core, sender, args["plugin"] as? String) }
+            }
         }
         registered = true
     }
@@ -153,7 +161,7 @@ object VersatiaCommand {
         failSoft(core, "unregistered") { CommandAPI.unregister(NAME, true) }
     }
 
-    // failSoft and reload are private helpers of the object
+    // failSoft, reload and info are private helpers of the object
 }
 ```
 
@@ -163,7 +171,35 @@ object VersatiaCommand {
   CommandAPI release, so a release VersatiaCore is not compatible with costs only the command.
 - `registered` keeps `unregister` from touching CommandAPI when the registration failed.
 - `plugin.yml` lists `CommandAPI` under `softdepend:` and declares
-  `versatia.core.command.reload` with `default: op`.
+  `versatia.core.command.reload` and `versatia.core.command.info`, both with `default: op`.
+
+### `/versatia info` {/* #versatia-info */}
+
+`/versatia info` changes nothing; it shows what the runtime keeps. Without an argument it lists
+the running Versatia plugins with their friendly name, plugin name, version and descriptor format:
+
+```text
+VersatiaCore (VersatiaCore 0.0.1), descriptor format 1.3
+economy (Economy 1.2.0), descriptor format 1.3
+shop (Shop 0.4.0), descriptor format 1.3
+```
+
+With a friendly name it adds the plugin's beans with their class and scope, the exposed beans
+other plugins use, the plugins [its reloads cascade to](lifecycle/reload.md#plugins-that-use-the-reloaded-ones-values)
+and the files its `@Value` properties read:
+
+```text
+economy (Economy 1.2.0), descriptor format 1.3
+Beans (3):
+  "plugin" com.example.economy.EconomyPlugin, local
+  "clock" com.example.economy.Clock, exposed singleton
+  "priceList" com.example.economy.PriceList, exposed prototype
+Exposed beans used by others: "priceList" by shop
+Reloads cascade to: shop
+@Value files: config.yml
+```
+
+It needs `versatia.core.command.info`, given to operators by default.
 
 ## Corner cases {/* #corner-cases */}
 

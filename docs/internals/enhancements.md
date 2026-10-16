@@ -295,17 +295,11 @@ annotation class Timed(val everyTicks: Long)
 // In the plugin that provides the feature; other plugins list it under depend:
 class TimedEnhancementProcessor : EnhancementProcessor {
     override fun process(elements: List<EnhancedElement>, context: EnhancementContext) = context.onPluginEnhanced {
-        val beans = context.state[BeanResolver.KEY]
         for (element in elements) {
-            val target = element.target as FunctionTarget
+            val target = element.targetAs<FunctionTarget>(this)
             val ticks = element.annotation.arguments["everyTicks"] as Long
-            val description = "${target.className}.${target.functionName}()"
-            val instance = when (target.owner) {
-                MemberOwner.PLUGIN -> context.plugin
-                MemberOwner.OBJECT -> Class.forName(target.binaryClassName, true, context.classLoader).getDeclaredField("INSTANCE").get(null)
-                MemberOwner.INSTANCE -> beans?.instanceOf(target.className)
-            }
-            val arguments = beans?.resolve(description, target.parameters).orEmpty()
+            val instance = context.receiverOf(target)
+            val arguments = context.inject(target.description, target.parameters)
             val classLoader = context.classLoader   // the context lives for one event; the task keeps only this
             context.plugin.runTaskTimer(periodTicks = ticks, delayTicks = ticks) { target.invoker.invoke(classLoader, instance, arguments) }
         }
@@ -313,10 +307,19 @@ class TimedEnhancementProcessor : EnhancementProcessor {
 }
 ```
 
-The work is deferred with `onPluginEnhanced`, so the beans exist when it runs, and the receiver
-follows the function's `owner`: the plugin, the `object`, or the bean of the declaring class. The
-[example](https://github.com/VersatiaFramework/VersatiaExample-Enhancements-Custom) adds the error
-messages a real processor gives.
+The work is deferred with `onPluginEnhanced`, so the beans exist when it runs. The rest is done by
+the helpers Core's own processors use, so a custom processor gives the same rules and messages:
+
+| Helper | What it does |
+|---|---|
+| `element.targetAs<FunctionTarget>(this)` | the target as the kind the processor accepts; any other fails with `P can only enhance functions, got the property Shop.tax` |
+| `context.receiverOf(target)` | the instance a function or property belongs to, by its `owner`: the plugin, the `object`, or the plugin's bean of the declaring class (`Plugin X: no bean Shop exists to call Shop.open() on` otherwise) |
+| `context.inject(requester, parameters)` | the arguments from the plugin's `BeanResolver`, with the rules of bean constructors; empty for no parameters, `Plugin X: Shop.open() needs injected parameters, but the plugin has no beans` when there are some and no beans |
+| `context.failure(message, cause)` | an `EnhancementException` reading `Plugin X: message`, for the processor's own errors |
+
+`FunctionTarget` and `PropertyTarget` are both a `MemberTarget` (`binaryClassName`, `owner`,
+`classAnnotations` and `description`, the `Shop.open()` or `Shop.tax` form messages use), and
+every target has `annotations`, so a processor handles members alike.
 
 The compile-time step records every function carrying `@Timed` as a `FunctionTarget` whose
 `annotation` holds `everyTicks`; the runtime loads `TimedEnhancementProcessor` through the enhanced

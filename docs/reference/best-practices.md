@@ -78,6 +78,11 @@ There are no packages named after layers (`core`, `service`, `impl`): a reader l
   compile-time step or the runtime. Its processor accepts only the `PluginTarget`, exactly once.
   If plugins may opt out, the feature gets a `Boolean` in `@DisableVersatiaFeatures`, marked with
   `@VersatiaDisabler`; no feature has a switch annotation of its own.
+- **Use the processor helpers** instead of re-implementing what Core's processors do:
+  `element.targetAs<FunctionTarget>(this)` for the target, `context.receiverOf(target)` for the
+  instance a member belongs to, `context.inject(target.description, target.parameters)` for its
+  arguments and `context.failure(message)` for an error that names the plugin (see
+  [Defining your own enhancement](../internals/enhancements.md#defining-your-own-enhancement)).
 - **Read facts from the element**, not from the classes: the attributes on the target and its
   parameters, the arguments of the producing annotation. A processor that needs reflection on the
   plugin's classes to find out what was annotated is working around the descriptor.
@@ -182,7 +187,11 @@ facade never takes that object as a parameter. Code and docs use the facade, not
 `server.x`, for everything it covers, in the main class too. A new member needs no receiver, is
 routine, is at least as good as the Bukkit call it replaces and delegates in one expression to
 Bukkit or `VersatiaEngine.instance`; logic goes into a type that runs without a server
-(`PluginRegistry.getOrThrow`). The helper a shortcut replaces is moved, never kept as an alias.
+(`PluginRegistry.getOrThrow`). A member Bukkit allows only on the main thread checks that first
+with `checkPrimaryThread(action)`, as `dispatchConsoleCommand` and the runtime's start, reload and
+stop do, so the wrong thread fails with the fix (`... must run on the server's main thread; schedule
+it with plugin.runTask { ... }`); pure helpers check nothing. The helper a shortcut replaces is
+moved, never kept as an alias.
 `enhance` and `disable` have no shortcut: only `VersatiaPlugin` calls them.
 
 **Derive first, configure only to override.** Whatever the build or the runtime can work out is
@@ -285,7 +294,7 @@ one line.
   "Corner cases" section of that feature's page.
 - **Plugin builds share one layout.** Repositories are declared only in `settings.gradle.kts`,
   with `RepositoriesMode.FAIL_ON_PROJECT_REPOS` and `mavenLocal()` filtered to the group
-  `com.github.marcoral.versatia`; the version is one `versatiaVersion` value; a plugin depends on
+  `com.github.marcoral.versatia`; the Versatia version is one `versatiaVersion` value (in `gradle.properties` when the build imports VersatiaCatalog); a plugin depends on
   `VersatiaStarter` and `VersatiaAPI-ksp`; `checkPluginYml` guards `plugin.yml`. See
   [Plugin build scripts](../contributing/building.md#plugin-build-scripts).
 - **Nothing the server provides goes into a plugin JAR**: not VersatiaAPI, Kotlin, the Paper API,

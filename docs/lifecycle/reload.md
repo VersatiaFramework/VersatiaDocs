@@ -1,5 +1,7 @@
 # Reloading plugins
 
+import ExampleCard from '@site/src/components/ExampleCard';
+
 `/versatia reload` runs the reload phase of every running Versatia plugin, `/versatia reload <name>`
 that of one plugin. The command requires the permission `versatia.core.command.reload`, which
 operators have by default.
@@ -12,6 +14,10 @@ operators have by default.
 Tab completion offers the registered names. The command exists only while the
 [CommandAPI](https://commandapi.dev/) plugin, release 12.x, is installed; without it a plugin
 still reloads [from code](#from-code) with `versatiaReload()`.
+
+<ExampleCard repo="VersatiaExample-Lifecycle-Reload" file="src/main/kotlin/com/github/marcoral/versatia/example/reload/Announcer.kt">
+Values re-read by <code>/versatia reload announcer</code>, a derived value rebuilt in a <code>PLUGIN_RELOAD_OR_START</code> function, a task rescheduled only when <code>PreviousValueTracking</code> says its interval changed, and a reload from code.
+</ExampleCard>
 
 ## What a reload does {/* #what-a-reload-does */}
 
@@ -282,12 +288,32 @@ A reload the plugin cannot take fails with a message saying why:
 | `Plugin Shop is still starting; it can be reloaded once its start has completed`   | a start-phase function asked for the reload            |
 | `Plugin Shop is already reloading; a reload cannot start another one`              | a reload-phase function asked for the reload           |
 | `Plugin Shop has already been reloaded by the reload under way; a plugin reloads at most once per reload` | a reload-phase function asked for a plugin the running reload, cascade included, already went through |
+| `Plugin Shop: reload must run on the server's main thread; schedule it with plugin.runTask { ... }` | the reload was asked for from an asynchronous task or another thread |
+
+### On the main thread {/* #on-the-main-thread */}
+
+A reload touches Bukkit state, so it runs on the server's main thread only; called from anywhere
+else it throws before anything is reloaded. Code on another thread, such as an asynchronous task
+that has just downloaded a new configuration, hands the reload over to the main thread:
+
+```kotlin
+plugin.runTaskAsynchronously {
+    download(plugin.dataFolder.resolve("prices.yml"))
+    plugin.runTask { plugin.versatiaReload() }
+}
+```
+
+The start and the stop of a plugin are checked the same way (`start must run ...`, `stop must
+run ...`); Bukkit calls `onEnable` and `onDisable` on the main thread, so only a hand-made call
+can meet them.
 
 ## Corner cases {/* #corner-cases */}
 
 - **A failed start.** A plugin whose start fails is never registered: it is not running, so a
   reload is refused, and when Bukkit disables it, its `PLUGIN_STOP` functions do not run; only the
   state built so far is dropped. A plugin that disables itself during its start ends the same way.
+- **Off the main thread** a reload, a start or a stop throws before anything runs, whatever the
+  plugin's state; see [On the main thread](#on-the-main-thread).
 - **Stop is best-effort.** Every `PLUGIN_STOP` element runs even when an earlier one fails; the
   first failure is reported and the plugin's state is dropped all the same.
 - **One start per plugin.** Enhancing a plugin that is already running, or still starting, fails

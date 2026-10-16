@@ -39,8 +39,14 @@ Private beans, constructors and functions: the generated code falls back to refl
 <ExampleCard repo="VersatiaExample-Lifecycle-AutoInvoke" file="src/main/kotlin/com/github/marcoral/versatia/example/autoinvoke/AutoInvokePlugin.kt">
 Functions run at start, reload or stop with injected parameters: on the main class, on a bean and on an object.
 </ExampleCard>
+<ExampleCard repo="VersatiaExample-Lifecycle-Reload" file="src/main/kotlin/com/github/marcoral/versatia/example/reload/Announcer.kt">
+A plugin designed for reload: <code>@Value</code> properties re-read by <code>/versatia reload announcer</code>, a derived value rebuilt, a repeating task rescheduled when its interval changes and <code>versatiaReload()</code>.
+</ExampleCard>
 <ExampleCard repo="VersatiaExample-Events-Listeners" file="src/main/kotlin/com/github/marcoral/versatia/example/listeners/Listeners.kt">
 Listeners registered automatically: a plain class with injected dependencies and a bean registered with its instance.
+</ExampleCard>
+<ExampleCard repo="VersatiaExample-DI-OptionalPlugins" file="src/main/kotlin/com/github/marcoral/versatia/example/optionalplugins/VaultPayments.kt">
+A bean conditional on Vault with <code>@ConditionalOnPlugin</code> and <code>@Primary</code>, a fallback used without Vault, and the condition written once as <code>@NeedsVault</code>.
 </ExampleCard>
 <ExampleCard repo="VersatiaExample-DI-SharedBeans" file="provider/src/main/kotlin/com/github/marcoral/versatia/example/sharedbeans/SharedBeans.kt">
 Two plugins: a provider exposing a singleton and a prototype, and a consumer injecting both through <code>depend:</code>.
@@ -61,7 +67,7 @@ The Messages module: files under <code>messages/</code> become a bank reloaded w
 Start from [VersatiaExample-Template](https://github.com/VersatiaFramework/VersatiaExample-Template)
 ("Use this template"), keep the README sections, add the example to the catalogue and put an
 example card on the documentation page it illustrates. The template's build is the one every
-example shares: repositories in `settings.gradle.kts`, the `versatiaVersion` value, the
+example shares: repositories and the VersatiaCatalog import in `settings.gradle.kts`, `versatiaVersion` in `gradle.properties`, the
 VersatiaStarter dependency, the `checkPluginYml` check that fails the build for a `plugin.yml`
-Paper would reject, and `deployPlugin`, which copies the JAR to your server without the version in
+Paper would reject or a `paper-plugin.yml`, and `deployPlugin`, which copies the JAR to your server without the version in
 its name; see [Plugin build scripts](../contributing/building.md#plugin-build-scripts).

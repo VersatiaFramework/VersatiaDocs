@@ -96,7 +96,8 @@ declaring class, so a conditional bean or `object` takes its `@AutoInvoke` funct
 properties with it. The skipped
 classes are logged at `INFO` when the plugin starts, one line per missing plugin, telling a plugin
 that is not installed from one the server started later
-(`Skipped VersatiaCommand: CommandAPI is not installed`). The filter reads the recorded attribute
+(`Skipped VersatiaCommand: CommandAPI is not installed`); a function or property skipped by a
+condition of its own, not its class's, is named as the member (`JoinBonus.vaultFound()`). The filter reads the recorded attribute
 and knows no feature; see [Optional plugins](../optional-plugins.md).
 
 ## Commands {/* #commands */}

@@ -11,6 +11,18 @@ which comes with **VersatiaStarter**.
 1. Run Paper **1.21.4** on Java **21** or newer.
 2. Drop `VersatiaCore-0.0.1.jar` into the `plugins/` directory.
 
+At its first start VersatiaCore writes its own configuration, `plugins/VersatiaCore/config.yml`:
+
+```yaml
+# Logs every step of each Versatia plugin's start, reload and stop at INFO; for diagnosing a plugin, off otherwise
+debug: false
+```
+
+With `debug: true` the log describes what the runtime does with each plugin (see
+[Troubleshooting](../reference/troubleshooting.md#debug-mode)). The file is read at start and at
+every reload of VersatiaCore, so `/versatia reload VersatiaCore` switches it without a restart; a
+deleted file comes back at that reload.
+
 VersatiaCore is the only plugin that ships the Kotlin runtime: its `plugin.yml` lists
 `kotlin-stdlib` and `kotlin-reflect` under `libraries:`, and Paper downloads them at start.
 Every Versatia plugin reaches Kotlin through VersatiaCore, which is why your plugin must **not**
@@ -136,6 +148,42 @@ Two dependencies, nothing else:
 Keep the version in one `versatiaVersion` value; both lines use it. A plugin that uses no module
 may depend on `com.github.marcoral.versatia:VersatiaAPI` instead of the starter.
 
+### Versions from VersatiaCatalog {/* #versatia-catalog */}
+
+Instead of writing the Kotlin, KSP and Versatia versions yourself, you can import the Gradle
+version catalog the framework is built with, `com.github.marcoral.versatia:VersatiaCatalog`
+(published by VersatiaAPI). The examples and the template do this. The Versatia version moves to
+`gradle.properties`, the one place both scripts read it from:
+
+```properties title="gradle.properties"
+versatiaVersion=0.0.1
+```
+
+```kotlin title="settings.gradle.kts (added inside dependencyResolutionManagement)"
+versionCatalogs {
+    create("libs") {
+        from("com.github.marcoral.versatia:VersatiaCatalog:${providers.gradleProperty("versatiaVersion").get()}")
+    }
+}
+```
+
+```kotlin title="build.gradle.kts"
+plugins {
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.ksp)
+}
+
+dependencies {
+    implementation(libs.versatia.starter)
+    ksp(libs.versatia.ksp)
+}
+```
+
+The catalog matches the framework release: Kotlin and KSP at the versions Versatia is compiled
+with, plus `libs.paper.api` (for `testImplementation`), `libs.versatia.api`,
+`libs.versatia.messages`, `libs.commandapi.*` and `libs.snakeyaml`. Your own libraries stay in
+your build, or in a second catalog of your own.
+
 There is no configuration block for the processor. It finds your plugin's main class on its own
 and places the generated descriptor next to it.
 
@@ -190,6 +238,17 @@ Two rules:
     ```
 
   See [Troubleshooting](../reference/troubleshooting.md#linkageerror-at-start-up).
+
+:::warning[plugin.yml, not paper-plugin.yml]
+
+A Versatia plugin is described by `plugin.yml`. A `paper-plugin.yml` makes Paper load the JAR as a
+Paper plugin, even next to a `plugin.yml`: its class loader is isolated, and it has no `depend:`
+through which VersatiaCore shares Kotlin and VersatiaAPI the way it does with a Bukkit plugin. That
+loading is not supported, and the `checkPluginYml` task of the template fails the build when
+`src/main/resources/paper-plugin.yml` exists. See
+[Coming from Bukkit](coming-from-bukkit.md#pluginyml-not-paper-pluginyml).
+
+:::
 
 ## Check the setup {/* #check-the-setup */}
 

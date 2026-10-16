@@ -7,7 +7,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Getting started',
       collapsed: false,
-      items: ['getting-started/installation', 'getting-started/first-plugin', 'examples/index'],
+      items: ['getting-started/installation', 'getting-started/first-plugin', 'getting-started/coming-from-bukkit', 'examples/index'],
     },
     {
       type: 'category',

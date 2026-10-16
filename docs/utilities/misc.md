@@ -114,11 +114,7 @@ throws `IllegalArgumentException`.
 
 ## Value types {/* #value-types */}
 
-Package `util.type`.
-
-- `Percent` is an inline value class around a `Double` in `0..100`, comparable. Create it with
-  `Percent.of(12.5)`, `Percent.of(current, total)`, `Percent.ofNormalizedValue(0.125)` or
-  `Percent.parse("12.5%")`; `normalizedValue` gives the `0..1` form. The configuration getters
-  parse the `"12.5%"` notation.
-- `LevelWithExp` pairs a level with an experience fraction; `ImmutableLevelWithExp` and
-  `MutableLevelWithExp` implement it.
+Package `util.type`. `Percent` is an inline value class around a `Double` in `0..100`,
+comparable. Create it with `Percent.of(12.5)`, `Percent.of(current, total)`,
+`Percent.ofNormalizedValue(0.125)` or `Percent.parse("12.5%")`; `normalizedValue` gives the `0..1`
+form. The configuration getters parse the `"12.5%"` notation.
