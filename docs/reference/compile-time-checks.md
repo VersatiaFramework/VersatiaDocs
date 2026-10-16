@@ -3,9 +3,9 @@
 The KSP processor validates the plugin's beans, functions and properties and stops the build with an error
 pointing at the offending declaration. When any check fails, **no descriptor is generated**, so a
 broken graph can never reach a server. The errors a plugin can still meet on the server are in
-[Troubleshooting](../troubleshooting.md#at-start-up).
+[Troubleshooting](troubleshooting.md#at-start-up).
 
-## Bean graph
+## Bean graph {/* #bean-graph */}
 
 | Problem                                                              | Example message                                                                 |
 |----------------------------------------------------------------------|---------------------------------------------------------------------------------|
@@ -20,17 +20,17 @@ broken graph can never reach a server. The errors a plugin can still meet on the
 | `@Primary` or `@Qualifier` on a class that is not a bean             | `@Primary on Helper has no effect: the class is not a bean`                      |
 | a dependency whose only local provider is [conditional](../optional-plugins.md#conditional-beans), required by a bean without the same condition | `Checkout depends on VaultEconomy, which exists only with @ConditionalOnPlugin("Vault"); make Checkout conditional on the same plugins or declare a provider without the condition` |
 | several providers left while some optional plugins are enabled      | `Dependency Economy of Checkout is ambiguous while "Vault" is enabled; candidates: ...` |
-| a non-repeatable attribute reaching an element twice, directly and through an [annotation of your own](index.md#your-own-attribute-annotations) | `Race has @Qualifier more than once: written directly and inherited from @Fast; keep one` |
+| a non-repeatable attribute reaching an element twice, directly and through an [annotation of your own](../dependency-injection/index.md#your-own-attribute-annotations) | `Race has @Qualifier more than once: written directly and inherited from @Fast; keep one` |
 
 Class names in the messages are fully qualified; they are shortened here.
 
 A dependency that **no local bean provides is not an error**. It is expected to come from a bean
 exposed by another plugin; the runtime reports it if it does not
-([Beans across plugins](cross-plugin.md#when-the-bean-is-missing)). A constructor parameter with a
+([Beans across plugins](../dependency-injection/cross-plugin.md#when-the-bean-is-missing)). A constructor parameter with a
 default value may have no provider at all: it is an
-[optional dependency](index.md#optional-dependencies).
+[optional dependency](../dependency-injection/index.md#optional-dependencies).
 
-## Bean declarations
+## Bean declarations {/* #bean-declarations */}
 
 A class is rejected as a bean when it
 
@@ -42,24 +42,26 @@ A class is rejected as a bean when it
   parameter (`Injected parameter config of Shop must not be nullable`); a `@Value` parameter is
   checked as a [configuration value](#configuration-values) instead.
 
-## Prototypes and the plugin
+## Prototypes and the plugin {/* #prototypes-and-the-plugin */}
 
 A `@ExposePrototype` bean whose constructor takes the plugin receives the *consuming* plugin, so
 the parameter must be a type every plugin has: `VersatiaPlugin` or one of its supertypes. The
 owner's own main class is rejected (`Strict is a prototype, so its AlphaPlugin parameter receives
 the consuming plugin; declare it as VersatiaPlugin (or a supertype), which every plugin is`).
 
-## Auto-invoked functions
+## Auto-invoked functions {/* #auto-invoked-functions */}
 
 A function marked `@AutoInvoke` is rejected when it
 
 - belongs to a class that is neither the plugin's main class, a Kotlin `object`, nor a bean
-  (`start cannot be enhanced: Helper is neither the plugin's main class, an object nor a bean`);
+  (`Helper.start cannot be enhanced: Helper is neither the plugin's main class, an object nor a bean`);
 - is an extension, `suspend`, abstract or generic function
-  (`start must not be suspend to be enhanced`);
+  (`Main.start must not be suspend to be enhanced`);
+- overrides a function that is enhanced too (`Main.start overrides BasePlugin.start, which is
+  enhanced too, so the override would run for both; keep the enhancement on one of them`);
 - has a parameter the bean rules above would reject, or an ambiguous one.
 
-## Configuration values
+## Configuration values {/* #configuration-values */}
 
 A property marked [`@Value`](../configuration.md) is rejected when it
 
@@ -72,13 +74,15 @@ A property marked [`@Value`](../configuration.md) is rejected when it
   included`);
 - is top-level (`top cannot be enhanced: it is a top-level property; move it into the plugin's
   main class, an object or a bean`) or belongs to a plain class;
+- overrides a property that is enhanced too (`Main.limit overrides BasePlugin.limit, which is
+  enhanced too, ...`);
 - has a type the runtime cannot read (`@Value on Shop.when: Date? is not a supported type;
   supported are ...`), a nullable element (`the elements of List<Int?> must not be nullable`) or a
   map with non-`String` keys, and names no mapper;
 - names a mapper that is not an `object` or a class with a no-argument constructor, or whose
   result the property cannot hold (`mapper TicksFromSeconds maps to Long, which Int cannot hold`).
 
-## Attributes the runtime reads
+## Attributes the runtime reads {/* #attributes-the-runtime-reads */}
 
 - `@FriendlyName` anywhere but on the main class (`@FriendlyName on Config has no effect: it
   belongs on the plugin's main class`), or with a name that is not one word;
@@ -90,10 +94,10 @@ A property marked [`@Value`](../configuration.md) is rejected when it
   (`@ConditionalOnPlugin on Tools must name plugins, one word each`).
 
 These checks apply to an attribute inherited through an
-[annotation of your own](index.md#your-own-attribute-annotations) exactly as to one written
+[annotation of your own](../dependency-injection/index.md#your-own-attribute-annotations) exactly as to one written
 directly.
 
-## Enhancement annotations
+## Enhancement annotations {/* #enhancement-annotations */}
 
 These concern authors of [custom scopes and enhancements](../internals/enhancements.md):
 
@@ -109,14 +113,14 @@ These concern authors of [custom scopes and enhancements](../internals/enhanceme
   or neither (`... sets both enhancementPhase and enhancementPhaseParamRefName; exactly one of them
   is required`, `... declares no phase; set enhancementPhase or enhancementPhaseParamRefName`);
 - `enhancementPhaseParamRefName` naming a property the annotation does not declare, or one that is
-  not an `EventType`;
-- an occurrence that leaves that property at `EventType._NULL`
-  (`@AutoInvoke must set phase to a phase other than _NULL; it decides when the enhancement runs`).
+  not a `Phase`;
+- an occurrence that leaves that property at `Phase.UNSET`
+  (`@AutoInvoke must set phase to a phase other than UNSET; it decides when the enhancement runs`).
 
 Errors point at the annotation declaration when it is in the sources, otherwise at the class using
 it.
 
-## Main class
+## Main class {/* #main-class */}
 
 The processor locates the plugin's main class as the **single concrete subclass of `JavaPlugin`**
 in the sources. When there is none or there are several, it stops with

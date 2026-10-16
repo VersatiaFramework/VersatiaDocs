@@ -3,7 +3,7 @@
 The smaller helper packages under `com.github.marcoral.versatia.util`. Server-wide calls, such as
 finding players, broadcasting or loading a service, are on [`VersatiaEngine`](index.md#start-with-versatiaengine).
 
-## Logging
+## Logging {/* #logging */}
 
 Package `util.plugin`. Shorthands over `Plugin.logger` for places that hold a `Plugin`, such as a
 bean that takes the plugin as a constructor parameter:
@@ -17,29 +17,32 @@ plugin.logSevere("Could not save", cause)
 
 Inside the plugin class itself, `logger.info(...)` is just as short; the helpers add nothing there.
 
-## Scheduler
+## Scheduler {/* #scheduler */}
 
 Package `util.scheduler`. Wrappers over `BukkitScheduler` that take the plugin as receiver:
 
 ```kotlin
 plugin.runTask { /* next tick, main thread */ }
 plugin.runTaskLater(20) { /* in one second */ }
-plugin.runTaskTimer(periodTicks = 20, delayTicks = 0) { /* every second */ }
+plugin.runTaskTimer(periodTicks = 20) { /* every second, from the next tick */ }
 plugin.runTaskAsynchronously { /* off the main thread */ }
 plugin.callSyncMethod { VersatiaEngine.onlinePlayers.size }   // Future<Int> from an async thread
 plugin.cancelAllTasks()
 ```
 
+The timer variants keep Bukkit's parameter order, `delayTicks` before `periodTicks`. The delay
+defaults to `0`, so a timer that starts at once names its period: `runTaskTimer(periodTicks = 20)`.
+
 Each variant has a `*WithContext` twin whose lambda receives the `BukkitTask`, so a repeating task
 can cancel itself:
 
 ```kotlin
-plugin.runTaskTimerWithContext(periodTicks = 20, delayTicks = 0) { task ->
+plugin.runTaskTimerWithContext(delayTicks = 100, periodTicks = 20) { task ->
     if (done) task.cancel()
 }
 ```
 
-## Validation
+## Validation {/* #validation */}
 
 Package `util.validation`. `validate`, `validateAtLeast`, `validateAtMost`, `validateBetween`,
 `validateIn`, `validateGreaterThan`, `validateLessThan`, `validateZero` and `validateNotZero` wrap
@@ -52,7 +55,7 @@ val size = config.getIntOrThrow("size").validateAtLeast(1) { "size must be posit
 They are generic over `Comparable<T>` (or `Number` for the zero checks). Messages are lambdas and
 evaluated only on failure.
 
-## Reflection
+## Reflection {/* #reflection */}
 
 Package `util.reflect`, built on `kotlin-reflect`.
 
@@ -75,7 +78,7 @@ reaches it through `depend: [VersatiaCore]` and must not list it itself.
 
 :::
 
-## Inventory
+## Inventory {/* #inventory */}
 
 Package `util.inventory`.
 
@@ -87,7 +90,7 @@ Package `util.inventory`.
 - `PlayerInventorySlots` holds the raw slot indices of the player inventory;
   `Int.toEquipmentSlotOrNull()` maps an armour slot index to its `EquipmentSlot`.
 
-## World
+## World {/* #world */}
 
 Package `util.world`.
 
@@ -96,20 +99,20 @@ Package `util.world`.
 - `Location.spawnParticle(...)` spawns a particle at the location and does nothing when the world
   is not loaded.
 
-## Enums
+## Enums {/* #enums */}
 
 Package `util.lang`. `asEnumIgnoreCase<T>(name)`, `asEnumIgnoreCaseOrThrow<T>(name)` and
 `isEnumIgnoreCase<T>(name)` look up enum constants without caring about case; the configuration
 getters use them for enum values.
 
-## Text
+## Text {/* #text */}
 
 Package `util.text`. `toSubscript()` and `toSuperscript()` on `Int`, `Long`, `UInt`, `ULong` and
 `String` convert digits and a leading minus to their Unicode sub- and superscript forms
 (`12.toSuperscript()` is `¹²`, `"-3".toSubscript()` is `₋₃`). A string holding anything else
 throws `IllegalArgumentException`.
 
-## Value types
+## Value types {/* #value-types */}
 
 Package `util.type`.
 

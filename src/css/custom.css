@@ -7,10 +7,11 @@
   --ifm-color-primary-lighter: #5767c4;
   --ifm-color-primary-lightest: #7482cf;
   --ifm-code-font-size: 90%;
-  --ifm-font-family-base: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --ifm-font-family-base: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --ifm-heading-font-weight: 600;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.08);
   --versatia-hero-start: #eef0fb;
+  --versatia-on-primary: #fff;
 }
 
 [data-theme='dark'] {
@@ -25,6 +26,7 @@
   --ifm-background-surface-color: #1c1f2a;
   --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.08);
   --versatia-hero-start: #1c1f33;
+  --versatia-on-primary: #15171f;
 }
 
 /* Infima keeps tables display: block with overflow: auto, so a wide table scrolls inside the article */

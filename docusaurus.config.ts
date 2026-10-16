@@ -5,6 +5,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 // GitHub Pages address of this repository; adjust when the repository is published elsewhere
 const organizationName = 'VersatiaFramework';
 const projectName = 'VersatiaDocs';
+const github = `https://github.com/${organizationName}`;
 
 const config: Config = {
   title: 'Versatia',
@@ -19,7 +20,8 @@ const config: Config = {
     },
   },
 
-  url: `https://${organizationName}.github.io`,
+  // GitHub Pages serves the lowercase host; canonical links and the sitemap must agree
+  url: `https://${organizationName.toLowerCase()}.github.io`,
   baseUrl: `/${projectName}/`,
   organizationName,
   projectName,
@@ -46,12 +48,30 @@ const config: Config = {
         docs: {
           sidebarPath: './sidebars.ts',
           showLastUpdateTime: false,
+          editUrl: `${github}/${projectName}/edit/master/`,
+        },
+        sitemap: {
+          ignorePatterns: [`/${projectName}/search/**`, `/${projectName}/search`],
         },
         blog: false,
         theme: {
           customCss: './src/css/custom.css',
         },
       } satisfies Preset.Options,
+    ],
+  ],
+
+  plugins: [
+    [
+      '@docusaurus/plugin-client-redirects',
+      {
+        // Pages that moved keep their old addresses, which READMEs and bookmarks still use
+        redirects: [
+          {from: '/docs/best-practices', to: '/docs/reference/best-practices'},
+          {from: '/docs/troubleshooting', to: '/docs/reference/troubleshooting'},
+          {from: '/docs/dependency-injection/compile-time-checks', to: '/docs/reference/compile-time-checks'},
+        ],
+      },
     ],
   ],
 
@@ -70,6 +90,9 @@ const config: Config = {
   ],
 
   themeConfig: {
+    metadata: [
+      {name: 'keywords', content: 'Paper, Minecraft, plugin, Kotlin, framework, dependency injection, KSP, Bukkit'},
+    ],
     colorMode: {
       respectPrefersColorScheme: true,
     },
@@ -105,6 +128,11 @@ const config: Config = {
           position: 'left',
           label: 'Examples',
         },
+        {
+          href: github,
+          position: 'right',
+          label: 'GitHub',
+        },
       ],
     },
     footer: {
@@ -123,6 +151,9 @@ const config: Config = {
           items: [
             {label: 'Dependency injection', to: '/docs/dependency-injection'},
             {label: 'Auto-invoked functions', to: '/docs/lifecycle/auto-invoke'},
+            {label: 'Configuration values', to: '/docs/configuration'},
+            {label: 'Event listeners', to: '/docs/events'},
+            {label: 'Modules', to: '/docs/modules'},
             {label: 'Utilities', to: '/docs/utilities'},
           ],
         },
@@ -130,13 +161,22 @@ const config: Config = {
           title: 'Reference',
           items: [
             {label: 'Architecture', to: '/docs/internals/architecture'},
-            {label: 'Best practices', to: '/docs/best-practices'},
-            {label: 'Troubleshooting', to: '/docs/troubleshooting'},
+            {label: 'Best practices', to: '/docs/reference/best-practices'},
+            {label: 'Troubleshooting', to: '/docs/reference/troubleshooting'},
             {label: 'Building the framework', to: '/docs/contributing/building'},
           ],
         },
+        {
+          title: 'GitHub',
+          items: [
+            {label: 'VersatiaFramework', href: github},
+            {label: 'VersatiaAPI', href: `${github}/VersatiaAPI`},
+            {label: 'VersatiaStarter', href: `${github}/VersatiaStarter`},
+            {label: 'VersatiaExamples', href: `${github}/VersatiaExamples`},
+          ],
+        },
       ],
-      copyright: `Versatia framework for Paper 1.21.4. Documentation built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} ${organizationName}. Versatia framework for Paper 1.21.4. Documentation built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,

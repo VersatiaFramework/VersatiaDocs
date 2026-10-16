@@ -5,7 +5,7 @@ Server-wide calls start at one class, `VersatiaEngine`; everything else is an ex
 object you already hold, grouped under `com.github.marcoral.versatia.util` by the domain it
 touches.
 
-## Start with `VersatiaEngine.`
+## Start with `VersatiaEngine.` {/* #start-with-versatiaengine */}
 
 Work that needs no object at hand, such as finding a player, broadcasting or looking up a service,
 is a static call on `VersatiaEngine`: one class to remember. Type `VersatiaEngine.` and pick from
@@ -52,7 +52,7 @@ bean, take the plugin or the `PluginRegistry` as a constructor parameter instead
 `VersatiaEngine.registry`: it keeps the bean testable. The shortcuts are Kotlin extensions on the
 companion of `VersatiaEngine`; from Java, use `VersatiaEngine.getInstance()` and Bukkit.
 
-## Helpers by package
+## Helpers by package {/* #helpers-by-package */}
 
 | Package        | Contents                                                                                 | Page |
 |----------------|------------------------------------------------------------------------------------------|------|

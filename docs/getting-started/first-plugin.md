@@ -3,7 +3,7 @@
 This page walks through a minimal plugin: a main class, two beans, a configuration value and two
 lifecycle functions. The [installation](installation.md) is assumed to be done.
 
-## The main class
+## The main class {/* #the-main-class */}
 
 ```kotlin
 package com.example.myplugin
@@ -17,7 +17,7 @@ class MyPlugin : VersatiaPlugin()
 override: on enable it hands the plugin to the runtime, on disable it tells the runtime to clean
 up. Start-up code goes into auto-invoked functions instead.
 
-## Beans
+## Beans {/* #beans */}
 
 A bean is a class annotated with a *scope*. Its constructor parameters are its dependencies.
 
@@ -46,7 +46,7 @@ class PriceList(private val config: ShopConfig) {
 Nothing has to be registered. The processor finds every class carrying a scope annotation and
 records it in the descriptor.
 
-## Configuration
+## Configuration {/* #configuration */}
 
 `currency` is a [`@Value` property](../configuration.md): the runtime sets it from `config.yml` in
 the plugin's data folder. Ship the file with its default under `src/main/resources/resources/`:
@@ -60,26 +60,22 @@ At start the file is [extracted](../resources.md) to `plugins/MyPlugin/config.ym
 server owner edits it, and `currency` is set from it; at every reload it is set again. `PriceList`
 reads `config.currency` when it describes an item, so it always shows the current value.
 
-## Lifecycle functions
+## Lifecycle functions {/* #lifecycle-functions */}
 
 ```kotlin
 package com.example.myplugin
 
-import com.github.marcoral.versatia.EventType
+import com.github.marcoral.versatia.Phase
 import com.github.marcoral.versatia.VersatiaPlugin
 import com.github.marcoral.versatia.lifecycle.AutoInvoke
 
 class MyPlugin : VersatiaPlugin() {
 
-    @AutoInvoke(EventType.PLUGIN_RELOAD_OR_START)
-    private fun start(prices: PriceList) {
-        logger.info(prices.describe("Diamond"))
-    }
+    @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
+    private fun start(prices: PriceList) = logger.info(prices.describe("Diamond"))
 
-    @AutoInvoke(EventType.PLUGIN_STOP)
-    private fun stop() {
-        logger.info("Bye")
-    }
+    @AutoInvoke(Phase.PLUGIN_STOP)
+    private fun stop() = logger.info("Bye")
 }
 ```
 
@@ -92,7 +88,7 @@ class MyPlugin : VersatiaPlugin() {
 Auto-invoked functions may also live in Kotlin `object`s and in beans; see
 [Auto-invoked functions](../lifecycle/auto-invoke.md).
 
-## Reaching the server
+## Reaching the server {/* #reaching-the-server */}
 
 Server-wide calls start at one class, `VersatiaEngine`. Type `VersatiaEngine.` and the completion
 offers what a plugin needs every day; IntelliJ adds the import:
@@ -105,7 +101,7 @@ VersatiaEngine.playerOrNull("Notch")?.sendMessage(text("Welcome back"))
 Work on an object you already hold stays on that object: `plugin.runTaskLater(20) { }`,
 `player.sendMessage(...)`. The full list is in [Utilities](../utilities/index.md#start-with-versatiaengine).
 
-## Build and look at the result
+## Build and look at the result {/* #build-and-look-at-the-result */}
 
 ```bash
 ./gradlew build
@@ -115,15 +111,17 @@ The processor generated `build/generated/ksp/main/kotlin/com/example/myplugin/Ve
 Shortened, it reads:
 
 ```kotlin
+@file:OptIn(VersatiaInternalApi::class)
+
 object VersatiaDescriptor : VersatiaPluginDescriptor {
   override val formatMajor: Int = 1
-  override val formatMinor: Int = 2
+  override val formatMinor: Int = 3
 
   override val elements: List<EnhancedElement>
     get() = listOf(
       EnhancedElement(
         processorClass = "com.github.marcoral.versatia.di.PluginBeanEnhancementProcessor",
-        phase = EventType.PLUGIN_RELOAD_OR_START,
+        phase = Phase.PLUGIN_RELOAD_OR_START,
         annotation = AnnotationOccurrence("com.github.marcoral.versatia.di.PluginBean"),
         target = PluginTarget(
           className = "com.example.myplugin.MyPlugin",
@@ -133,13 +131,13 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
       ),
       EnhancedElement(
         processorClass = "com.github.marcoral.versatia.resources.ExtractResourcesEnhancementProcessor",
-        phase = EventType.PLUGIN_RELOAD_OR_START,
+        phase = Phase.PLUGIN_RELOAD_OR_START,
         annotation = AnnotationOccurrence("com.github.marcoral.versatia.resources.ExtractResources"),
         target = PluginTarget(/* the same */),
       ),
       EnhancedElement(
         processorClass = "com.github.marcoral.versatia.di.LocalBeanEnhancementProcessor",
-        phase = EventType.PLUGIN_START_ONLY,
+        phase = Phase.PLUGIN_START_ONLY,
         annotation = AnnotationOccurrence("com.github.marcoral.versatia.di.LocalBean"),
         target = ClassTarget(
           className = "com.example.myplugin.PriceList",
@@ -151,7 +149,7 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
       ),
       EnhancedElement(
         processorClass = "com.github.marcoral.versatia.lifecycle.AutoInvokeEnhancementProcessor",
-        phase = EventType.PLUGIN_RELOAD_OR_START,
+        phase = Phase.PLUGIN_RELOAD_OR_START,
         annotation = AnnotationOccurrence("com.github.marcoral.versatia.lifecycle.AutoInvoke", mapOf("phase" to "PLUGIN_RELOAD_OR_START")),
         target = FunctionTarget(
           className = "com.example.myplugin.MyPlugin",
@@ -168,14 +166,15 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
 }
 ```
 
-One element per bean and per function, plus one for the main class: `MyPlugin` is a local bean
-named `plugin` without any annotation, so beans and functions may ask for it (or for `JavaPlugin`)
+One element per bean and per function, plus one per enhancement the main class inherits from
+`VersatiaPlugin` (`@PluginBean` and `@ExtractResources` above). `MyPlugin` is a local bean named
+`plugin` without any annotation, so beans and functions may ask for it (or for `JavaPlugin`)
 like for any other bean. Each element names the VersatiaCore class that interprets it. `PriceList`
 is public, so the descriptor calls its constructor directly; `start` is private, so it gets a
 reflective invoker. Nothing in the file says in which order to create the beans: the runtime
 derives that from the constructor parameters.
 
-## Run it
+## Run it {/* #run-it */}
 
 Copy the JAR to the server's `plugins/` directory next to VersatiaCore and start the server. The
 log shows
@@ -186,7 +185,7 @@ log shows
 
 and, on shutdown, `Bye`.
 
-## Reload it
+## Reload it {/* #reload-it */}
 
 Change `currency` to `gems` in `plugins/MyPlugin/config.yml` and run `/versatia reload MyPlugin`
 (the command needs [CommandAPI](installation.md#soft-dependencies) on the server). The runtime
@@ -199,7 +198,7 @@ sets `currency` again, then runs `start`, because its phase is `PLUGIN_RELOAD_OR
 No restart and no reload code. What else a reload does is in
 [Reloading plugins](../lifecycle/reload.md).
 
-## Break it on purpose
+## Break it on purpose {/* #break-it-on-purpose */}
 
 Make `ShopConfig` depend on `PriceList`:
 
@@ -216,4 +215,12 @@ Dependency cycle: ShopConfig -> PriceList -> ShopConfig
 
 pointing at the file and line. No descriptor is generated, so the problem can never reach a server.
 The full list of what the processor checks is in
-[Compile-time checks](../dependency-injection/compile-time-checks.md).
+[Compile-time checks](../reference/compile-time-checks.md).
+
+## Next steps {/* #next-steps */}
+
+- Follow the learning path of the [example plugins](../examples/index.md): one feature per
+  repository, each with the log lines to expect.
+- Start a plugin of your own from
+  [VersatiaExample-Template](https://github.com/VersatiaFramework/VersatiaExample-Template).
+- Read the features one by one, from [Dependency injection](../dependency-injection/index.md) on.

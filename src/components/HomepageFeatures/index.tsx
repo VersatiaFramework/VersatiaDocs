@@ -42,7 +42,7 @@ const features: Feature[] = [
         message pointing at the line. Nothing broken reaches a server.
       </>
     ),
-    to: '/docs/dependency-injection/compile-time-checks',
+    to: '/docs/reference/compile-time-checks',
     linkText: 'Compile-time checks',
   },
   {

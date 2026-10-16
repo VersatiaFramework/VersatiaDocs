@@ -12,7 +12,7 @@ is written from the consumer's side; the providing plugin only has to pick the s
 A provider plugin exposing a singleton and a prototype, and a consumer plugin injecting both.
 </ExampleCard>
 
-## Set-up in the consumer
+## Set-up in the consumer {/* #set-up-in-the-consumer */}
 
 Say the plugin **Shop** exposes `Clock` (a singleton) and `PluginSession` (a prototype).
 
@@ -57,10 +57,8 @@ beans have been exposed before this plugin enables and lets Bukkit's class loade
 class SessionReport(private val clock: Clock, private val session: PluginSession)
 
 class ReportPlugin : VersatiaPlugin() {
-    @AutoInvoke(EventType.PLUGIN_RELOAD_OR_START)
-    fun summary(clock: Clock) {
-        logger.info("Shared clock started at ${clock.startedAt}")
-    }
+    @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
+    fun summary(clock: Clock) = logger.info("Shared clock started at ${clock.startedAt}")
 }
 ```
 
@@ -68,7 +66,7 @@ Nothing marks `Clock` as foreign. It is requested like any other dependency.
 
 </TabItem>
 </Tabs>
-## What the consumer receives
+## What the consumer receives {/* #what-the-consumer-receives */}
 
 | Scope of the bean in Shop | The consumer gets                                                    |
 |---------------------------|----------------------------------------------------------------------|
@@ -83,8 +81,16 @@ made for the consumer knows which plugin it serves, and a parameter typed by ano
 receives the instance of that prototype made for the consumer. In the log the line comes from
 Shop's class, but on behalf of the consumer. A prototype instance implementing `Reloadable` is
 reloaded with the consumer, not with Shop; see [Reloading plugins](../lifecycle/reload.md#reloadable-beans).
+Its `@Value` properties come from Shop's files: the instance starts with the values Shop read last
+and follows every reload of Shop, after which the consumer is reloaded too, so its
+`PLUGIN_RELOAD_OR_START` functions see the new values; see
+[Plugins that use the reloaded one's values](../lifecycle/reload.md#plugins-that-use-the-reloaded-ones-values).
+The same holds for an injected singleton with `@Value` properties, or one that takes a bean of Shop
+with values in its constructor; a bean without values, directly or through what it takes, ties no
+reload, so a consumer of such beans only is not reloaded with Shop.
 
-## When the bean is missing
+
+## When the bean is missing {/* #when-the-bean-is-missing */}
 
 The processor cannot know what other plugins expose, so a dependency that no local bean provides
 **compiles**. If nothing provides it at runtime either, the consumer fails to enable:
@@ -105,14 +111,14 @@ If two plugins expose the same type, the message lists them:
 
 ```
 Plugin ReportPlugin: com.example.shop.Clock required by com.example.report.SessionReport is ambiguous;
-candidates: "clock" (com.example.shop.Clock, from Shop), "clock" (com.example.other.Clock, from Other).
+candidates: "clock" (com.example.shop.Clock from Shop), "clock" (com.example.other.OtherClock from Other).
 Add @Qualifier at the injection point or mark one bean @Primary
 ```
 
 `@Qualifier` on the parameter picks one of them; see
 [Names, qualifiers and primary beans](qualifiers.md).
 
-## Lifetime across plugins
+## Lifetime across plugins {/* #lifetime-across-plugins */}
 
 Exposed beans live as long as their owner. When Shop is disabled, its `Clock` and the
 `PluginSession` factory disappear. At server stop Bukkit disables plugins in the reverse order of

@@ -12,7 +12,7 @@ itself stays simple: read the descriptor, load the processors it names, hand eac
 let the processor do the work. See [Architecture](architecture.md#enhancements) for the rules this
 implies.
 
-## Vocabulary
+## Vocabulary {/* #vocabulary */}
 
 - **Enhancement**: an annotation whose occurrences the framework acts on. It names its processor
   class and the phase it runs at with `@VersatiaEnhancement` (`com.github.marcoral.versatia`).
@@ -29,7 +29,7 @@ implies.
   class marked `@LocalBean` counts as marked with both; a `@Service` annotated with `@LocalBean`
   inherits them too.
 
-## `@VersatiaEnhancement`
+## `@VersatiaEnhancement` {/* #versatiaenhancement */}
 
 ```kotlin
 @Target(AnnotationTarget.ANNOTATION_CLASS)
@@ -37,15 +37,15 @@ implies.
 @Repeatable
 annotation class VersatiaEnhancement(
     val processorClass: String,
-    val enhancementPhase: EventType = EventType._NULL,
+    val enhancementPhase: Phase = Phase.UNSET,
     val enhancementPhaseParamRefName: String = "",
 )
 ```
 
 - `processorClass` is the fully qualified name of the processor. It is a name rather than a class
   because the plugin compiles against VersatiaAPI only; the processor is in VersatiaCore or in
-  another plugin. The names of the built-in processors are kept in `BeanProcessors` and
-  `LifecycleProcessors`. A mistyped name is reported when the plugin enables.
+  another plugin. The names of the built-in processors are kept in `BeanProcessors`,
+  `LifecycleProcessors`, `ConfigProcessors`, `ResourceProcessors` and `EventProcessors`. A mistyped name is reported when the plugin enables.
 - Exactly one of `enhancementPhase` (fixed) and `enhancementPhaseParamRefName` (read from a
   property of the annotated annotation, per occurrence) must be set; see
   [Phases and events](../lifecycle/phases.md#how-an-annotation-declares-its-phase).
@@ -56,11 +56,11 @@ The built-in enhancements:
 
 ```kotlin
 @Bean
-@VersatiaEnhancement(BeanProcessors.LOCAL, enhancementPhase = EventType.PLUGIN_START_ONLY)
+@VersatiaEnhancement(BeanProcessors.LOCAL, enhancementPhase = Phase.PLUGIN_START_ONLY)
 annotation class LocalBean
 
 @VersatiaEnhancement(LifecycleProcessors.AUTO_INVOKE, enhancementPhaseParamRefName = "phase")
-annotation class AutoInvoke(val phase: EventType)
+annotation class AutoInvoke(val phase: Phase)
 ```
 
 `@Bean` is a second marker that tells the compile-time step to treat annotated classes as beans:
@@ -68,7 +68,7 @@ analyse the constructor, compute the assignable types, validate the graph. An an
 inherits `@Bean` without a `@VersatiaEnhancement` is a compile error, because no processor would
 ever see its beans.
 
-## `@VersatiaAttribute`
+## `@VersatiaAttribute` {/* #versatiaattribute */}
 
 ```kotlin
 @Target(AnnotationTarget.CLASS, AnnotationTarget.VALUE_PARAMETER)
@@ -95,7 +95,7 @@ about one feature: [`@ConditionalOnPlugin`](../optional-plugins.md) decides whet
 dispatched at all, and [`@FriendlyName`](../lifecycle/reload.md#friendly-names) names the plugin in
 the runtime's registry. The compile-time step checks their placement.
 
-## Processors
+## Processors {/* #processors */}
 
 ```kotlin
 interface EnhancementProcessor {
@@ -127,10 +127,12 @@ A processor receives, per plugin and per lifecycle event, only the elements nami
 applies to the event. The context carries the `Plugin` being enhanced (its name, logger and class
 loader follow from it; `EnhancementContext.classLoader` is a shorthand) and the event.
 `onPluginEnhanced` registers an action that runs once every processor has seen the plugin's
-elements for this event. The bean processors use it to instantiate all beans after all scopes have
+elements for this event; the actions run in registration order, and one registered by another
+action runs after those already queued. Processors run in the order of their first element in the
+descriptor. The bean processors use it to instantiate all beans after all scopes have
 declared theirs, and the auto-invoke processor to call functions after the beans exist.
 
-### Plugin state
+### Plugin state {/* #plugin-state */}
 
 Processors keep nothing per plugin in their own fields. `context.state` is a `StateStore`: a
 store created for the plugin on first use, kept across `START`, `RELOAD` and `STOP`, shared by
@@ -151,7 +153,7 @@ interface BeanResolver {
 class PluginBeanSession(...) : BeanResolver, AutoCloseable {
     companion object {
         fun of(context: EnhancementContext) =
-            context.state.getOrPut(BeanResolver.KEY) { PluginBeanSession(context.plugin.name, context.classLoader, ExposedBeanRegistry.of(context)) } as PluginBeanSession
+            context.state.getOrPut(BeanResolver.KEY) { PluginBeanSession(context.plugin, context.classLoader, ExposedBeanRegistry.of(context)) } as PluginBeanSession
     }
 }
 ```
@@ -160,6 +162,12 @@ The bean processors declare into that session; the auto-invoke processor, like a
 any plugin that wants injected parameters, reads `context.state[BeanResolver.KEY]`; the registry
 of exposed beans sits in `runtimeState`; closing the session when the plugin is disabled
 withdraws the beans it exposed. The runtime knows none of this; it only closes what is closable.
+
+`BeanResolver` has three more members, `supply`, `onInstanceCreated` and `instancesOf`, through
+which the `@Value` processor reaches into the bean container. They are marked
+[`@VersatiaInternalApi`](../reference/best-practices.md#internal-plumbing), like the `*Processors` name
+holders of the built-in features: a processor of your own needs only `resolve`, `instanceOf` and
+the state stores, and using a marked member warns.
 
 The built-in processors, all in VersatiaCore:
 
@@ -174,7 +182,7 @@ The built-in processors, all in VersatiaCore:
 | `.resources.ExtractResourcesEnhancementProcessor`             | the `PluginTarget` of the main class, sent by `@ExtractResources` |
 | `.event.RegisterListenersEnhancementProcessor`                | every `Listener` of the plugin, sent by `@RegisterListeners` |
 
-## Defining your own scope
+## Defining your own scope {/* #defining-your-own-scope */}
 
 The supported way to extend the framework from a plugin without writing a processor is a **scope
 annotation that inherits a built-in one**. It costs one declaration and changes nothing at runtime:
@@ -194,7 +202,7 @@ The descriptor records `@Service` as the producing annotation (with its argument
 the processor class and phase come from the inherited `@LocalBean`. An annotation may inherit two
 enhancements and then produces two elements per occurrence.
 
-## Enhancements on a base class
+## Enhancements on a base class {/* #enhancements-on-a-base-class */}
 
 A class enhancement written on the main class, or on any of its supertypes, base classes and
 interfaces alike, produces an element
@@ -219,11 +227,19 @@ annotation appears on the main class and on a base class, the main class's occur
 recorded, with its own arguments.
 
 A feature declared on a base class can be switched off further down. `@DisableVersatiaFeatures`
-holds one `Boolean` per switchable framework feature (`extractResources` today); setting it to
-`true` on the main class or on a base class leaves the enhancement out of the descriptor. The
-mapping from a parameter to the enhancement it switches off is `@VersatiaDisabler(Enhancement::class)`
-on that parameter, so a library may define a switch for its own base-class enhancements the same
-way:
+holds one `Boolean` per switchable framework feature; setting it to `true` on the main class or on
+a base class leaves the enhancement out of the descriptor. What every plugin inherits from
+`VersatiaPlugin`:
+
+| Enhancement          | Does                                                        | Switch              |
+|----------------------|-------------------------------------------------------------|---------------------|
+| `@PluginBean`        | makes the main class the bean `plugin`                      | none                |
+| `@ExtractResources`  | [extracts the plugin's resources](../resources.md)          | `extractResources`  |
+| `@RegisterListeners` | [registers every `Listener`](../events.md)                  | `registerListeners` |
+
+The mapping from a parameter to the enhancement it switches off is
+`@VersatiaDisabler(Enhancement::class)` on that parameter, so a library may define a switch for its
+own base-class enhancements the same way:
 
 ```kotlin
 annotation class DisableAuditing(@VersatiaDisabler(Audited::class) val audited: Boolean = true)
@@ -233,7 +249,7 @@ Plugin enhancements and switches are accepted only on the main class and on its 
 (subclasses of `JavaPlugin`); anywhere else they are a compile error, as is a switch that turns
 nothing off and a class that both carries and switches off the same enhancement.
 
-## Subclass enhancements
+## Subclass enhancements {/* #subclass-enhancements */}
 
 `@VersatiaSubclassEnhancement` is the second way to declare an enhancement. Instead of waiting
 for the annotation to be written on each class, it names a type and enhances **every class in the
@@ -242,7 +258,7 @@ plugin assignable to it**:
 ```kotlin
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
-@VersatiaSubclassEnhancement("com.example.audit.AuditEnhancementProcessor", Auditable::class, EventType.PLUGIN_START_ONLY)
+@VersatiaSubclassEnhancement("com.example.audit.AuditEnhancementProcessor", Auditable::class, Phase.PLUGIN_START_ONLY)
 annotation class AuditSubclasses
 
 @AuditSubclasses
@@ -259,13 +275,13 @@ was written on (`AuditedPlugin` above), so a processor can tell the elements of 
 another. A class that is both a bean and a match produces both elements; a processor needing the
 instance asks `context.state[BeanResolver.KEY]` first and instantiates only when there is no bean.
 
-## Defining your own enhancement
+## Defining your own enhancement {/* #defining-your-own-enhancement */}
 
 A new feature is an annotation, optionally some attributes, and a processor. The conventions a
 processor follows (naming, packages, state, errors) are collected in
-[Best practices](../best-practices.md).
+[Best practices](../reference/best-practices.md).
 
-<ExampleCard repo="VersatiaExample-Enhancements-Custom" file="library/src/main/kotlin/com/github/marcoral/versatia/example/timing/TimedEnhancementProcessor.kt">
+<ExampleCard repo="VersatiaExample-Enhancements-Custom" file="library/src/main/kotlin/com/github/marcoral/versatia/example/timing/Timed.kt">
 A library plugin providing <code>@Timed</code> and its processor, and a plugin running a function every few ticks with it.
 </ExampleCard>
 
@@ -273,7 +289,7 @@ A library plugin providing <code>@Timed</code> and its processor, and a plugin r
 // In a library plugins compile against
 @Target(AnnotationTarget.FUNCTION)
 @Retention(AnnotationRetention.BINARY)
-@VersatiaEnhancement("com.example.timing.TimedEnhancementProcessor", enhancementPhase = EventType.PLUGIN_START_ONLY)
+@VersatiaEnhancement("com.example.timing.TimedEnhancementProcessor", enhancementPhase = Phase.PLUGIN_START_ONLY)
 annotation class Timed(val everyTicks: Long)
 
 // In the plugin that provides the feature; other plugins list it under depend:
@@ -291,7 +307,7 @@ class TimedEnhancementProcessor : EnhancementProcessor {
             }
             val arguments = beans?.resolve(description, target.parameters).orEmpty()
             val classLoader = context.classLoader   // the context lives for one event; the task keeps only this
-            context.plugin.runTaskTimer(periodTicks = ticks, delayTicks = ticks) { target.invoker.invoke(classLoader, instance, arguments) }
+            context.plugin.runTaskTimer(delayTicks = ticks, periodTicks = ticks) { target.invoker.invoke(classLoader, instance, arguments) }
         }
     }
 }
@@ -310,7 +326,7 @@ rules on enhanced functions (no extension, suspend, abstract or generic function
 parameters), on enhanced properties (a `var` of the main class, an object or a bean) and on
 enhanced classes.
 
-## How the compile-time step works
+## How the compile-time step works {/* #how-the-compile-time-step-works */}
 
 The `ksp` module of VersatiaAPI runs once per compilation:
 

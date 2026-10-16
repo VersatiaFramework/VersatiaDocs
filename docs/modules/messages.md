@@ -33,7 +33,7 @@ class Shop(private val messages: Messages) {
 }
 ```
 
-## The files
+## The files {/* #the-files */}
 
 Ship the files under `src/main/resources/resources/messages/`; [resource extraction](../resources.md)
 puts them into `plugins/<Name>/messages/` on the first start, where server owners edit them. Any
@@ -60,15 +60,17 @@ shop:
 | a key that is a message in one place and a group of messages in another | an error naming the files      |
 
 Files are read as UTF-8; a file in another encoding is an error that says to save it as UTF-8.
+Invalid YAML is reported with the file and the place:
+`Plugin Shop: messages/shop.yml is not valid YAML at line 3, column 12: mapping values are not allowed here`.
 
 Every standard MiniMessage tag works in angle brackets; the arguments are in braces, as
 [below](#arguments-and-properties).
 
-## Sending
+## Sending {/* #sending */}
 
 `messages[key]` is a `Message`; a key that does not exist throws `MissingMessageException` with the
 keys that start the same way (`Plugin Shop has no message "shop.byu"; the messages under "shop"
-are: shop.bought, shop.closed, shop.open`). `getOrNull` and `contains` are there for optional
+are: shop.open, shop.bought, shop.closed`). `getOrNull` and `contains` are there for optional
 messages, `keys` for all of them.
 
 | On a `Message`                       | Does                                                                |
@@ -77,7 +79,7 @@ messages, `keys` for all of them.
 | `get(arg("item", item), ...)`        | the component with the arguments                                    |
 | `lines(...arguments)`                | one component per [line](#lines), for item lore and other places that take lines |
 | `send(audience, ...arguments)`       | sends it to a player, the console, any `Audience`                   |
-| `broadcast(...arguments)`            | sends it to every online player and the console                     |
+| `broadcast(...arguments)`            | sends it to the console and every online player with `bukkit.broadcast.user` (everyone, unless a permission plugin revokes it); fires a cancellable `BroadcastMessageEvent` |
 | `key`, `raw`, `file`                 | the key, the text as written, the file relative to the data folder  |
 
 A message is parsed when it is used, never when the file is read, so a
@@ -87,7 +89,7 @@ parsed on its first use and reused; this holds for each constant line of a messa
 call passes arguments. A text with a registered tag is parsed at every use, because the tag may
 answer differently each time.
 
-## Lines
+## Lines {/* #lines */}
 
 A YAML list is a message of several lines. `get()` joins them with line breaks; `lines()` gives
 them apart, which is what item lore takes:
@@ -106,7 +108,7 @@ meta.lore(messages["sword.lore"].lines(arg("damage", 7), arg("smith", player)))
 Each line is parsed on its own, so formatting never carries over: a `<red>` left open on the
 first line does not colour the second. A message that is a single text is one line.
 
-## Arguments and properties
+## Arguments and properties {/* #arguments-and-properties */}
 
 `{name}` inserts the argument. `{name.property}` inserts one of its properties, and properties
 chain: `{player.location.x}` is the x coordinate of the player's location. The text, not the code,
@@ -136,7 +138,7 @@ Argument names consist
 of letters, digits, `_` and `-`; braces around anything else (`{}`, `{ x }`, `{1,2}`) are plain
 text, so JSON or code in a message is left alone.
 
-### Braces inside a tag
+### Braces inside a tag {/* #braces-inside-a-tag */}
 
 In the text a brace inserts the value's component. Inside the argument of a tag, where MiniMessage
 reads a plain string, it inserts the value's plain text instead, escaped so that it can neither
@@ -150,7 +152,7 @@ copy: "<insert:{player.name}>{player}</insert>"
 An unquoted argument holding a brace is quoted for you. The text of `<hover:show_text:...>`, which
 MiniMessage parses again, keeps the component.
 
-## Your own values
+## Your own values {/* #your-own-values */}
 
 A class implements `Presentable` and says how it appears; `presentation { }` is a small builder
 where everything is lazy:
@@ -172,13 +174,13 @@ A property may return anything an argument may be, which is how they chain. A pr
 without `component { }` can only be used through its properties; using the bare brace fails with
 `{offer} cannot be inserted as text; use one of its properties: item, price`.
 
-## Types you do not own
+## Types you do not own {/* #types-you-do-not-own */}
 
 For a type you cannot make `Presentable`, register a presentation on your `Text`, once, for
-example in an `@AutoInvoke(EventType.PLUGIN_START_ONLY)` function:
+example in an `@AutoInvoke(Phase.PLUGIN_START_ONLY)` function:
 
 ```kotlin
-@AutoInvoke(EventType.PLUGIN_START_ONLY)
+@AutoInvoke(Phase.PLUGIN_START_ONLY)
 fun describe(text: Text) = text.present<Duration> { duration ->
     presentation {
         component { text("${duration.toMinutes()} min") }
@@ -194,7 +196,7 @@ specific one for `Player` to players; your registrations take precedence over th
 `String`, numbers and collections included, registering a type again replaces its presentation,
 and a `Presentable` value always describes itself.
 
-## Text without a file
+## Text without a file {/* #text-without-a-file */}
 
 `text.parse(input, ...arguments)` parses a string with the same rules and returns a `Component`,
 for text that is built in code rather than read from a file:
@@ -213,7 +215,7 @@ class Welcome(private val text: Text) : Listener {
 `text.argumentNames(input)` lists the arguments a text refers to, and `text.miniMessage` is the
 plain MiniMessage instance behind it.
 
-## Tags with access to the arguments
+## Tags with access to the arguments {/* #tags-with-access-to-the-arguments */}
 
 `text.tag(name) { arguments, context, values -> ... }` adds a MiniMessage tag, in angle brackets
 like any tag, that resolves with the call's arguments in hand, in messages and in `parse` alike.
@@ -226,10 +228,19 @@ text.tag("upper") { arguments, _, values -> Tag.selfClosingInserting(text(values
 text.parse("<upper:who> joined", arg("who", "Steve"))   // STEVE joined
 ```
 
-Tag names follow MiniMessage's rules (lower-case letters, digits, `_`, `-`) and cannot shadow a
-standard tag.
+:::warning[Insert outside strings as text]
 
-## Reloading
+A value from elsewhere, such as the result of `PlaceholderAPI.setPlaceholders`, may contain what a
+player typed: a nickname, a prefix, a clan tag. Insert it as a text component, as `upper` does
+with `text(...)`, never through `Tag.preProcessParsed` or `context.deserialize`: those parse it as
+MiniMessage, and a clan tag `<click:run_command:'/op x'>` becomes a working click.
+
+:::
+
+Tag names follow MiniMessage's rules (lower-case letters, digits, `_`, `-`) and cannot shadow a
+standard tag; names starting with `versatia-argument-` are reserved for the braces.
+
+## Reloading {/* #reloading */}
 
 `/versatia reload <name>` re-reads the files before your reload-phase functions run; nothing in
 your plugin knows about it, because the `Messages` instance made for your plugin is a
@@ -238,7 +249,7 @@ read (invalid YAML, a duplicate key, a value that is not text) fails the reload 
 `Plugin X: ... failed to reload` and a cause naming the file, and the previous messages stay in
 use; at start-up the plugin does not enable.
 
-## One instance per plugin
+## One instance per plugin {/* #one-instance-per-plugin */}
 
 `Messages` and `Text` are [module prototypes](index.md#one-instance-per-plugin): the instances you
 inject are your plugin's own. Your `Messages` reads your data folder and parses with your `Text`,
@@ -246,14 +257,14 @@ the same instance your beans inject, so the presentations and tags you register 
 messages. Two plugins never see each other's messages or registrations, and neither needs the
 other's keys to be unique.
 
-## Errors
+## Errors {/* #errors */}
 
 A missing or unreadable message is a `MessagesException` (package `messages`):
 
 | Exception                       | When                                                           |
 |---------------------------------|----------------------------------------------------------------|
 | `MissingMessageException`       | `messages["shop.byu"]`: no such key; lists the keys starting the same way |
-| `MessagesLoadException`         | a file is not valid YAML or not UTF-8, a value is not text, a key is defined twice or is both a message and a group of messages; names the file |
+| `MessagesLoadException`         | a file cannot be read, is not valid YAML or not UTF-8, a value is not text, a key is defined twice or is both a message and a group of messages; names the file |
 | `MessageRenderException`        | a message cannot be shown; names the key and the file, with the `TextException` below as its cause: `Plugin Shop: message "shop.bought" in messages/shop.yml cannot be shown: No argument "nmae"; the arguments are: player, item, price` |
 
 A text that uses an argument wrongly fails the call with a `TextException` (package `text`) naming
@@ -265,15 +276,18 @@ broken message file is found at the first use rather than by a player reading a 
 |---------------------------------|----------------------------------------------------------------|
 | `UnknownArgumentException`      | `{nmae}`: `No argument "nmae"; the arguments are: name, item`; also a tag asking `values` for an argument the call did not pass |
 | `UnknownPropertyException`      | `{player.nmae}`: `{player} has no property "nmae"; it has: name, displayName, ...` |
+| `NullValueException`            | `{player.location.world.name}` while the world is null: `{player.location.world} is null, so it has no property "name"` |
 | `NoTextFormException`           | the bare brace of a value whose presentation has no component   |
-| `InvalidArgumentNameException`  | an argument named with anything but letters, digits, `_` and `-` |
-| `ReservedTagNameException`      | a tag named like a MiniMessage tag (`b`, `color`, `click`...) or not a tag name |
+| `PresentationException`         | a presentation, or the code it calls, threw; names the brace and has the exception as its cause: `{item.price} cannot be shown: java.lang.IllegalStateException: ...` |
+| `InvalidArgumentNameException`  | `arg("Player Name", x)`: a name with anything but letters, digits, `_` and `-`; thrown by `arg()` itself |
+| `DuplicateArgumentException`    | the same argument name passed twice in one call                  |
+| `ReservedTagNameException`      | a tag named like a MiniMessage tag (`b`, `color`, `click`...), starting with `versatia-argument-`, or not a tag name |
 | `ArgumentTypeException`         | `values.require<T>` on an argument of another type               |
 
 MiniMessage tags that do not exist are not an error: MiniMessage leaves them as text, as it
 always does.
 
-## Corner cases
+## Corner cases {/* #corner-cases */}
 
 - **A key that is a message in one file and a group in another** fails the load:
   `Plugin Shop: "shop" is a message in messages/general.yml and a group of messages in
@@ -288,5 +302,8 @@ always does.
   Keep it free of side effects.
 - **An `Inventory` is an `Iterable`**, so `{inventory}` lists its items; an empty slot shows as
   nothing between two commas.
+- **Threads.** `Text` and `Messages` may be used, and `present` and `tag` called, from any thread,
+  such as an `AsyncChatEvent` renderer. The built-in presentations read Bukkit state
+  (`{player.location}`, `{world.players}`), which is safe on the main thread only.
 - **A missing key never falls back** to a copy of the file in the plugin JAR: the bank is what the
   data folder holds.

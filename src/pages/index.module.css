@@ -62,7 +62,7 @@
   height: 2.25rem;
   border-radius: 50%;
   background: var(--ifm-color-primary);
-  color: #fff;
+  color: var(--versatia-on-primary);
   font-weight: 700;
   margin-bottom: 0.75rem;
 }

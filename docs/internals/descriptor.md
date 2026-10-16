@@ -5,21 +5,24 @@ import ExampleCard from '@site/src/components/ExampleCard';
 The descriptor is the generated `object VersatiaDescriptor`, placed in the package of the plugin's
 main class so that the runtime can load it by name: for `com.example.MyPlugin` it is
 `com.example.VersatiaDescriptor`. It implements `VersatiaPluginDescriptor` from
-`com.github.marcoral.versatia.engine.descriptor`.
+`com.github.marcoral.versatia.engine.descriptor` and builds its elements with the `Direct` and
+`Reflective` implementations of `Instantiator`, `Invoker` and `Setter`. Those types are marked
+[`@VersatiaInternalApi`](../reference/best-practices.md#internal-plumbing), so the file opts in with
+`@file:OptIn(VersatiaInternalApi::class)` and compiles without warnings in any plugin.
 
 The descriptor is a technical detail of the enhancement mechanism, not a feature. It records
 **facts** about the annotated code (classes, supertypes, parameters, the annotations written on
 them) and never what a feature makes of those facts: there is no "bean name" field, the DI
 processor derives the name from the recorded `@Qualifier` attribute.
 
-## Shape
+## Shape {/* #shape */}
 
 The descriptor is deliberately **flat**: a format version and a list of `EnhancedElement`s.
 
 | Field of `EnhancedElement` | Meaning                                                                   |
 |----------------------------|---------------------------------------------------------------------------|
 | `processorClass`           | the processor that interprets it, for example `com.github.marcoral.versatia.di.LocalBeanEnhancementProcessor` |
-| `phase`                    | the `EventType` at which it runs; see [Phases and events](../lifecycle/phases.md) |
+| `phase`                    | the `Phase` at which it runs; see [Phases and events](../lifecycle/phases.md) |
 | `annotation`               | the enhancement annotation that produced it, with all its arguments        |
 | `target`                   | what was annotated: a `ClassTarget`, a `FunctionTarget`, a `PropertyTarget` or a `PluginTarget` |
 | `origin`                   | the class the annotation is physically written on: the target's own class, a base class of the main class for inherited enhancements, or the class carrying a [subclass enhancement](enhancements.md#subclass-enhancements) |
@@ -27,7 +30,7 @@ The descriptor is deliberately **flat**: a format version and a list of `Enhance
 No iteration order, grouping or phase structure is baked into the file; the runtime decides how to
 walk it. Changing how VersatiaCore iterates therefore never requires regenerating plugins.
 
-### `AnnotationOccurrence`, `Parameter` and `TypeReference`
+### `AnnotationOccurrence`, `Parameter` and `TypeReference` {/* #annotationoccurrence-parameter-and-typereference */}
 
 An `AnnotationOccurrence` is an annotation as written at one place: its class name and its
 arguments, defaults included. Values are strings, booleans, numbers, chars, enum entry names,
@@ -38,7 +41,7 @@ its argument instead of injection (the `@Value` processor for a constructor prop
 written on a property: a Kotlin qualified name, its type arguments and whether it is nullable,
 `kotlin.collections.List<kotlin.Int>?`.
 
-### `ClassTarget`
+### `ClassTarget` {/* #classtarget */}
 
 A class whose instances the runtime may create.
 
@@ -50,7 +53,7 @@ A class whose instances the runtime may create.
 | `constructorParameters` | one `Parameter` per constructor parameter, in order                   |
 | `instantiator`          | how to create an instance from resolved arguments                     |
 
-### `FunctionTarget`
+### `FunctionTarget` {/* #functiontarget */}
 
 A function the runtime may call.
 
@@ -65,7 +68,7 @@ A function the runtime may call.
 | `invoker`         | how to call it with a receiver and resolved arguments                        |
 | `classAnnotations` | the attributes written on the declaring class, for what applies to a whole class such as `@ConditionalOnPlugin` |
 
-### `PropertyTarget`
+### `PropertyTarget` {/* #propertytarget */}
 
 A mutable property the runtime may set.
 
@@ -83,7 +86,7 @@ A mutable property the runtime may set.
 
 [`@Value`](../configuration.md) produces these.
 
-### `PluginTarget`
+### `PluginTarget` {/* #plugintarget */}
 
 The plugin's main class. It carries `className`, `assignableTypes` and `annotations` like a
 `ClassTarget`, but no parameters and no instantiator: Bukkit creates the instance, the runtime
@@ -91,7 +94,7 @@ only hands it out. One element is produced per class enhancement written on the 
 one of its supertypes, all listed first; `VersatiaPlugin` contributes `@PluginBean` (the main
 class as a bean) and `@ExtractResources` (the plugin's resources).
 
-## Direct access versus reflection
+## Direct access versus reflection {/* #direct-access-versus-reflection */}
 
 Encapsulation is preserved: beans, constructors, functions and their parameter types may be
 `private`. The generator picks per element:
@@ -125,7 +128,7 @@ Private beans and a private auto-invoked function; compare the direct and reflec
   (`Instantiator.Direct { _ -> Console }`) when visible and read from its `INSTANCE` field
   (`Instantiator.ObjectInstance`) otherwise.
 
-## A generated file
+## A generated file {/* #a-generated-file */}
 
 For
 
@@ -147,15 +150,17 @@ private class HiddenAudit(@Qualifier("consoleGreeter") val greeter: Greeter)
 the processor emits (shortened):
 
 ```kotlin
+@file:OptIn(VersatiaInternalApi::class)
+
 object VersatiaDescriptor : VersatiaPluginDescriptor {
   override val formatMajor: Int = 1
-  override val formatMinor: Int = 2
+  override val formatMinor: Int = 3
 
   override val elements: List<EnhancedElement>
     get() = listOf(
       EnhancedElement(
         processorClass = "com.github.marcoral.versatia.di.PluginBeanEnhancementProcessor",
-        phase = EventType.PLUGIN_RELOAD_OR_START,
+        phase = Phase.PLUGIN_RELOAD_OR_START,
         annotation = AnnotationOccurrence("com.github.marcoral.versatia.di.PluginBean"),
         target = PluginTarget(
           className = "com.example.alpha.AlphaPlugin",
@@ -165,13 +170,13 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
       ),
       EnhancedElement(
         processorClass = "com.github.marcoral.versatia.resources.ExtractResourcesEnhancementProcessor",
-        phase = EventType.PLUGIN_RELOAD_OR_START,
+        phase = Phase.PLUGIN_RELOAD_OR_START,
         annotation = AnnotationOccurrence("com.github.marcoral.versatia.resources.ExtractResources"),
         target = PluginTarget(/* the same */),
       ),
       EnhancedElement(
         processorClass = "com.github.marcoral.versatia.di.ExposeSingletonEnhancementProcessor",
-        phase = EventType.PLUGIN_START_ONLY,
+        phase = Phase.PLUGIN_START_ONLY,
         annotation = AnnotationOccurrence("com.github.marcoral.versatia.di.ExposeSingleton"),
         target = ClassTarget(
           className = "com.example.alpha.Clock",
@@ -183,7 +188,7 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
       ),
       EnhancedElement(
         processorClass = "com.github.marcoral.versatia.di.LocalBeanEnhancementProcessor",
-        phase = EventType.PLUGIN_START_ONLY,
+        phase = Phase.PLUGIN_START_ONLY,
         annotation = AnnotationOccurrence("com.github.marcoral.versatia.di.LocalBean"),
         target = ClassTarget(
           className = "com.example.alpha.ConsoleGreeter",
@@ -195,7 +200,7 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
       ),
       EnhancedElement(
         processorClass = "com.github.marcoral.versatia.di.LocalBeanEnhancementProcessor",
-        phase = EventType.PLUGIN_START_ONLY,
+        phase = Phase.PLUGIN_START_ONLY,
         annotation = AnnotationOccurrence("com.github.marcoral.versatia.di.LocalBean"),
         target = ClassTarget(
           className = "com.example.alpha.HiddenAudit",
@@ -209,10 +214,10 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
 }
 ```
 
-## Format version
+## Format version {/* #format-version */}
 
 The format has its own `major.minor` version, `VersatiaPluginDescriptor.FORMAT_VERSION`, currently
-**`1.2`**. It is independent of the library version. A runtime accepts exactly the version it was
+**`1.3`**. It is independent of the library version. A runtime accepts exactly the version it was
 built with and rejects any other with a message naming the plugin, both versions and the fix; see
 [The runtime](runtime.md#descriptor-format-compatibility).
 

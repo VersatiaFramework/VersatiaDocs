@@ -14,7 +14,7 @@ The static shortcuts on `VersatiaEngine` (`VersatiaEngine.broadcast(...)`, `Vers
 belong to the API alone: they delegate to Bukkit or to the registered engine, and VersatiaCore knows
 nothing of them.
 
-## Compile time versus runtime
+## Compile time versus runtime {/* #compile-time-versus-runtime */}
 
 The central design rule is that **nothing is discovered at runtime**. VersatiaCore never scans the
 classpath or searches for annotated classes with reflection while the server is running.
@@ -46,7 +46,7 @@ The descriptor format is the compatibility contract between the two projects. Ve
 defines what is generated; VersatiaCore must be able to read it. See
 [The descriptor](descriptor.md).
 
-## Enhancements
+## Enhancements {/* #enhancements */}
 
 The runtime does not hardcode what any annotation means. An annotation such as `@LocalBean` is an
 *enhancement*: the compile-time step records where it occurs, and the behaviour lives in an
@@ -69,7 +69,7 @@ rules follow from it:
   are elementary and belong to the root package `com.github.marcoral.versatia`. The descriptor is
   a technical detail of the mechanism, not a feature.
 
-## Decisions taken
+## Decisions taken {/* #decisions-taken */}
 
 - Code generation uses **KSP** with **KotlinPoet**. The processor is the `ksp` module of
   VersatiaAPI.
@@ -81,7 +81,8 @@ rules follow from it:
   annotations written on them. What a bean's name is, or which candidate `@Primary` picks, is the
   processor's business.
 - Processors are **loaded by name** through the enhanced plugin's class loader and share state
-  only through the per-plugin store the runtime drops on disable.
+  only through the per-plugin store the runtime drops on disable and the runtime store
+  (`runtimeState`) that lasts as long as VersatiaCore, where the exposed beans live.
 - **Encapsulation is preserved**: generated code calls visible constructors and functions
   directly and falls back to reflection for private ones, never initialising classes as a side
   effect.

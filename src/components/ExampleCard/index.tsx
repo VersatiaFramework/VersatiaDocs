@@ -31,7 +31,7 @@ export default function ExampleCard({repo, children, file, fileLabel}: ExampleCa
   const repoUrl = `${ORG}/${repo}`;
   const fileName = fileLabel ?? file?.split('/').pop();
   return (
-    <aside className={styles.card}>
+    <aside className={styles.card} aria-label={`Example: ${repo}`}>
       <div className={styles.header}>
         <GitHubMark />
         <span className={styles.kicker}>Example</span>
@@ -45,7 +45,7 @@ export default function ExampleCard({repo, children, file, fileLabel}: ExampleCa
           Open the repository
         </Link>
         {file && (
-          <Link className="button button--secondary button--sm" to={`${repoUrl}/blob/master/${file}`}>
+          <Link className="button button--secondary button--sm" to={`${repoUrl}/blob/HEAD/${file}`}>
             Start with <code>{fileName}</code>
           </Link>
         )}

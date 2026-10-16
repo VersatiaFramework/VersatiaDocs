@@ -16,7 +16,7 @@ class WelcomeListener(private val greeter: Greeter) : Listener {
 A plain listener with an injected bean and a listener that is itself a bean, both registered automatically.
 </ExampleCard>
 
-## Which instance is registered
+## Which instance is registered {/* #which-instance-is-registered */}
 
 | The listener is…                        | Registered instance                                                       |
 |-----------------------------------------|---------------------------------------------------------------------------|
@@ -26,27 +26,33 @@ A plain listener with an injected bean and a listener that is itself a bean, bot
 | the plugin's main class                 | the plugin instance                                                       |
 
 Abstract classes and interfaces extending `Listener` are skipped. A plain listener class obeys the
-[bean declaration rules](dependency-injection/compile-time-checks.md#bean-declarations): exactly
+[bean declaration rules](reference/compile-time-checks.md#bean-declarations): exactly
 one constructor, injectable parameters, no type parameters, no inner classes. Its dependencies are
 checked at compile time like a bean's.
 
-## When
+## When {/* #when */}
 
 Registration happens at `PLUGIN_START_ONLY`, once the plugin's beans exist and before its
 [auto-invoked](lifecycle/auto-invoke.md) start functions run, so a start function may already fire
 events the plugin listens to. Bukkit unregisters every listener of a plugin when it is disabled;
 the runtime adds nothing to that.
 
-## Switching it off
+## Switching it off {/* #switching-it-off */}
+
+<ExampleCard repo="VersatiaExample-Enhancements-FeatureSwitches" file="src/main/kotlin/com/github/marcoral/versatia/example/switches/SwitchesPlugin.kt">
+A base plugin class switching extraction off and a main class switching listener registration off.
+</ExampleCard>
 
 ```kotlin
 @DisableVersatiaFeatures(registerListeners = true)
 class MyPlugin : VersatiaPlugin()
 ```
 
-The plugin then registers its listeners itself, as any Bukkit plugin does.
+The plugin then registers its listeners itself, as any Bukkit plugin does. Every feature a plugin
+inherits and its switch are listed under
+[Enhancements on a base class](internals/enhancements.md#enhancements-on-a-base-class).
 
-## How it works
+## How it works {/* #how-it-works */}
 
 `VersatiaPlugin` carries `@RegisterListeners`, a
 [subclass enhancement](internals/enhancements.md#subclass-enhancements) for `Listener`: the

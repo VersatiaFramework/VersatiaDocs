@@ -9,7 +9,7 @@ beans implement the same interface, two annotations decide which one is injected
 Two greeters behind one interface, one <code>@Primary</code>, the other reached by <code>@Qualifier("grumpy")</code>.
 </ExampleCard>
 
-## Bean names
+## Bean names {/* #bean-names */}
 
 Every bean has a name, unique within its plugin. By default it is the simple class name with a
 lower-case first letter:
@@ -25,7 +25,7 @@ One name is fixed: the bean backed by your main class is always called `plugin`,
 class is named, and no other bean may use that name. See
 [The plugin itself](index.md#the-plugin-itself).
 
-## `@Qualifier` and `@Primary`
+## `@Qualifier` and `@Primary` {/* #qualifier-and-primary */}
 
 ```kotlin
 import com.github.marcoral.versatia.di.LocalBean
@@ -55,7 +55,7 @@ class ComplaintDesk(@Qualifier("grumpy") greeter: Greeter)   // UnfriendlyGreete
 effect. Both also work through an annotation of your own, such as `@Qualifier("fast") annotation
 class Fast`; see [Your own attribute annotations](index.md#your-own-attribute-annotations).
 
-## Resolution rules
+## Resolution rules {/* #resolution-rules */}
 
 For a parameter of type `T`, the same rules apply at compile time (to the plugin's own beans) and at
 runtime (to beans exposed by other plugins):
@@ -78,7 +78,7 @@ Two consequences worth knowing:
   matters when both provide a type somebody asks for, and then it is reported like any other
   ambiguity.
 
-## Messages
+## Messages {/* #messages */}
 
 Ambiguity without a decision, at compile time:
 
@@ -103,7 +103,7 @@ prefixed with the plugin name and with the owning plugin added to each candidate
 
 ```
 Plugin Report: com.example.Clock named "system" required by com.example.Report is ambiguous;
-candidates: "system" (com.example.SystemClock, from Shop), "system" (com.example.OtherClock, from Other).
+candidates: "system" (com.example.SystemClock from Shop), "system" (com.example.OtherClock from Other).
 Add @Qualifier at the injection point or mark one bean @Primary
 ```
 

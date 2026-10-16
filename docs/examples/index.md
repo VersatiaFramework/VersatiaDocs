@@ -15,7 +15,7 @@ and VersatiaStarter are in your local Maven repository (see
 VersatiaCore installed. Repositories are named
 `VersatiaExample-<Topic>-<Feature>`, so they sort by topic on GitHub.
 
-## Learning path
+## Learning path {/* #learning-path */}
 
 <ExampleGrid>
 <ExampleCard repo="VersatiaExample-Resources-Extraction" file="src/main/resources/resources" fileLabel="resources/">
@@ -48,7 +48,7 @@ Two plugins: a provider exposing a singleton and a prototype, and a consumer inj
 <ExampleCard repo="VersatiaExample-Enhancements-FeatureSwitches" file="src/main/kotlin/com/github/marcoral/versatia/example/switches/SwitchesPlugin.kt">
 <code>@DisableVersatiaFeatures</code> on a base class and on the main class; the nearest declaration wins.
 </ExampleCard>
-<ExampleCard repo="VersatiaExample-Enhancements-Custom" file="library/src/main/kotlin/com/github/marcoral/versatia/example/timing/TimedEnhancementProcessor.kt">
+<ExampleCard repo="VersatiaExample-Enhancements-Custom" file="library/src/main/kotlin/com/github/marcoral/versatia/example/timing/Timed.kt">
 An enhancement of your own: a library plugin defines <code>@Timed</code> and its processor, another plugin uses it.
 </ExampleCard>
 <ExampleCard repo="VersatiaExample-Modules-Messages" file="src/main/resources/resources/messages" fileLabel="messages/">
@@ -56,7 +56,7 @@ The Messages module: files under <code>messages/</code> become a bank reloaded w
 </ExampleCard>
 </ExampleGrid>
 
-## Adding an example
+## Adding an example {/* #adding-an-example */}
 
 Start from [VersatiaExample-Template](https://github.com/VersatiaFramework/VersatiaExample-Template)
 ("Use this template"), keep the README sections, add the example to the catalogue and put an

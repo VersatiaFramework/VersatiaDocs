@@ -2,7 +2,7 @@
 
 Package `com.github.marcoral.versatia.util.collection`.
 
-## `*OrThrow` helpers
+## `*OrThrow` helpers {/* #orthrow-helpers */}
 
 `MutableSet.addOrThrow`, `addAllOrThrow`, `MutableMap.putOrThrow`, `putAllOrThrow` and
 `Map.getOrThrow` turn silent overwrites and missing keys into exceptions.
@@ -16,10 +16,11 @@ registry.putOrThrow("shop", ShopHandler())      // throws if "shop" is already r
   failed call leaves the collection unchanged.
 - They also report duplicates *inside* the input, not only clashes with what is already stored.
 - A stored `null` value counts as present (`containsKey`, never `get(key) != null`).
-- `Iterable<Map<K, V>>.mergeOrThrow` merges several maps and fails on the first key present in two
-  of them; the `MapConflict(key, existingValue, newValue)` tells which.
+- `Iterable<Map<K, V>>.mergeOrThrow` merges several maps and, when keys are present in more than one
+  of them, throws once with every conflict; each `MapConflict(key, existingValue, newValue)` tells
+  which.
 
-## `DeepMergeMap`
+## `DeepMergeMap` {/* #deepmergemap */}
 
 A `MutableMap<K, Any?>` that merges other maps into itself recursively, useful for layering a
 default configuration under a user one. For every key of the incoming map:

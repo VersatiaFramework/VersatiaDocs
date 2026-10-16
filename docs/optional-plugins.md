@@ -15,7 +15,7 @@ import com.github.marcoral.versatia.loadService
 class VaultBridge(private val plugin: ShopPlugin) : Listener {
     private val economy = VersatiaEngine.loadService<Economy>()
 
-    @AutoInvoke(EventType.PLUGIN_START_ONLY)
+    @AutoInvoke(Phase.PLUGIN_START_ONLY)
     fun announce() = plugin.logger.info("Vault found, prices are charged")
 
     @EventHandler
@@ -27,7 +27,7 @@ With Vault installed, `VaultBridge` is created, its listener registered and `ann
 Without it, none of that happens and the class is never loaded, so its references to Vault's
 classes never have to resolve.
 
-## Where it goes
+## Where it goes {/* #where-it-goes */}
 
 | On                                        | Effect when a named plugin is missing                                                                |
 |-------------------------------------------|------------------------------------------------------------------------------------------------------|
@@ -42,12 +42,12 @@ enabled. VersatiaCore's own command is an `object` written this way:
 ```kotlin
 @ConditionalOnPlugin("CommandAPI")
 object VersatiaCommand {
-    @AutoInvoke(EventType.PLUGIN_START_ONLY)
+    @AutoInvoke(Phase.PLUGIN_START_ONLY)
     fun register(core: VersatiaCore) = commandAPICommand("versatia", core) { /* ... */ }
 }
 ```
 
-## Several conditions
+## Several conditions {/* #several-conditions */}
 
 The annotation is repeatable, and all occurrences combine: every named plugin has to be enabled.
 These two declarations mean the same:
@@ -76,7 +76,7 @@ annotation class WithVault
 class VaultBridge
 ```
 
-## Conditional beans
+## Conditional beans {/* #conditional-beans */}
 
 A bean whose condition is not met **does not exist**: it provides nothing, and another provider
 of the same type stands in. That makes a fallback one declaration:
@@ -120,7 +120,7 @@ Checkout conditional on the same plugins or declare a provider without the condi
 and two providers left without a decision while a plugin is enabled are reported as
 `Dependency Payments of Checkout is ambiguous while "Vault" is enabled; candidates: ...`.
 
-## `softdepend:`
+## `softdepend:` {/* #softdepend */}
 
 List the plugins under `softdepend:` in `plugin.yml`:
 
@@ -133,7 +133,7 @@ Bukkit then enables them before your plugin when they are present, which is what
 checks. Without the entry the other plugin may enable later, and the element is left out although
 the plugin is on the server.
 
-## Compile-time checks
+## Compile-time checks {/* #compile-time-checks */}
 
 The annotation is rejected where it would have no effect: on a class that is neither enhanced nor
 declares an enhanced function or property (`@ConditionalOnPlugin on Tools has no effect: Tools is
@@ -141,20 +141,22 @@ not enhanced and declares no enhanced function or property`), on a function with
 enhancement, on the plugin's main class (`@ConditionalOnPlugin cannot apply to MyPlugin, the
 plugin's main class`), and when it names no plugin. The same holds when it comes through an
 annotation of your own. The full list is in
-[Compile-time checks](dependency-injection/compile-time-checks.md#attributes-the-runtime-reads).
+[Compile-time checks](reference/compile-time-checks.md#attributes-the-runtime-reads).
 
-## How it works
+## How it works {/* #how-it-works */}
 
 The compile-time step records the annotation as an attribute of the element, one occurrence per
 annotation, the inherited ones included; a function or property element also records the
 attributes of its declaring class, which is how the values of a conditional class are skipped. When the plugin starts, the runtime keeps the elements whose
-plugins are enabled and dispatches only those; a skipped element is logged at `INFO`:
-`Skipped VersatiaCommand: CommandAPI is not installed`. The check is
+plugins are enabled and dispatches only those; the skipped classes are logged at `INFO`, one line
+per missing plugin: `Skipped VersatiaCommand: CommandAPI is not installed`, or `Skipped
+VaultBridge: Vault is installed but was not enabled before MyPlugin; list it under softdepend: in
+plugin.yml` when the plugin exists but the server started it later. The check is
 `PluginManager.isPluginEnabled(name)`, nothing is loaded to find out. VersatiaCore's own
 `/versatia reload` is declared this way, conditional on the CommandAPI plugin; see
 [Reloading plugins](lifecycle/reload.md).
 
-## Corner cases
+## Corner cases {/* #corner-cases */}
 
 - **Decided once, at start.** The runtime checks the plugins when your plugin starts and keeps the
   result until it stops. A plugin enabled later, through a plugin manager say, does not bring the

@@ -16,10 +16,8 @@ into the server.
 ```kotlin
 class ShopPlugin : VersatiaPlugin() {
 
-    @AutoInvoke(EventType.PLUGIN_RELOAD_OR_START)
-    private fun start(prices: PriceList) {
-        logger.info("Loaded ${prices.size} prices")
-    }
+    @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
+    private fun start(prices: PriceList) = logger.info("Loaded ${prices.size} prices")
 }
 
 @LocalBean
@@ -39,7 +37,7 @@ plugin enables, `prices` is read from `config.yml`, `start` runs once all of tha
 everything is dropped when the plugin disables. `/versatia reload` reads `prices` again and runs
 `start` again.
 
-## Two projects
+## Two projects {/* #two-projects */}
 
 | Project             | What it is      | Where it runs                                                                      |
 |---------------------|-----------------|------------------------------------------------------------------------------------|
@@ -49,7 +47,7 @@ everything is dropped when the plugin disables. `/versatia reload` reads `prices
 Your plugin depends on VersatiaAPI at compile time and lists VersatiaCore under `depend:` in
 its `plugin.yml`. It never compiles against VersatiaCore.
 
-## Nothing happens at runtime
+## Nothing is discovered at runtime {/* #nothing-happens-at-runtime */}
 
 The central design rule: **nothing is discovered while the server runs**. There is no classpath
 scanning and no reflective search for annotated classes.
@@ -60,19 +58,19 @@ scanning and no reflective search for annotated classes.
 2. At **runtime**, VersatiaCore loads that descriptor by name at a few well-defined moments
    (plugin start, reload, plugin stop) and executes it.
 
-This buys three things:
+This buys four things:
 
 - **Errors at build time.** A dependency cycle, an ambiguous injection or a bean that cannot be
   constructed stops the build with a message pointing at the line. It never reaches a server.
 - **Fast, predictable start-up.** The runtime walks a list; it does not search.
 - **Encapsulation kept.** Beans, constructors and functions may be `private`. Generated code calls
   visible members directly and uses reflection only where it has to.
-- **Nothing to boilerplate.** The main class is a bean, the files under `resources/` in the JAR
+- **No boilerplate.** The main class is a bean, the files under `resources/` in the JAR
   land in the data folder, a configuration value is a `@Value` property set from them and re-read
   on reload, and every `Listener` is registered, without a line of code. An
   integration with a plugin that may be absent is one annotation, `@ConditionalOnPlugin`.
 
-## What is in the box
+## What is in the box {/* #what-is-in-the-box */}
 
 <div className="row margin-bottom--lg">
   <div className="col col--6 margin-bottom--md">
@@ -125,7 +123,7 @@ that exposes a bean, such as a bank of messages per plugin, read from its data f
 and written in MiniMessage with runtime arguments in braces. [VersatiaStarter](getting-started/installation.md#in-your-build)
 brings the API of all of them into a build with one dependency.
 
-## Versions
+## Versions {/* #versions */}
 
 | Component | Version  |
 |-----------|----------|
@@ -135,4 +133,5 @@ brings the API of all of them into a build with one dependency.
 | Kotlin    | `2.4.20` |
 | KSP       | `2.3.12` |
 
-Ready? Start with the [installation](getting-started/installation.md).
+Ready? Start with the [installation](getting-started/installation.md), or browse the
+[example plugins](examples/index.md), one feature each.

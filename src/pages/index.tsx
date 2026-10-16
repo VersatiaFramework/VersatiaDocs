@@ -11,10 +11,8 @@ import styles from './index.module.css';
 
 const sample = `class ShopPlugin : VersatiaPlugin() {
 
-    @AutoInvoke(EventType.PLUGIN_RELOAD_OR_START)
-    private fun start(prices: PriceList) {
-        logger.info("Loaded \${prices.size} prices")
-    }
+    @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
+    private fun start(prices: PriceList) = logger.info("Loaded \${prices.size} prices")
 }
 
 @LocalBean
@@ -104,7 +102,9 @@ function HowItWorks() {
 
 export default function Home(): ReactNode {
   return (
-    <Layout description="Versatia: a Kotlin framework for Paper 1.21.4 plugins with compile-time dependency injection and lifecycle hooks.">
+    <Layout
+      title="Kotlin framework for Paper plugins"
+      description="Versatia: a Kotlin framework for Paper 1.21.4 plugins with compile-time dependency injection, configuration values, lifecycle hooks, automatic listeners and modules.">
       <Hero />
       <main>
         <HowItWorks />

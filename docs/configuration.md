@@ -16,7 +16,7 @@ import com.github.marcoral.versatia.config.Value
 @LocalBean
 class Shop {
     @Value("shop.tax")
-    var tax = Percent.of(0.0)
+    var tax = Percent.ZERO
 
     @Value("shop.hours")
     private var hours: List<Int> = emptyList()
@@ -31,7 +31,7 @@ class Shop {
 [`resources/`](resources.md), so the defaults are the file itself and the administrator edits the
 extracted copy.
 
-## Where a property may live
+## Where a property may live {/* #where-a-property-may-live */}
 
 | Owner                   | Set on                                      |
 |-------------------------|---------------------------------------------|
@@ -41,8 +41,9 @@ extracted copy.
 
 The same places an [auto-invoked function](lifecycle/auto-invoke.md#where-a-function-may-live) may
 live, for the same reason: the runtime has an instance there. On an `@ExposePrototype` the
-property is set on the owner's own instance only, from the owner's files; see
-[`@Value` on a prototype](lifecycle/reload.md#value-on-a-prototype). In a bean the property may
+property is set on every instance, the owner's own and each one made for another plugin, from the
+owner's files, and a reload of the owner updates them all and then reloads the plugins holding
+them; see [`@Value` on a prototype](lifecycle/reload.md#value-on-a-prototype). In a bean the property may
 also be declared [in the primary constructor](#in-a-constructor). The property must be a `var`,
 or a `val` holding a [`PreviousValueTracking`](#reacting-to-a-change). Visibility does not
 matter: a private property, a `private set` or a private class gets a reflective setter in the
@@ -52,10 +53,10 @@ property of a plain class.
 
 The initializer is only a placeholder until the runtime sets the value, so pick what reads best:
 `lateinit var motd: String` for a reference type, `var maxPlayers = 0` or
-`var tax = Percent.of(0.0)` for a primitive or a value class such as `Int`, `UInt` or `Percent`,
+`var tax = Percent.ZERO` for a primitive or a value class such as `Int`, `UInt` or `Percent`,
 which Kotlin does not allow as `lateinit`.
 
-## Supported types
+## Supported types {/* #supported-types */}
 
 | Type                                             | Read as                                                         |
 |--------------------------------------------------|-----------------------------------------------------------------|
@@ -69,12 +70,13 @@ A nullable type makes the value optional: `var closedOn: DayOfWeek? = null` stay
 key is absent. Every other type, a `MutableList`, a nullable element, a data class, is rejected
 at compile time with the list of what is supported, unless a [mapper](#mappers) reads it.
 
-## Mappers
+## Mappers {/* #mappers */}
 
 A type of your own, or a value that is not what the file says, is read by a `ValueMapper` named
 in the annotation:
 
 ```kotlin
+import com.github.marcoral.versatia.config.SectionMapper
 import com.github.marcoral.versatia.config.ValueMapper
 
 object TicksFromSeconds : ValueMapper<Long> {
@@ -82,11 +84,18 @@ object TicksFromSeconds : ValueMapper<Long> {
 }
 
 data class PriceRange(val min: Int, val max: Int) {
-    object Mapper : ValueMapper<PriceRange> {
-        override fun map(section: ConfigurationSection, key: String) = section.getConfigurationSectionOrThrow(key).let {
-            PriceRange(it.getIntOrThrow("min"), it.getIntOrThrow("max").validateAtLeast(it.getIntOrThrow("min")))
+    object Mapper : SectionMapper<PriceRange>() {
+        override fun map(section: ConfigurationSection): PriceRange {
+            val min = section.getIntOrThrow("min")
+            return PriceRange(min, section.getIntOrThrow("max").validateAtLeast(min))
         }
     }
+}
+
+data class Ore(val name: String, val veins: Int)
+
+object Ores : SectionMapper<List<Ore>>() {
+    override fun map(section: ConfigurationSection) = section.mapChildren { name, ore -> Ore(name, ore.getIntOrThrow("veins")) }
 }
 
 @LocalBean
@@ -98,8 +107,22 @@ class Shop {
     var priceRange = PriceRange(0, 0)
 
     @Value("ores", mapper = Ores::class)
-    var ores: List<Ore> = emptyList()      // Ores maps the children of the section, with mapChildren
+    var ores: List<Ore> = emptyList()
 }
+```
+
+```yaml
+# config.yml
+shop:
+  restock-seconds: 30
+  price-range:
+    min: 5
+    max: 50
+ores:
+  iron:
+    veins: 8
+  gold:
+    veins: 3
 ```
 
 The mapper receives the section holding the key and the key, so it reads with the
@@ -111,7 +134,11 @@ property, as for any value. The compile-time step checks that what the mapper ma
 property (`mapper TicksFromSeconds maps to Long, which Int cannot hold`), so a mismatch never
 reaches a server. With a mapper, the property may have any type.
 
-## Reacting to a change
+A value written as a section of its own, the usual shape of a data class, takes a `SectionMapper`,
+as `PriceRange.Mapper` above: its `map(section)` receives that section, and a key holding
+anything else fails with `Value at "shop.price-range" is not a section: "5"`.
+
+## Reacting to a change {/* #reacting-to-a-change */}
 
 A reload sets the property and the old value is gone. Code that must know what changed, to
 reschedule a task only when its interval did, say, declares the property as a
@@ -125,7 +152,7 @@ class Announcer(private val plugin: JavaPlugin) {
     @Value("announce.interval-seconds")
     val interval = PreviousValueTracking<Int>()
 
-    @AutoInvoke(EventType.PLUGIN_RELOAD_OR_START)
+    @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
     fun schedule() {
         if (!interval.changed) return                      // true at start, then only when the file changed it
         plugin.logger.info("Announcing every ${interval.value}s" + (interval.previous?.let { ", was ${it}s" } ?: ""))
@@ -147,7 +174,7 @@ cell itself is never nullable and the property is initialised with an empty one.
 stores into `value`, so the property may stay a `val` and even be private. A reload that fails
 assigns nothing, so `previous` and `changed` still describe the last reload that succeeded.
 
-## Missing and invalid values
+## Missing and invalid values {/* #missing-and-invalid-values */}
 
 A non-nullable property whose key is absent is an error, and so is a value of the wrong shape or
 a file that does not exist:
@@ -168,7 +195,7 @@ reaches the sender of `/versatia reload` and is logged as one warning, without a
 Every value of the plugin is read before any property is set, so a broken file leaves the plugin
 running with the values it had.
 
-## In a constructor
+## In a constructor {/* #in-a-constructor */}
 
 A bean may declare a value as a property of its primary constructor:
 
@@ -188,7 +215,7 @@ again like any other. The parameter must be a property: `var`, or a `val` holdin
 or a plain parameter is a compile error,
 `Shop.tax must be a var to be enhanced; declare the constructor parameter as a property`.
 
-## Values that derive from others
+## Values that derive from others {/* #values-that-derive-from-others */}
 
 A reload sets the `@Value` properties and nothing else. A value computed from them is kept
 current in one of three ways, from the simplest:
@@ -202,7 +229,7 @@ current in one of three ways, from the simplest:
         var price = 0
 
         @Value("shop.tax")
-        var tax = Percent.of(0.0)
+        var tax = Percent.ZERO
 
         val priceWithTax get() = price * (1 + tax.normalizedValue)
     }
@@ -220,7 +247,7 @@ current in one of three ways, from the simplest:
         var label = text("")
             private set
 
-        @AutoInvoke(EventType.PLUGIN_RELOAD_OR_START)
+        @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
         fun recompute() {
             label = MiniMessage.miniMessage().deserialize("<gold>$name")
         }
@@ -231,7 +258,7 @@ current in one of three ways, from the simplest:
    should happen only if the value changed, such as rescheduling a task: the `Announcer` above
    checks `interval.changed`.
 
-## When the values are set
+## When the values are set {/* #when-the-values-are-set */}
 
 Values are set at `PLUGIN_RELOAD_OR_START`. At start the files are extracted first; a value
 declared in a bean's constructor is read before that bean is created, and a value of a bean's
@@ -247,7 +274,7 @@ class ShopPlugin : VersatiaPlugin() {
     @Value("motd")
     lateinit var motd: String
 
-    @AutoInvoke(EventType.PLUGIN_RELOAD_OR_START)
+    @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
     fun announce() = logger.info(motd)
 }
 ```
@@ -255,7 +282,7 @@ class ShopPlugin : VersatiaPlugin() {
 Listeners and tasks read the property when they need it rather than copying it when they are
 created, like any other [reloadable state](lifecycle/reload.md#designing-for-reload).
 
-## Common mistakes
+## Common mistakes {/* #common-mistakes */}
 
 - **Implementing `Reloadable` to read the plugin's own files.** `Reloadable` exists for the
   prototypes of [modules](modules/index.md), which read the consuming plugin's files and have no
@@ -266,31 +293,45 @@ created, like any other [reloadable state](lifecycle/reload.md#designing-for-rel
 - **Reading a file in a constructor.** Constructors run once; the value never changes on reload.
 - **A default in the code.** The initializer of a `@Value` property is overwritten at start and
   never consulted again, so it is a placeholder, not a default: `lateinit` where Kotlin allows it,
-  `0` or `Percent.of(0.0)` where it does not. The default belongs in the shipped file, where the
+  `0` or `Percent.ZERO` where it does not. The default belongs in the shipped file, where the
   administrator sees it; an optional value is a nullable property.
 - **Copying a value into a listener or task.** Read the property when the event or tick
   happens; a reload changes the property, not the copy.
 
-## Corner cases
+## Corner cases {/* #corner-cases */}
 
 - **A copy made in a constructor is not updated.** With `class Shop(@Value("shop.tax") var tax:
   Percent) { val rate = tax.normalizedValue }` a reload sets `tax`, but `rate` keeps the value of
   the start. Derive it with one of the [three patterns](#values-that-derive-from-others).
-- **A constructor reads no other `@Value` property.** At start the values of the main class and
-  of `object`s may be set before or after the beans are created, so a constructor reading them may
-  see the placeholder. A bean that needs a value at construction declares it
-  [in its constructor](#in-a-constructor).
+- **A constructor sees the values of the main class and of `object`s.** At start they are set
+  before any bean is created, so `class Shop(plugin: ShopPlugin) { val title = plugin.title }`
+  reads the configured `title`, never the placeholder. A property declared in the body of a bean
+  is set right after that bean's constructor, before the bean is injected anywhere, so
+  `class Shop(prices: PriceList)` sees every value of `prices`, but the placeholders of its own
+  body; a bean that needs its own value at construction declares it [in its constructor](#in-a-constructor).
+- **A prototype's values follow the owner.** An `@ExposePrototype` instance made for another
+  plugin takes its values from the owner's files: its constructor receives the values the owner
+  read last (an instance made after a reload gets that reload's), its body values are set right
+  after, and every reload of the owner sets them again and then reloads the consumer. A tracked
+  constructor value is a cell of each instance's own.
+
+- **The file stays inside the data folder.** `file` is a relative path to a `.yml` or `.yaml`
+  file; an absolute path or a `..` segment is a compile error, and the runtime refuses any path
+  that leaves the data folder once normalised.
 - **Values come before functions.** At start and at every reload all values are set before any
   `@AutoInvoke` function of the event runs, and a failed read leaves every value as it was and runs
   no function.
 - **A single value where a list belongs** (`hours: 9` for a `List<Int>`) is an error, not a list
   of one. An absent key is never an empty list: it is a missing value, `null` for a nullable
   `List<Int>?` and an error otherwise; write `hours: []` for an empty one.
+- **An override is annotated once.** When a base class declares `@Value("limit") open var
+  limit`, a subclass overrides it without `@Value`: the value set through the base property
+  already reaches the override, and annotating both is a compile error.
 - **Both annotation targets work on a constructor property.** `@Value("k") var x: Int` and
   `@property:Value("k") var x: Int` in a primary constructor are the same: the value is passed to
   the constructor and updated at every reload.
 
-## Under the hood
+## Under the hood {/* #under-the-hood */}
 
 `@Value` is an [enhancement](internals/enhancements.md) like any other: the descriptor records
 each property as a `PropertyTarget` with its type and a setter, and

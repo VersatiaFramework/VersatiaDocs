@@ -1,6 +1,6 @@
 # Scopes and lifetime
 
-## `@LocalBean`
+## `@LocalBean` {/* #localbean */}
 
 ```kotlin
 @LocalBean
@@ -13,7 +13,7 @@ functions. Other plugins never see it, even if they list this plugin under `depe
 The plugin's main class is a local bean too, through `@PluginBean` on `VersatiaPlugin`; the
 instance is the one Bukkit created. See [The plugin itself](index.md#the-plugin-itself).
 
-## `@ExposeSingleton`
+## `@ExposeSingleton` {/* #exposesingleton */}
 
 ```kotlin
 @ExposeSingleton
@@ -25,7 +25,7 @@ class Clock {
 One instance for the whole server. The declaring plugin creates it when it enables; every plugin
 enabled afterwards that asks for `Clock` (or any of its supertypes) receives **the same instance**.
 
-## `@ExposePrototype`
+## `@ExposePrototype` {/* #exposeprototype */}
 
 ```kotlin
 @ExposePrototype
@@ -52,7 +52,14 @@ resolved for the consumer as well: the instance is the one the consumer's own be
 made for it; this is how the [Messages module](../modules/messages.md) is built, and how
 [modules](../modules/index.md) build on each other.
 
-## Processors
+A [`@Value` property](../configuration.md) of a prototype is read from the owner's files and set
+on every instance, so `@ExposePrototype class PriceList { @Value("tax") var tax = 0.0 }` gives
+each consumer its own `PriceList` holding the owner's current `tax`. A reload of the owner sets the
+new values on all of them and then reloads each consumer, whose reload functions see them; see
+[`@Value` on a prototype](../lifecycle/reload.md#value-on-a-prototype).
+
+
+## Processors {/* #processors */}
 
 Each scope is interpreted by its own runtime processor, named in the annotation and recorded in
 the descriptor:
@@ -67,7 +74,7 @@ All three run at `PLUGIN_START_ONLY`, and a scope that would send one of them an
 compile error. The main class has a processor of its own, `PluginBeanEnhancementProcessor`,
 behind `@PluginBean`. The names are kept in `BeanProcessors`.
 
-## Lifetime
+## Lifetime {/* #lifetime */}
 
 A plugin's beans, including the ones it exposes, live **exactly as long as the plugin**:
 
@@ -99,7 +106,7 @@ consumers keep running with the beans it dropped; see
 
 :::
 
-## Choosing a scope
+## Choosing a scope {/* #choosing-a-scope */}
 
 | You want                                                | Use                 |
 |---------------------------------------------------------|---------------------|

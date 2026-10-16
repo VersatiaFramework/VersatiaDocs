@@ -6,7 +6,7 @@ import TabItem from '@theme/TabItem';
 Versatia has two halves. The server needs **VersatiaCore**; your build needs **VersatiaAPI**,
 which comes with **VersatiaStarter**.
 
-## On the server
+## On the server {/* #on-the-server */}
 
 1. Run Paper **1.21.4** on Java **21** or newer.
 2. Drop `VersatiaCore-0.0.1.jar` into the `plugins/` directory.
@@ -25,7 +25,7 @@ JAR; its repository is private and access to the sources is granted by the Versa
 
 :::
 
-### Soft dependencies
+### Soft dependencies {/* #soft-dependencies */}
 
 VersatiaCore works on its own. Some of its features appear only when another plugin is installed
 next to it; VersatiaCore lists these under `softdepend:` and nothing else changes without them.
@@ -43,7 +43,7 @@ compatible with costs only the command; VersatiaCore logs one warning:
 12.x release VersatiaCore is built against; everything except the command keeps working.
 ```
 
-### Modules
+### Modules {/* #modules */}
 
 Features beyond the runtime come as [modules](../modules/index.md), one plugin JAR each, installed
 next to VersatiaCore when a plugin on the server needs them; each plugin lists the modules it uses
@@ -53,7 +53,7 @@ under `depend:`.
 |-------------------------------------|---------------------------|--------------|
 | `VersatiaModule-Messages-0.0.1.jar` | `VersatiaModule-Messages` | VersatiaCore |
 
-## In your build
+## In your build {/* #in-your-build */}
 
 A Versatia plugin is an ordinary Kotlin/JVM Gradle project with the KSP plugin applied. The
 repositories are declared once, in `settings.gradle.kts`.
@@ -152,7 +152,7 @@ plugin you inject beans from, which you add as
 
 :::
 
-## plugin.yml
+## plugin.yml {/* #pluginyml */}
 
 ```yaml
 name: MyPlugin
@@ -189,9 +189,9 @@ Two rules:
     }
     ```
 
-  See [Troubleshooting](../troubleshooting.md#linkageerror-at-start-up).
+  See [Troubleshooting](../reference/troubleshooting.md#linkageerror-at-start-up).
 
-## Check the setup
+## Check the setup {/* #check-the-setup */}
 
 Run `./gradlew build`. On success the build directory contains
 
@@ -199,5 +199,6 @@ Run `./gradlew build`. On success the build directory contains
 build/generated/ksp/main/kotlin/com/example/myplugin/VersatiaDescriptor.kt
 ```
 
-in the package of your main class. It is empty of elements until you declare a bean or an
-auto-invoked function, which is the subject of [Your first plugin](first-plugin.md).
+in the package of your main class. It already lists the elements every plugin inherits from
+`VersatiaPlugin` (the main class as a bean, resource extraction); beans and auto-invoked
+functions add theirs, which is the subject of [Your first plugin](first-plugin.md).

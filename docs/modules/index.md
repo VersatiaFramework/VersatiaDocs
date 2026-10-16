@@ -13,7 +13,7 @@ lists the ones it uses.
 |----------|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------|
 | Messages | [VersatiaModule-Messages](https://github.com/VersatiaFramework/VersatiaModule-Messages)     | [a bank of messages per plugin](messages.md), read from its `messages/` directory and reloaded with it, in MiniMessage with runtime arguments: `{player.name}` |
 
-## Using a module
+## Using a module {/* #using-a-module */}
 
 Every module follows the same three steps, shown here for Messages. With
 [VersatiaStarter](../getting-started/installation.md#in-your-build) the first one is already done:
@@ -68,7 +68,7 @@ On the server, drop the module's JAR (`VersatiaModule-Messages-0.0.1.jar`) into 
 VersatiaCore. Like VersatiaCore, modules are not on a Maven repository yet: build the module and
 run `./gradlew publishToMavenLocal` in its checkout to get the artifact.
 
-## One instance per plugin
+## One instance per plugin {/* #one-instance-per-plugin */}
 
 A module exposes its entry point as an [`@ExposePrototype`](../dependency-injection/scopes.md#exposeprototype),
 so every plugin that injects it gets an **instance of its own**: what your plugin registers on its
@@ -78,7 +78,7 @@ keeps state for you, such as a bank of messages read from your data folder, is r
 session. A prototype built on another one, from the same module or another (`Messages` takes
 `Text`), receives, inside your instance, the instances made for your plugin as well.
 
-## Writing a module
+## Writing a module {/* #writing-a-module */}
 
 A module is an ordinary Versatia plugin. What makes it a module is a handful of rules; follow them
 and the module fits the ecosystem.
@@ -101,4 +101,4 @@ and the module fits the ecosystem.
 - **Report misuse with exceptions declared in `api`**, named after what went wrong and saying what
   was available, as the framework's own errors do.
 
-The conventions are collected in [Best practices](../best-practices.md#modules).
+The conventions are collected in [Best practices](../reference/best-practices.md#modules).

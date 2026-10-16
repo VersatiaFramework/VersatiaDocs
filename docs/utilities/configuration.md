@@ -4,7 +4,7 @@ Package `com.github.marcoral.versatia.util.config`. A value a plugin only has to
 of this: mark the property [`@Value`](../configuration.md) and the runtime reads it with these
 getters.
 
-## Strict getters
+## Strict getters {/* #strict-getters */}
 
 Bukkit's own getters are lenient: `getInt` returns `0` for a missing key *and* for a value that is
 not a number, so a typo in a config file turns into a silent default. The extension functions on
@@ -64,7 +64,7 @@ Every `ConfigurationValueException` message contains the full dotted path of the
 (`section.pathOf(key)`), so the user can find the line in the file. The optional `exceptionMessage`
 parameter of the `OrThrow` family replaces the default message for both failure modes.
 
-### Adding your own type
+### Adding your own type {/* #adding-your-own-type */}
 
 Build on the generic entry point:
 
@@ -73,12 +73,13 @@ fun ConfigurationSection.getMaterialOrThrow(key: String) =
     getOrThrow(key, "a Material") { Material.matchMaterial(getString(it)!!) }
 ```
 
-### Other helpers
+### Other helpers {/* #other-helpers */}
 
 - `mapChildren { key, section -> }` maps every child section.
-- `asStringsMap()` flattens a section into `Map<String, String>`.
+- `asStringsMap()` maps the direct children of a section into `Map<String, String>`; a child that
+  is a section or a list throws.
 
-## YAML files
+## YAML files {/* #yaml-files */}
 
 - `loadYamlOrThrow(file)` propagates parse errors. Bukkit's `YamlConfiguration.loadConfiguration`
   logs them and returns an empty configuration, which hides broken files.

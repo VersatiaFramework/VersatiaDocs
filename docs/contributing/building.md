@@ -4,7 +4,7 @@ Versatia is developed in independent repositories that share nothing but publish
 page is for building the framework itself; plugin authors only need the
 [installation](../getting-started/installation.md).
 
-## Repositories
+## Repositories {/* #repositories */}
 
 | Repository                   | Produces                                                             |
 |------------------------------|----------------------------------------------------------------------|
@@ -18,7 +18,7 @@ page is for building the framework itself; plugin authors only need the
 
 Requirements: JDK 21 or newer. Gradle comes from the wrapper in each repository.
 
-## Build order
+## Build order {/* #build-order */}
 
 The projects consume each other from `~/.m2`, so publish upstream before building downstream:
 
@@ -54,7 +54,7 @@ Repeat `publishToMavenLocal` in VersatiaAPI after every change that a dependent 
 see; `build` runs the tests everywhere. Use `./gradlew build -x deployPlugin` when the JAR should
 not be copied to your server.
 
-## Plugin build scripts
+## Plugin build scripts {/* #plugin-build-scripts */}
 
 The examples and the template share one layout, the one [Installation](../getting-started/installation.md#in-your-build)
 shows:
@@ -68,7 +68,7 @@ shows:
   parse, lacks `name`, `version` or `main`, or does not list `VersatiaCore` under `depend:`.
   Paper would only skip such a plugin at start, with an error in the server log.
 
-## Copying plugins to a server
+## Copying plugins to a server {/* #copying-plugins-to-a-server */}
 
 Every plugin repository has a `deployPlugin` task that runs after `build` and copies the JAR into
 your server's `plugins/` directory. The path is machine-specific and never committed:
@@ -87,7 +87,7 @@ skipped and the build still succeeds.
 The copy is named after the project without the version, `VersatiaExample-DI-Beans.jar`, so a newer
 build replaces the deployed JAR instead of landing next to it.
 
-## Versions
+## Versions {/* #versions */}
 
 Shared versions live in `gradle.properties` of VersatiaAPI: `versatiaVersion`, `kspVersion`,
 `kotlinPoetVersion` and `kctforkVersion`. The Kotlin Gradle plugin version is declared in each
@@ -97,13 +97,13 @@ When bumping Kotlin, pick the `kotlin-compile-testing` fork (`dev.zacsweers.kctf
 against the same Kotlin and KSP versions; its POM lists them. Both the `ksp` module tests and
 VersatiaCore's end-to-end test compile sample plugins with it in-process.
 
-## How the pieces fit
+## How the pieces fit {/* #how-the-pieces-fit */}
 
 - `VersatiaAPI/api` exports the Paper API for compilation only and the Kotlin standard library
   and `kotlin-reflect` for compilation and runtime; consumers declare none of them, but still need
   the Paper repository because Gradle does not inherit repositories.
 - `VersatiaAPI/api` does not use the compiler's explicit API mode: exported declarations carry no
-  modifier and return types are inferred; see [Best practices](../best-practices.md#notation).
+  modifier and return types are inferred; see [Best practices](../reference/best-practices.md#notation).
   Almost everything in `ksp` is internal.
 - `VersatiaCore`'s `jar` task unpacks the `VersatiaAPI-*` JARs into the plugin JAR, because
   VersatiaAPI is not published remotely and Paper's `libraries:` mechanism cannot fetch it.
@@ -118,7 +118,7 @@ VersatiaCore's end-to-end test compile sample plugins with it in-process.
   packed into a plugin JAR, shaded or not. Module JARs bundle their own API classes the way
   VersatiaCore bundles VersatiaAPI.
 
-## This documentation
+## This documentation {/* #this-documentation */}
 
 The site is a [Docusaurus](https://docusaurus.io/) project in the VersatiaDocs repository and
 builds with Node.js 24, the version the publishing workflow uses:

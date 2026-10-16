@@ -10,20 +10,20 @@ Auto-invoked functions on the main class, on a bean and on an object, at three d
 </ExampleCard>
 
 ```kotlin
-import com.github.marcoral.versatia.EventType
+import com.github.marcoral.versatia.Phase
 import com.github.marcoral.versatia.lifecycle.AutoInvoke
 
 class MyPlugin : VersatiaPlugin() {
 
-    @AutoInvoke(EventType.PLUGIN_RELOAD_OR_START)
+    @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
     private fun start(clock: Clock) { /* ... */ }
 
-    @AutoInvoke(EventType.PLUGIN_STOP)
+    @AutoInvoke(Phase.PLUGIN_STOP)
     fun stop() { /* ... */ }
 }
 ```
 
-## Where a function may live
+## Where a function may live {/* #where-a-function-may-live */}
 
 | Owner                   | Called on                                   |
 |-------------------------|---------------------------------------------|
@@ -37,19 +37,19 @@ Anything else is a compile error: the runtime would have no instance to call the
 object Statistics {
     private var starts = 0
 
-    @AutoInvoke(EventType.PLUGIN_RELOAD_OR_START)
+    @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
     fun countStart() { starts++ }
 }
 
 @LocalBean
 class StartupBanner(private val greeter: Greeter) {
 
-    @AutoInvoke(EventType.PLUGIN_START_ONLY)
+    @AutoInvoke(Phase.PLUGIN_START_ONLY)
     fun show(clock: Clock) { /* uses greeter and clock */ }
 }
 ```
 
-## Parameters
+## Parameters {/* #parameters */}
 
 Parameters are injected exactly like constructor dependencies of a bean: non-nullable, non-generic
 class types; local beans first, then exposed ones; `@Qualifier` and `@Primary` apply. Ambiguity is a
@@ -57,7 +57,7 @@ compile error; a type no local bean provides is left to the runtime, which resol
 beans other plugins exposed.
 
 ```kotlin
-@AutoInvoke(EventType.PLUGIN_START_ONLY)
+@AutoInvoke(Phase.PLUGIN_START_ONLY)
 fun open(@Qualifier("grumpy") clerk: Greeter) { /* ... */ }
 ```
 
@@ -66,14 +66,17 @@ it without reaching for `JavaPlugin.getProvidingPlugin`:
 
 ```kotlin
 object Metrics {
-    @AutoInvoke(EventType.PLUGIN_START_ONLY)
+    @AutoInvoke(Phase.PLUGIN_START_ONLY)
     fun start(plugin: JavaPlugin) { plugin.logger.info("metrics on") }
 }
 ```
 
-## Rules
+## Rules {/* #rules */}
 
 - Extension, `suspend`, abstract and generic functions are rejected. Return values are ignored.
+- An override of an enhanced function carries no enhancement of its own: the call made for the
+  base function already reaches the override, so a second annotation would run it twice. Annotate
+  the open function in the base class and override it plainly; annotating both is a compile error.
 - Visibility does not matter. A private function or class gets a reflective invoker in the
   descriptor, a visible one a direct call.
 - Functions run **after every other processor of the event**, so at start all beans of the plugin
@@ -82,9 +85,9 @@ object Metrics {
 - A plugin's beans stay available for its whole lifetime, so functions at reload and stop receive
   the same instances that were created at start.
 
-## Phases
+## Phases {/* #phases */}
 
-| `EventType`              | The function runs at                 |
+| `Phase`                  | The function runs at                 |
 |--------------------------|--------------------------------------|
 | `PLUGIN_START_ONLY`      | plugin enable                        |
 | `PLUGIN_RELOAD_ONLY`     | [a Versatia reload](reload.md)       |
@@ -96,7 +99,7 @@ the processor reads it from each annotation. See [Phases and events](phases.md).
 `PLUGIN_RELOAD_OR_START` for anything that reads configuration, so that
 [`/versatia reload`](reload.md#designing-for-reload) picks changes up without a restart.
 
-## Failures
+## Failures {/* #failures */}
 
 An exception thrown by the function is wrapped in an `EnhancementException` naming the function and
 the event, with the original as cause:

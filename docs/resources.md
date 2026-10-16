@@ -10,7 +10,7 @@ they appear on the server.
 A plugin shipping two files under <code>resources/</code> and logging them from its data folder.
 </ExampleCard>
 
-## Where the files go
+## Where the files go {/* #where-the-files-go */}
 
 | In the build                               | In the JAR                  | On the server                          |
 |--------------------------------------------|-----------------------------|----------------------------------------|
@@ -20,14 +20,14 @@ A plugin shipping two files under <code>resources/</code> and logging them from 
 The directory layout under `resources/` is kept. Only files are copied; an empty directory in the
 JAR creates nothing.
 
-## Existing files are never overwritten
+## Existing files are never overwritten {/* #existing-files-are-never-overwritten */}
 
 A file that already exists in the data folder is left exactly as it is, whatever the JAR contains.
 Server owners edit the extracted copies, and an update of the plugin does not undo their changes.
 To get a fresh copy of a file, delete it and run [`/versatia reload <name>`](lifecycle/reload.md)
 or restart the plugin.
 
-## When it happens
+## When it happens {/* #when-it-happens */}
 
 Extraction runs at `PLUGIN_RELOAD_OR_START`, first: at start before any bean is created, any
 [`@Value` property](configuration.md) is read or any auto-invoked function runs, and again at
@@ -50,7 +50,7 @@ Texts shown to players belong to the [Messages module](modules/messages.md), whi
 picks up its changes, with `loadYamlOrThrow` and the strict getters of the
 [configuration utilities](utilities/configuration.md); never in a constructor, which runs once.
 
-## Why every plugin has it
+## Why every plugin has it {/* #why-every-plugin-has-it */}
 
 `VersatiaPlugin` is annotated with `@ExtractResources`, and an enhancement declared on a base
 class applies to every plugin extending it, as explained under
@@ -62,9 +62,13 @@ from the plugin's own JAR, never from a dependency.
 The classpath directory is fixed to `resources` (`ExtractResources.DIRECTORY`). Files placed
 anywhere else in `src/main/resources`, such as `plugin.yml`, stay inside the JAR.
 
-## Switching it off
+## Switching it off {/* #switching-it-off */}
 
 A plugin that wants to handle its files itself switches the feature off on its main class:
+
+<ExampleCard repo="VersatiaExample-Enhancements-FeatureSwitches" file="src/main/kotlin/com/github/marcoral/versatia/example/switches/SwitchesPlugin.kt">
+A base plugin class switching extraction off and a main class switching listener registration off.
+</ExampleCard>
 
 ```kotlin
 @DisableVersatiaFeatures(extractResources = true)
@@ -75,9 +79,10 @@ The descriptor then carries no extraction element at all; nothing happens at run
 annotation is accepted on the main class and on its base classes only, and the nearest declaration
 wins: a base class may switch the feature off and a subclass may declare `@ExtractResources` again.
 Writing `@DisableVersatiaFeatures` without switching anything on, or next to `@ExtractResources`
-on the same class, is a compile error.
+on the same class, is a compile error. Every feature a plugin inherits and its switch are listed
+under [Enhancements on a base class](internals/enhancements.md#enhancements-on-a-base-class).
 
-## Corner cases
+## Corner cases {/* #corner-cases */}
 
 - **A link counts as a file.** Anything at the destination, a symbolic link included, even one
   pointing nowhere, keeps the JAR's copy out; a configuration the administrator shares through a
