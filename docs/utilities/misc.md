@@ -30,14 +30,14 @@ plugin.callSyncMethod { VersatiaEngine.onlinePlayers.size }   // Future<Int> fro
 plugin.cancelAllTasks()
 ```
 
-The timer variants keep Bukkit's parameter order, `delayTicks` before `periodTicks`. The delay
-defaults to `0`, so a timer that starts at once names its period: `runTaskTimer(periodTicks = 20)`.
+The timer variants take the period first and the delay second: `runTaskTimer(periodTicks, delayTicks = 0)`.
+This is the reverse of `BukkitScheduler`, so name both arguments when you pass a delay.
 
 Each variant has a `*WithContext` twin whose lambda receives the `BukkitTask`, so a repeating task
 can cancel itself:
 
 ```kotlin
-plugin.runTaskTimerWithContext(delayTicks = 100, periodTicks = 20) { task ->
+plugin.runTaskTimerWithContext(periodTicks = 20, delayTicks = 100) { task ->
     if (done) task.cancel()
 }
 ```

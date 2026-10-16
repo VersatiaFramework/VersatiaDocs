@@ -307,7 +307,7 @@ class TimedEnhancementProcessor : EnhancementProcessor {
             }
             val arguments = beans?.resolve(description, target.parameters).orEmpty()
             val classLoader = context.classLoader   // the context lives for one event; the task keeps only this
-            context.plugin.runTaskTimer(delayTicks = ticks, periodTicks = ticks) { target.invoker.invoke(classLoader, instance, arguments) }
+            context.plugin.runTaskTimer(periodTicks = ticks, delayTicks = ticks) { target.invoker.invoke(classLoader, instance, arguments) }
         }
     }
 }
