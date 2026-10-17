@@ -21,9 +21,6 @@ VersatiaCore installed. Repositories are named
 <ExampleCard repo="VersatiaExample-Resources-Extraction" file="src/main/resources/resources" fileLabel="resources/">
 Files shipped under <code>resources/</code> in the JAR appear in the data folder when the plugin starts. Nothing to declare.
 </ExampleCard>
-<ExampleCard repo="VersatiaExample-Config-Values" file="src/main/kotlin/com/github/marcoral/versatia/example/values/Shop.kt">
-<code>@Value</code> properties on the main class, an object and a bean, set from two YAML files and re-read with <code>/versatia reload</code>.
-</ExampleCard>
 <ExampleCard repo="VersatiaExample-DI-Beans" file="src/main/kotlin/com/github/marcoral/versatia/example/beans/Beans.kt">
 Three local beans created in dependency order, one of them taking the plugin instance, which is a bean without any annotation.
 </ExampleCard>
@@ -38,6 +35,9 @@ Private beans, constructors and functions: the generated code falls back to refl
 </ExampleCard>
 <ExampleCard repo="VersatiaExample-Lifecycle-AutoInvoke" file="src/main/kotlin/com/github/marcoral/versatia/example/autoinvoke/AutoInvokePlugin.kt">
 Functions run at start, reload or stop with injected parameters: on the main class, on a bean and on an object.
+</ExampleCard>
+<ExampleCard repo="VersatiaExample-Config-Values" file="src/main/kotlin/com/github/marcoral/versatia/example/values/Shop.kt">
+<code>@Value</code> properties on the main class, an object and a bean, set from two YAML files and re-read with <code>/versatia reload</code>.
 </ExampleCard>
 <ExampleCard repo="VersatiaExample-Lifecycle-Reload" file="src/main/kotlin/com/github/marcoral/versatia/example/reload/Announcer.kt">
 A plugin designed for reload: <code>@Value</code> properties re-read by <code>/versatia reload announcer</code>, a derived value rebuilt, a repeating task rescheduled when its interval changes and <code>versatiaReload()</code>.
