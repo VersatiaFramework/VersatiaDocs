@@ -45,6 +45,18 @@ A plugin designed for reload: <code>@Value</code> properties re-read by <code>/v
 <ExampleCard repo="VersatiaExample-Events-Listeners" file="src/main/kotlin/com/github/marcoral/versatia/example/listeners/Listeners.kt">
 Listeners registered automatically: a plain class with injected dependencies and a bean registered with its instance.
 </ExampleCard>
+<ExampleCard repo="VersatiaExample-Tasks-Background" file="src/main/kotlin/com/github/marcoral/versatia/example/background/AutoBroadcastTask.kt">
+A <code>BackgroundTask</code> broadcasting at a period written as a duration, started by itself and restarted with the new values by every reload.
+</ExampleCard>
+<ExampleCard repo="VersatiaExample-Tasks-PluginScope" file="src/main/kotlin/com/github/marcoral/versatia/example/pluginscope/CombatTags.kt">
+Coroutines of your own in the injected <code>PluginScope</code>: a combat tag per player in <code>KeyedJobs</code>, replaced by every hit.
+</ExampleCard>
+<ExampleCard repo="VersatiaExample-Tasks-Conditions" file="src/main/kotlin/com/github/marcoral/versatia/example/conditions/Teleports.kt">
+Conditions rechecked on events, never polled: a teleport countdown cancelled by moving, a beacon lit while players are online.
+</ExampleCard>
+<ExampleCard repo="VersatiaExample-Tasks-Threads" file="src/main/kotlin/com/github/marcoral/versatia/example/threads/Greetings.kt">
+File reading moved off the server thread with <code>withContext(Dispatchers.IO)</code> and back for the Bukkit calls.
+</ExampleCard>
 <ExampleCard repo="VersatiaExample-DI-OptionalPlugins" file="src/main/kotlin/com/github/marcoral/versatia/example/optionalplugins/VaultPayments.kt">
 A bean conditional on Vault with <code>@ConditionalOnPlugin</code> and <code>@Primary</code>, a fallback used without Vault, and the condition written once as <code>@NeedsVault</code>.
 </ExampleCard>

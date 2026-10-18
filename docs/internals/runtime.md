@@ -53,8 +53,9 @@ sequenceDiagram
    VersatiaCore as a bean; `/versatia reload` addresses plugins by that name and runs the `RELOAD`
    event for them, as does `VersatiaPlugin.versatiaReload()` for the plugin itself; see
    [Reloading plugins](../lifecycle/reload.md).
-6. When the plugin is disabled, the runtime runs its `PLUGIN_STOP` elements, drops the plugin's
-   state, closing every entry that implements `AutoCloseable`, and forgets the registration.
+6. When the plugin is disabled, the runtime runs its `PLUGIN_STOP` elements (the scope processor
+   in `process`, so before the stop functions, which run in a completion action), drops the
+   plugin's state, closing every entry that implements `AutoCloseable`, and forgets the registration.
 
 Errors surface as an `EnhancementException` thrown out of the plugin's `onEnable`, so Bukkit logs
 them and disables that plugin only.
@@ -264,8 +265,92 @@ values are read; a JAR without a `resources/` entry leaves the data folder untou
 beans exist, it registers one instance per element with the server's plugin manager: the plugin
 itself for the main class, the bean instance when the class is a bean, otherwise a new instance
 created through the element's instantiator with the constructor parameters resolved by the
-plugin's `BeanResolver`. Bukkit unregisters the listeners when the plugin is disabled. See
-[Event listeners](../events.md).
+plugin's `BeanResolver`, once per plugin and shared with the other subclass features of
+VersatiaCore, so a plain class that is also a `BackgroundTask` exists once. Bukkit unregisters the
+listeners when the plugin is disabled. See [Event listeners](../events.md).
+
+## Tasks {/* #tasks */}
+
+The coroutines of every plugin run on one loop driven from the server thread; the `task` package
+holds it and the two processors of `@RunBackgroundTasks`. See [Tasks and coroutines](../tasks.md)
+for what plugin authors see.
+
+### The heartbeat {/* #the-heartbeat */}
+
+`ServerTicker`, a local bean of VersatiaCore, starts one Bukkit timer when VersatiaCore starts
+(`runTaskTimer(periodTicks = 1)`); every run of it is a heartbeat of the `TickLoop`. A plugin's
+`PluginScope` has a **lane** of that loop, registered when the scope is made, so lanes run in the
+order the plugins started. Each heartbeat:
+
+1. counts the tick;
+2. for each lane in turn, runs the coroutine blocks dispatched to it before its turn (a block that
+   dispatches itself again therefore advances once per tick), then the condition rechecks posted
+   to it;
+3. resumes the due tick waits of every lane, by due tick and then in the order they were
+   registered.
+
+A block or recheck that throws is logged on its plugin's logger (`A coroutine threw while running
+on the server thread`) and the heartbeat goes on. Because rechecks run before the timers, a
+condition that turns false in the tick a countdown ends cuts the countdown short.
+
+### Dispatcher and clock {/* #dispatcher-and-clock */}
+
+`PluginDispatcher` asks for no dispatch on the server thread, so a coroutine resumed or launched
+there runs in place, and queues everything else in the lane for the next heartbeat: a launch from
+another thread, the return from `withContext(Dispatchers.IO)`, a `delay`, a `yield`. It implements
+no `Delay`, so kotlinx's `delay` waits wall-clock time on its default executor and then dispatches
+back. `PluginClock`, the `ServerClock` in every scope's context, turns `delayTicks(n)` into a timer
+due `max(n, 1)` ticks later, so `delayTicks(0)` waits for the next tick; the repeating helpers read
+the tick count from it and report a failed run through it. `CoroutineMarker`, a
+`ThreadContextElement` in the same context, tells whether a coroutine of a plugin is running on the
+current thread, which the stop needs.
+
+### Conditions of the scope {/* #conditions-of-the-scope */}
+
+`PluginCondition` is a `StateFlow` over the last result and a Bukkit `Listener` registered with
+`registerEvent` for each trigger, on behalf of the plugin. It is created on the server thread and
+checks at once. A trigger whose event passes its filter posts one recheck to the lane, however many
+events come before the next heartbeat (a pending flag); an `immediately` trigger fired on the
+server thread checks inside the handler, and one fired elsewhere posts like any other and warns
+once per event type. `recheck()` checks in place on the server thread and posts otherwise. A check
+run for a trigger or for a post that throws keeps the last value and is logged. The listeners are
+unregistered when the owner completes: the scope's job for `scope.condition`, the calling
+coroutine's job for `condition`.
+
+### The scope {/* #the-scope */}
+
+`PluginScopeBean` is VersatiaCore's `@ExposePrototype` behind `PluginScope`: one instance per
+consuming plugin, which its `Plugin` parameter receives, around VersatiaCore's `ServerTicker`. Its
+context is a `SupervisorJob`, the dispatcher, the clock, the marker and an exception handler that
+logs `<name> failed` on the plugin's logger. The job completing while the plugin is not stopping
+means plugin code cancelled it, and is reported. `stop()` cancels the job and then, on the server
+thread, abandons the lane's tick waits and rechecks and drains the lane, running its blocks until
+the job completed or the loop's close timeout (five seconds) passed; called from inside one of the
+plugin's coroutines it skips the drain and warns. Blocks that arrive after the stop still run at a
+later heartbeat, and their failures say `after the plugin was disabled`. The scope is
+`AutoCloseable`, so the bean session closes it too; stopping twice does nothing.
+
+When VersatiaCore stops, `ServerTicker` cancels its timer and stops the loop: every lane is
+cancelled, the loop runs what comes back for up to the same timeout, then hands later blocks to
+`Dispatchers.IO` with their job cancelled, and warns about the plugins whose coroutines were still
+running.
+
+### The processors {/* #task-processors */}
+
+| Processor                                | Elements                                    | `START`                                   | `RELOAD`                                  | `STOP`                     |
+|------------------------------------------|---------------------------------------------|-------------------------------------------|-------------------------------------------|----------------------------|
+| `PluginScopeEnhancementProcessor`        | the `PluginTarget`, once at `PLUGIN_START_ONLY` and once at `PLUGIN_STOP` | a completion action resolves the plugin's `PluginScope` through its `BeanResolver` and keeps it in the plugin state | not dispatched | in `process`, so before the stop functions' completion action: stops the scope |
+| `RunBackgroundTasksEnhancementProcessor` | one per `BackgroundTask` class, or the `PluginTarget`, at `PLUGIN_RELOAD_OR_START` | a completion action, after the beans exist, obtains each task's instance and launches its run | a completion action, after the bean session reloaded the `Reloadable` beans and before the reload functions, cancels the runs and launches new ones | not dispatched |
+
+A run is a coroutine of the scope named after the task class; it waits for the cancelled runs of
+the same task (warning after the timeout), then for one tick, and then calls `run()`. Its outcome
+is logged: a normal return at `FINE`, an exception as `Background task <class> failed; it starts
+again at the next reload`, and a `CancellationException` while nothing cancelled the run as a
+warning. Under `@DisableVersatiaFeatures(runBackgroundTasks = true)` neither processor has
+elements, so nothing stops the scope at `STOP`: the bean session closes it, after the stop
+functions. A plugin without a bean container cannot run tasks (`X is a BackgroundTask, but the
+plugin has no bean container; ...`), and a `PluginScope` bean that is not VersatiaCore's is
+refused, because the stop order needs it.
 
 ## What the tests cover {/* #what-the-tests-cover */}
 

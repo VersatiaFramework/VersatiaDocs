@@ -29,10 +29,15 @@ same standard, so that the descriptor stays neutral and every feature reads it t
 | an attribute annotation                | the fact it records                                          | `@Qualifier`, `@Primary`                  |
 | a reserved bean name                   | a constant next to the feature                               | `BeanNames.PLUGIN`                        |
 | a `VersatiaEngine` shortcut            | an extension on `VersatiaEngine.Companion` in `VersatiaEngineExtensions.kt`; Bukkit's term without `get`; a lookup that can miss ends in `OrNull`, a bare name never misses or throws an exception naming the fix; a property for argument-less state that does not depend on the calling thread, a function otherwise; never a Kotlin standard-library top-level name | `onlinePlayers`, `playerOrNull(id)`, `loadService<T>()`, `reload(name)` |
+| a `BackgroundTask` implementation      | what it does, ending in `Task`; in the package of the feature it serves, not in a package of its own | `AutoBroadcastTask`, `brawl/BrawlParticlesTask` |
+| a `Condition`                          | the state it describes, without `is` (it is a flow, not a `Boolean`) and without a `Condition` suffix | `standsStill`, `anyoneOnline`, `brawlActive` |
+| a `KeyedJobs`                          | the plural of what one job is                                | `teleports`, `combatTags`                 |
+| an injected `PluginScope`              | `scope`                                                      | `class Teleports(scope: PluginScope)`     |
 | a module                               | API repository, Maven artifact and plugin name `VersatiaModule-<Name>`; implementation repository `VersatiaModule-<Name>Impl`; package `com.github.marcoral.versatia.<name>`, one per part when it has several | `VersatiaModule-Messages`, `VersatiaModule-MessagesImpl`, `com.github.marcoral.versatia.messages` and `.text` |
 
 The suffix makes a processor recognisable wherever its name appears: in a descriptor, in an error
-message, in a stack trace. The constants exist because `@VersatiaEnhancement` takes the processor
+message, in a stack trace; the `Task` suffix does the same for the classes the framework runs by
+itself, so a reader knows the class is never called by plugin code. The constants exist because `@VersatiaEnhancement` takes the processor
 as a string (the plugin does not compile against the runtime); a constant keeps the string in one
 place and lets the compile-time step reuse it.
 
@@ -65,7 +70,9 @@ There are no packages named after layers (`core`, `service`, `impl`): a reader l
 - **Clean up with `AutoCloseable`.** An entry in the plugin state that holds resources, or that
   registered something elsewhere (the bean session registers exposed beans), implements
   `AutoCloseable`; the runtime closes it on disable. Processors never hook the stop event just to
-  clean up.
+  clean up; they hook it only for an order the close cannot give, as `PluginScopeEnhancementProcessor`
+  does to cancel and await the plugin's coroutines before the stop functions run (the beans close
+  after them).
 - **Depend on another feature through a contract in VersatiaAPI and its state entry**, never
   through the runtime or through the other feature's classes in VersatiaCore. The auto-invoke
   processor injects through `context.state[BeanResolver.KEY]`; the runtime does not know that
@@ -126,10 +133,12 @@ beans?.instancesOf(target.className)             // warning: internal plumbing o
   implements it: that is a module's job done by hand, and `@Value` does it.
 - **What derives from the values is rebuilt at `PLUGIN_RELOAD_OR_START`, never in a constructor.**
   Constructors wire dependencies and run once; a `PLUGIN_RELOAD_OR_START` function sees the new
-  values and rebuilds caches, recipes, tasks. `PLUGIN_RELOAD_ONLY` is for what a reload adds on
+  values and rebuilds caches and recipes. `PLUGIN_RELOAD_ONLY` is for what a reload adds on
   top of a start, `PLUGIN_START_ONLY` for what the server allows once.
-- **Listeners and tasks read the beans' current state** instead of copying values when they are
-  created; a reload does not re-register them. See [Reloading plugins](../lifecycle/reload.md#designing-for-reload).
+- **Repeating work is a `BackgroundTask`**, which every reload restarts once the values are set;
+  see [Tasks and threads](#tasks-and-threads).
+- **Listeners and the scope's coroutines read the beans' current state** instead of copying values
+  when they are created; a reload does not re-register or restart them. See [Reloading plugins](../lifecycle/reload.md#designing-for-reload).
 - **A value derived from others is read at use, recomputed or reacted to.** A getter
   (`val priceWithTax get() = ...`) first; a `PLUGIN_RELOAD_OR_START` function when it is
   expensive; a [`PreviousValueTracking`](../configuration.md#reacting-to-a-change) when the work
@@ -141,6 +150,34 @@ beans?.instancesOf(target.className)             // warning: internal plumbing o
   that phase sees the owner's new values; nothing has to poll for them. See
   [Reloading plugins](../lifecycle/reload.md#plugins-that-use-the-reloaded-ones-values).
 
+
+## Tasks and threads {/* #tasks-and-threads */}
+
+- **Work that runs as long as the plugin is a `BackgroundTask`**, never a timer scheduled in a
+  start or reload function: the runtime starts it at the tick after the start, restarts it with the
+  new values at every reload and cancels it before the stop functions. A task that needs `@Value`
+  properties is a bean or an `object`. See [Background tasks](../tasks.md#background-tasks).
+- **Work something starts is launched from an injected `PluginScope`**, named `scope`, from an
+  event, a command or a `PLUGIN_START_ONLY` function; never repeating work from
+  `PLUGIN_RELOAD_OR_START`, which the reload would start a second time. One job per player or
+  arena goes into `scope.keyedJobs<K>()`, which replaces the previous job.
+- **Cancel the jobs you launch, never the scope.** The scope belongs to the plugin; a cancelled one
+  runs nothing until the plugin restarts.
+- **Waiting for a state is a `Condition`**, rechecked on the events that change it, never a loop
+  that polls. `scope.condition` for a state the plugin watches as long as it runs, `condition()`
+  inside a coroutine for one task or request, so its listeners go with it. The default recheck at
+  the next tick is right for the events that fire before their change; `immediately = true` only
+  for those that fire after it, such as `PlayerJoinEvent`. See [Conditions](../tasks.md#conditions).
+- **The server thread is never blocked.** Blocking I/O goes into `withContext(Dispatchers.IO) { }`
+  and the Bukkit calls stay outside it; no `Thread.sleep`, `runBlocking` or `future.get()` in a
+  coroutine of the scope. See [Threads](../tasks.md#threads).
+- **Game time is `delayTicks` and `everyTicks`, real time is `delay` and `every`**; a period read
+  from configuration is a `Duration` (`30s`, `5m`), not a number of ticks or seconds.
+- **`kotlinx.coroutines` comes from VersatiaAPI and VersatiaCore only.** A plugin or a module never
+  lists it under `libraries:`, never shades it and never adds a coroutine library for Bukkit such
+  as MCCoroutine; see [plugin.yml](../getting-started/installation.md#pluginyml).
+- **Plain Bukkit tasks stay with the [scheduler helpers](../utilities/misc.md#scheduler)**: a
+  one-off `plugin.runTaskLater`, or an API that wants a `BukkitTask`.
 
 ## Beans {/* #beans */}
 
@@ -220,6 +257,10 @@ around. A shorthand is not forced where the direct API is at hand: a plugin logs
   the implementation is `internal`, and its JAR carries the API classes.
 - **A module building on another injects its prototype** and relies on the runtime to make the
   whole chain for the consumer; it never looks the other module up.
+- **A module's coroutines are the consumer's.** A prototype that runs coroutines takes a
+  `PluginScope` in its constructor and receives the consuming plugin's scope, so the consumer's
+  stop cancels them and its logger reports their failures; the module launches nothing from a scope
+  of its own.
 - **Text from outside is inserted as text, never parsed.** A tag bridging another plugin (a
   PlaceholderAPI value, say) inserts the string as a text component, never through
   `Tag.preProcessParsed` or `context.deserialize`, since it may carry what a player typed; see

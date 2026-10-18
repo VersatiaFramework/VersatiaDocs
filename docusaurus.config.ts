@@ -153,6 +153,7 @@ const config: Config = {
             {label: 'Auto-invoked functions', to: '/docs/lifecycle/auto-invoke'},
             {label: 'Configuration values', to: '/docs/configuration'},
             {label: 'Event listeners', to: '/docs/events'},
+            {label: 'Tasks and coroutines', to: '/docs/tasks'},
             {label: 'Modules', to: '/docs/modules'},
             {label: 'Utilities', to: '/docs/utilities'},
           ],

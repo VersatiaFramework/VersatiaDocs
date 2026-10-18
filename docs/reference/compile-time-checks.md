@@ -56,7 +56,8 @@ A function marked `@AutoInvoke` is rejected when it
 - belongs to a class that is neither the plugin's main class, a Kotlin `object`, nor a bean
   (`Helper.start cannot be enhanced: Helper is neither the plugin's main class, an object nor a bean`);
 - is an extension, `suspend`, abstract or generic function
-  (`Main.start must not be suspend to be enhanced`);
+  (`Main.start must not be suspend to be enhanced; implement BackgroundTask for work that runs with
+  the plugin, or launch from an injected PluginScope`; see [Tasks and coroutines](../tasks.md));
 - overrides a function that is enhanced too (`Main.start overrides BasePlugin.start, which is
   enhanced too, so the override would run for both; keep the enhancement on one of them`);
 - has a parameter the bean rules above would reject, or an ambiguous one.

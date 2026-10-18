@@ -32,6 +32,7 @@ const sidebars: SidebarsConfig = {
         'configuration',
         'resources',
         'events',
+        'tasks',
         'optional-plugins',
         'commands',
       ],

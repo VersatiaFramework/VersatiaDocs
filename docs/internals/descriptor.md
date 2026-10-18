@@ -92,7 +92,10 @@ The plugin's main class. It carries `className`, `assignableTypes` and `annotati
 `ClassTarget`, but no parameters and no instantiator: Bukkit creates the instance, the runtime
 only hands it out. One element is produced per class enhancement written on the main class or on
 one of its supertypes, all listed first; `VersatiaPlugin` contributes `@PluginBean` (the main
-class as a bean) and `@ExtractResources` (the plugin's resources).
+class as a bean), `@ExtractResources` (the plugin's resources) and two elements of
+`@RunBackgroundTasks` (the plugin's coroutine scope, bound at start and stopped before the stop
+functions). The same annotation, a [subclass enhancement](enhancements.md#subclass-enhancements),
+adds a `ClassTarget` per `BackgroundTask` class, or the `PluginTarget` when the main class is one.
 
 ## Direct access versus reflection {/* #direct-access-versus-reflection */}
 
@@ -154,7 +157,7 @@ the processor emits (shortened):
 
 object VersatiaDescriptor : VersatiaPluginDescriptor {
   override val formatMajor: Int = 1
-  override val formatMinor: Int = 3
+  override val formatMinor: Int = 4
 
   override val elements: List<EnhancedElement>
     get() = listOf(
@@ -172,6 +175,18 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
         processorClass = "com.github.marcoral.versatia.resources.ExtractResourcesEnhancementProcessor",
         phase = Phase.PLUGIN_RELOAD_OR_START,
         annotation = AnnotationOccurrence("com.github.marcoral.versatia.resources.ExtractResources"),
+        target = PluginTarget(/* the same */),
+      ),
+      EnhancedElement(
+        processorClass = "com.github.marcoral.versatia.task.PluginScopeEnhancementProcessor",
+        phase = Phase.PLUGIN_START_ONLY,
+        annotation = AnnotationOccurrence("com.github.marcoral.versatia.task.RunBackgroundTasks"),
+        target = PluginTarget(/* the same */),
+      ),
+      EnhancedElement(
+        processorClass = "com.github.marcoral.versatia.task.PluginScopeEnhancementProcessor",
+        phase = Phase.PLUGIN_STOP,
+        annotation = AnnotationOccurrence("com.github.marcoral.versatia.task.RunBackgroundTasks"),
         target = PluginTarget(/* the same */),
       ),
       EnhancedElement(
@@ -217,7 +232,7 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
 ## Format version {/* #format-version */}
 
 The format has its own `major.minor` version, `VersatiaPluginDescriptor.FORMAT_VERSION`, currently
-**`1.3`**. It is independent of the library version. A runtime accepts exactly the version it was
+**`1.4`**. It is independent of the library version. A runtime accepts exactly the version it was
 built with and rejects any other with a message naming the plugin, both versions and the fix; see
 [The runtime](runtime.md#descriptor-format-compatibility).
 

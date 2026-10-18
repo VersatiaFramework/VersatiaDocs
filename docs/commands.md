@@ -179,9 +179,9 @@ object VersatiaCommand {
 the running Versatia plugins with their friendly name, plugin name, version and descriptor format:
 
 ```text
-VersatiaCore (VersatiaCore 0.0.1), descriptor format 1.3
-economy (Economy 1.2.0), descriptor format 1.3
-shop (Shop 0.4.0), descriptor format 1.3
+VersatiaCore (VersatiaCore 0.0.1), descriptor format 1.4
+economy (Economy 1.2.0), descriptor format 1.4
+shop (Shop 0.4.0), descriptor format 1.4
 ```
 
 With a friendly name it adds the plugin's beans with their class and scope, the exposed beans
@@ -189,7 +189,7 @@ other plugins use, the plugins [its reloads cascade to](lifecycle/reload.md#plug
 and the files its `@Value` properties read:
 
 ```text
-economy (Economy 1.2.0), descriptor format 1.3
+economy (Economy 1.2.0), descriptor format 1.4
 Beans (3):
   "plugin" com.example.economy.EconomyPlugin, local
   "clock" com.example.economy.Clock, exposed singleton

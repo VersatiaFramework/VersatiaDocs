@@ -45,7 +45,7 @@ annotation class VersatiaEnhancement(
 - `processorClass` is the fully qualified name of the processor. It is a name rather than a class
   because the plugin compiles against VersatiaAPI only; the processor is in VersatiaCore or in
   another plugin. The names of the built-in processors are kept in `BeanProcessors`,
-  `LifecycleProcessors`, `ConfigProcessors`, `ResourceProcessors` and `EventProcessors`. A mistyped name is reported when the plugin enables.
+  `LifecycleProcessors`, `ConfigProcessors`, `ResourceProcessors`, `EventProcessors` and `TaskProcessors`. A mistyped name is reported when the plugin enables.
 - Exactly one of `enhancementPhase` (fixed) and `enhancementPhaseParamRefName` (read from a
   property of the annotated annotation, per occurrence) must be set; see
   [Phases and events](../lifecycle/phases.md#how-an-annotation-declares-its-phase).
@@ -181,6 +181,8 @@ The built-in processors, all in VersatiaCore:
 | `.config.ValueEnhancementProcessor`                           | `PropertyTarget`s of `@Value`                                 |
 | `.resources.ExtractResourcesEnhancementProcessor`             | the `PluginTarget` of the main class, sent by `@ExtractResources` |
 | `.event.RegisterListenersEnhancementProcessor`                | every `Listener` of the plugin, sent by `@RegisterListeners` |
+| `.task.RunBackgroundTasksEnhancementProcessor`                | every `BackgroundTask` of the plugin, sent by `@RunBackgroundTasks` |
+| `.task.PluginScopeEnhancementProcessor`                       | the `PluginTarget` of the main class, twice, sent by `@RunBackgroundTasks`: at start and at stop |
 
 ## Defining your own scope {/* #defining-your-own-scope */}
 
@@ -207,8 +209,8 @@ enhancements and then produces two elements per occurrence.
 A class enhancement written on the main class, or on any of its supertypes, base classes and
 interfaces alike, produces an element
 with the main class as its `PluginTarget`. That is how `VersatiaPlugin` gives every plugin its
-bean container (`@PluginBean`) and its [resources](../resources.md) (`@ExtractResources`), and it
-works for your own base classes too:
+bean container (`@PluginBean`), its [resources](../resources.md) (`@ExtractResources`) and its
+coroutine scope (`@RunBackgroundTasks`), and it works for your own base classes too:
 
 <ExampleCard repo="VersatiaExample-Enhancements-FeatureSwitches" file="src/main/kotlin/com/github/marcoral/versatia/example/switches/SwitchesPlugin.kt">
 A base plugin class switching extraction off and a main class switching listener registration off.
@@ -236,6 +238,7 @@ a base class leaves the enhancement out of the descriptor. What every plugin inh
 | `@PluginBean`        | makes the main class the bean `plugin`                      | none                |
 | `@ExtractResources`  | [extracts the plugin's resources](../resources.md)          | `extractResources`  |
 | `@RegisterListeners` | [registers every `Listener`](../events.md)                  | `registerListeners` |
+| `@RunBackgroundTasks` | [runs every `BackgroundTask`](../tasks.md#background-tasks) and cancels the plugin's coroutines before its stop functions | `runBackgroundTasks` |
 
 The mapping from a parameter to the enhancement it switches off is
 `@VersatiaDisabler(Enhancement::class)` on that parameter, so a library may define a switch for its
@@ -274,6 +277,21 @@ classes and interfaces are skipped. The element's `origin` names the class the c
 was written on (`AuditedPlugin` above), so a processor can tell the elements of one rule from
 another. A class that is both a bean and a match produces both elements; a processor needing the
 instance asks `context.state[BeanResolver.KEY]` first and instantiates only when there is no bean.
+VersatiaCore's own subclass processors also share the instance they create: a plain class that is
+a `Listener` and a `BackgroundTask` is created once per plugin and both registered and run.
+
+One annotation may carry a subclass enhancement and plugin enhancements at once.
+`@RunBackgroundTasks` is the example:
+
+```kotlin
+@VersatiaSubclassEnhancement(TaskProcessors.RUN_BACKGROUND_TASKS, BackgroundTask::class, Phase.PLUGIN_RELOAD_OR_START)
+@VersatiaEnhancement(TaskProcessors.PLUGIN_SCOPE, enhancementPhase = Phase.PLUGIN_START_ONLY)
+@VersatiaEnhancement(TaskProcessors.PLUGIN_SCOPE, enhancementPhase = Phase.PLUGIN_STOP)
+annotation class RunBackgroundTasks
+```
+
+Written on `VersatiaPlugin`, it gives every plugin one element per `BackgroundTask` class and two
+`PluginTarget` elements for the scope processor, one per phase; its switch removes all of them.
 
 ## Defining your own enhancement {/* #defining-your-own-enhancement */}
 
@@ -325,7 +343,8 @@ The compile-time step records every function carrying `@Timed` as a `FunctionTar
 `annotation` holds `everyTicks`; the runtime loads `TimedEnhancementProcessor` through the enhanced
 plugin's class loader; injected parameters come from the plugin's `BeanResolver`, the same contract
 `@AutoInvoke` uses. Nothing in VersatiaCore changes. The compile-time step still enforces the general
-rules on enhanced functions (no extension, suspend, abstract or generic functions; injectable
+rules on enhanced functions (no extension, suspend, abstract or generic functions, a suspend one
+pointing to [`BackgroundTask` and `PluginScope`](../tasks.md); injectable
 parameters), on enhanced properties (a `var` of the main class, an object or a bean) and on
 enhanced classes.
 

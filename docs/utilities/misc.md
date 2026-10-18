@@ -19,6 +19,15 @@ Inside the plugin class itself, `logger.info(...)` is just as short; the helpers
 
 ## Scheduler {/* #scheduler */}
 
+:::tip[Start with tasks]
+
+Repeating work and waits are [coroutines](../tasks.md): a `BackgroundTask` runs as long as the
+plugin and is restarted by every reload, `scope.launch { delayTicks(20) }` waits without a
+callback. The helpers below are for plain Bukkit tasks, such as a one-off `runTaskLater` or an API
+that wants a `BukkitTask`.
+
+:::
+
 Package `util.scheduler`. Wrappers over `BukkitScheduler` that take the plugin as receiver:
 
 ```kotlin
@@ -98,6 +107,10 @@ Package `util.world`.
   circle around the location.
 - `Location.spawnParticle(...)` spawns a particle at the location and does nothing when the world
   is not loaded.
+- `Location.isWithin(distance, other)` tells whether `other` is in the same world and at most
+  `distance` blocks away, the boundary included: `player.location.isWithin(1.5, start)`. It is
+  `false`, never an exception, when the worlds differ or either location has none; like every
+  world access it throws when a world has been unloaded.
 
 ## Enums {/* #enums */}
 

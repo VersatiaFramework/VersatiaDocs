@@ -20,6 +20,20 @@ registry.putOrThrow("shop", ShopHandler())      // throws if "shop" is already r
   of them, throws once with every conflict; each `MapConflict(key, existingValue, newValue)` tells
   which.
 
+## `cycle` {/* #cycle */}
+
+`List.cycle()` is an endless iterator going round the list: its elements in order, then from the
+first again, such as lines broadcast in turn.
+
+```kotlin
+val rotation = lines.cycle()
+every(period) { VersatiaEngine.broadcast(text(rotation.next())) }
+```
+
+The list is copied, so later changes to it are not seen; an empty list throws
+`IllegalArgumentException` (`Cannot cycle through an empty list`), since there would be nothing to
+go round.
+
 ## `DeepMergeMap` {/* #deepmergemap */}
 
 A `MutableMap<K, Any?>` that merges other maps into itself recursively, useful for layering a

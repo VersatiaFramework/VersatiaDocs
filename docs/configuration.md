@@ -53,14 +53,14 @@ property of a plain class.
 
 The initializer is only a placeholder until the runtime sets the value, so pick what reads best:
 `lateinit var motd: String` for a reference type, `var maxPlayers = 0` or
-`var tax = Percent.ZERO` for a primitive or a value class such as `Int`, `UInt` or `Percent`,
-which Kotlin does not allow as `lateinit`.
+`var tax = Percent.ZERO` or `var period = 30.seconds` for a primitive or a value class such as
+`Int`, `UInt`, `Percent` or `Duration`, which Kotlin does not allow as `lateinit`.
 
 ## Supported types {/* #supported-types */}
 
 | Type                                             | Read as                                                         |
 |--------------------------------------------------|-----------------------------------------------------------------|
-| `Boolean`, `Int`, `Long`, `Float`, `Double`, `UInt`, `ULong`, `String`, `Percent` | one value, with the [strict getters](utilities/configuration.md): `3000000000` is not an `Int`, `-1` is not a `UInt`, `12.5%` is a `Percent` |
+| `Boolean`, `Int`, `Long`, `Float`, `Double`, `UInt`, `ULong`, `String`, `Percent`, `Duration` | one value, with the [strict getters](utilities/configuration.md): `3000000000` is not an `Int`, `-1` is not a `UInt`, `12.5%` is a `Percent`, `30s` is a `Duration` |
 | any enum                                         | one value, matched by constant name ignoring case; `java.time.DayOfWeek` and `Material` included |
 | `Color`, `Location`, `OfflinePlayer`, `Vector`, `ItemStack`, `ConfigurationSection` | one value, with Bukkit's own deserialisation |
 | `List<T>`, `Set<T>`                              | a YAML list of `T`, for `T` among the scalars and enums above, every element checked like a single value; a single value where the list belongs is an error, not a list of one |
@@ -69,6 +69,29 @@ which Kotlin does not allow as `lateinit`.
 A nullable type makes the value optional: `var closedOn: DayOfWeek? = null` stays `null` when the
 key is absent. Every other type, a `MutableList`, a nullable element, a data class, is rejected
 at compile time with the list of what is supported, unless a [mapper](#mappers) reads it.
+
+### Durations {/* #durations */}
+
+A `kotlin.time.Duration` is written with its unit, in Kotlin's notation or in ISO-8601, so the file
+says what it means and the code needs no conversion:
+
+```kotlin
+@Value("auto-broadcast.period")
+var period = 30.seconds
+
+@Value("cooldowns")
+var cooldowns: List<Duration> = emptyList()
+```
+
+```yaml
+auto-broadcast:
+  period: 5m          # also 30s, 1h 30m, 500ms, 2d or PT5M
+cooldowns: [10s, 1m]
+```
+
+A bare number is not a duration: `period: 300` fails with `Value at "auto-broadcast.period" is
+not a duration such as "30s", "5m" or "1h 30m" (units d, h, m, s, ms): "300"`. The value goes
+straight into [`every(period)` or `delay(period)`](tasks.md#ticks-and-time).
 
 ## Mappers {/* #mappers */}
 
@@ -321,6 +344,7 @@ created, like any other [reloadable state](lifecycle/reload.md#designing-for-rel
 - **Values come before functions.** At start and at every reload all values are set before any
   `@AutoInvoke` function of the event runs, and a failed read leaves every value as it was and runs
   no function.
+- **A duration needs its unit.** `300` is an error, not 300 seconds or ticks; write `300s` or `5m`.
 - **A single value where a list belongs** (`hours: 9` for a `List<Int>`) is an error, not a list
   of one. An absent key is never an empty list: it is a missing value, `null` for a nullable
   `List<Int>?` and an error otherwise; write `hours: []` for an empty one.

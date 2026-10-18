@@ -67,8 +67,8 @@ This buys four things:
   visible members directly and uses reflection only where it has to.
 - **No boilerplate.** The main class is a bean, the files under `resources/` in the JAR
   land in the data folder, a configuration value is a `@Value` property set from them and re-read
-  on reload, and every `Listener` is registered, without a line of code. An
-  integration with a plugin that may be absent is one annotation, `@ConditionalOnPlugin`.
+  on reload, every `Listener` is registered and every `BackgroundTask` runs, without a line of
+  code. An integration with a plugin that may be absent is one annotation, `@ConditionalOnPlugin`.
 
 ## What is in the box {/* #what-is-in-the-box */}
 
@@ -93,6 +93,17 @@ This buys four things:
         <code>/versatia reload</code> runs the reload phase on demand.
       </p>
       <Link to="/docs/lifecycle/auto-invoke">Auto-invoked functions →</Link>
+    </div>
+  </div>
+  <div className="col col--6 margin-bottom--md">
+    <div className="card card--full-height padding--md">
+      <h3>Tasks and coroutines</h3>
+      <p>
+        A <code>BackgroundTask</code> runs as long as the plugin and restarts with every reload; an
+        injected <code>PluginScope</code> launches coroutines on the server thread, waiting in ticks or
+        real time and for <code>Condition</code>s rechecked on events, never polled.
+      </p>
+      <Link to="/docs/tasks">Tasks and coroutines →</Link>
     </div>
   </div>
   <div className="col col--6 margin-bottom--md">

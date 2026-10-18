@@ -89,5 +89,8 @@ rules follow from it:
 - Compile-time checks are preferred to runtime checks wherever the information exists at build
   time: bean graphs are validated, including cycle detection and ambiguity, before any descriptor is
   written.
-- The Kotlin runtime is provided **once**, by VersatiaCore. Plugins reach it through `depend:` and
-  never list it under `libraries:`.
+- The Kotlin runtime and `kotlinx.coroutines` are provided **once**, by VersatiaCore. Plugins reach
+  them through `depend:` and never list or shade them.
+- Work over time is **coroutines on the server thread**: one Bukkit timer owned by VersatiaCore
+  drives every plugin's `PluginScope`, and `BackgroundTask`s are found at compile time like any
+  other element; see [The runtime](runtime.md#tasks).

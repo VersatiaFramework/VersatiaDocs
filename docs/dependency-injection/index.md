@@ -89,6 +89,25 @@ and a scope annotation on it
 (`MyPlugin is the plugin's main class and a local bean already; remove @LocalBean`), because a
 second plugin instance must never be constructed.
 
+## Beans VersatiaCore provides {/* #beans-versatiacore-provides */}
+
+VersatiaCore exposes two beans that every plugin may inject without declaring anything:
+
+| Type             | Scope              | What it is                                                                  |
+|------------------|--------------------|-----------------------------------------------------------------------------|
+| `PluginRegistry` | exposed singleton  | the running Versatia plugins by friendly name; see [From code](../lifecycle/reload.md#from-code) |
+| `PluginScope`    | exposed prototype  | the plugin's own coroutines, one scope per plugin; see [Your own coroutines](../tasks.md#your-own-coroutines) |
+
+```kotlin
+@LocalBean
+class Teleports(scope: PluginScope) : Listener {
+    private val pending = scope.keyedJobs<UUID>()
+}
+```
+
+Being a prototype, `PluginScope` gives every plugin, and every module prototype made for a plugin,
+that plugin's scope.
+
 ## Your own scope annotations {/* #your-own-scope-annotations */}
 
 A scope is itself an annotation marked `@Bean`. Annotating your own annotation with an existing

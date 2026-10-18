@@ -35,7 +35,7 @@ Which families exist for which `X`:
 | `X`                                                         | Families                                                    |
 |-------------------------------------------------------------|-------------------------------------------------------------|
 | `Boolean`, `Int`, `Long`, `Float`, `Double`, `String`        | `getXOrNull`, `getXOrThrow`, `ifXPresent`, `getXListOrNull`, `getXListOrThrow` |
-| `UInt`, `ULong`, `Percent`, any enum                         | all single-value families, and `getXList`                   |
+| `UInt`, `ULong`, `Percent`, `Duration`, any enum             | all single-value families, and `getXList`                   |
 | `UByte`, `UShort`                                            | `getXList`                                                  |
 | `Color`, `ItemStack`, `Location`, `Vector`, `OfflinePlayer`, `ConfigurationSection` | `getXOrThrow`, `ifXPresent`            |
 
@@ -58,6 +58,9 @@ those types. Write `getIntOrNull("size") ?: 5` and `getIntListOrThrow("hours")` 
   rejected; use `getLongOrNull`.
 - Unsigned getters reject negative numbers instead of wrapping them.
 - `getPercent*` requires a trailing `%` (`"12.5%"`).
+- `getDuration*` reads a `kotlin.time.Duration` written in Kotlin's notation, `30s`, `5m`,
+  `1h 30m`, `500ms`, `2d`, or in ISO-8601, `PT5M`. A bare number such as `300` is rejected, since
+  it names no unit: `Value at "period" is not a duration such as "30s", "5m" or "1h 30m" (units d, h, m, s, ms): "300"`.
 - Enum getters match the constant name ignoring case and list the allowed names in the error.
 
 Every `ConfigurationValueException` message contains the full dotted path of the key

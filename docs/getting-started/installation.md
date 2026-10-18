@@ -24,9 +24,12 @@ every reload of VersatiaCore, so `/versatia reload VersatiaCore` switches it wit
 deleted file comes back at that reload.
 
 VersatiaCore is the only plugin that ships the Kotlin runtime: its `plugin.yml` lists
-`kotlin-stdlib` and `kotlin-reflect` under `libraries:`, and Paper downloads them at start.
-Every Versatia plugin reaches Kotlin through VersatiaCore, which is why your plugin must **not**
-list Kotlin itself (see [below](#pluginyml)).
+`kotlin-stdlib`, `kotlin-reflect` and `kotlinx-coroutines-core-jvm` under `libraries:`, and Paper
+downloads them at its first start (and keeps them under `libraries/`). Every Versatia plugin reaches
+Kotlin and `kotlinx.coroutines` through VersatiaCore, which is why your plugin must **not** list
+either itself (see [below](#pluginyml)). A plugin built against a VersatiaAPI needs the VersatiaCore
+of the same release; an older one refuses it with the
+[descriptor format message](../reference/troubleshooting.md#x-was-built-for-descriptor-format-a-but-this-versatiacore-supports-b).
 
 :::info[Where do the JARs come from?]
 
@@ -142,7 +145,7 @@ Two dependencies, nothing else:
 
 | Dependency                | Configuration    | Role                                                                 |
 |---------------------------|------------------|----------------------------------------------------------------------|
-| `VersatiaStarter`         | `implementation` | the starter, in the spirit of Spring Boot's: no code, it exports `VersatiaAPI` (annotations, `VersatiaPlugin`, utilities, and with it the Paper API, `kotlin-stdlib` and `kotlin-reflect`) and the API of every [module](../modules/index.md), so you declare none of those |
+| `VersatiaStarter`         | `implementation` | the starter, in the spirit of Spring Boot's: no code, it exports `VersatiaAPI` (annotations, `VersatiaPlugin`, utilities, and with it the Paper API, `kotlin-stdlib`, `kotlin-reflect` and `kotlinx-coroutines-core`, pinned to the version VersatiaCore loads) and the API of every [module](../modules/index.md), so you declare none of those |
 | `VersatiaAPI-ksp`         | `ksp`            | the code generator. Lives on the annotation-processing classpath only and never reaches the server; it cannot come through the starter, because Gradle does not fill the `ksp` configuration transitively |
 
 Keep the version in one `versatiaVersion` value; both lines use it. A plugin that uses no module
@@ -181,8 +184,9 @@ dependencies {
 
 The catalog matches the framework release: Kotlin and KSP at the versions Versatia is compiled
 with, plus `libs.paper.api` (for `testImplementation`), `libs.versatia.api`,
-`libs.versatia.messages`, `libs.commandapi.*` and `libs.snakeyaml`. Your own libraries stay in
-your build, or in a second catalog of your own.
+`libs.versatia.messages`, `libs.commandapi.*`, `libs.snakeyaml` and `libs.kotlinx.coroutines.test`
+(for `testImplementation`; `kotlinx-coroutines-core` itself comes with VersatiaAPI). Your own
+libraries stay in your build, or in a second catalog of your own.
 
 There is no configuration block for the processor. It finds your plugin's main class on its own
 and places the generated descriptor next to it.
@@ -219,9 +223,8 @@ Two rules:
   libraries into a separate class loader. A plugin with its own copy of Kotlin would exchange
   `kotlin.jvm.functions.Function1` objects with VersatiaCore across two different `Function1`
   classes, and the JVM rejects that with a `LinkageError`. A Kotlin library such as
-  `kotlinx-coroutines-core` or `kotlinx-serialization-json` brings `kotlin-stdlib` along, so listing
-  it under `libraries:` has the same effect. Shade such a library into your JAR instead and leave
-  Kotlin out:
+  `kotlinx-serialization-json` brings `kotlin-stdlib` along, so listing it under `libraries:` has
+  the same effect. Shade such a library into your JAR instead and leave Kotlin out:
 
     ```kotlin
     plugins {
@@ -229,13 +232,22 @@ Two rules:
     }
 
     dependencies {
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
+        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
     }
 
     tasks.shadowJar {
-        dependencies { exclude(dependency("org.jetbrains.kotlin:.*")) }
+        dependencies {
+            exclude(dependency("org.jetbrains.kotlin:.*"))
+            exclude(dependency("org.jetbrains.kotlinx:kotlinx-coroutines-.*"))
+        }
     }
     ```
+
+- **No copy of `kotlinx.coroutines` at all**, neither under `libraries:` nor shaded, nor through a
+  coroutine library for Bukkit such as MCCoroutine. VersatiaCore loads it, VersatiaAPI exports it to
+  your build at that same version, and a [`PluginScope`](../tasks.md) or a `Condition` is a
+  `kotlinx.coroutines` type crossing between your plugin and VersatiaCore, so a second copy fails
+  with a `LinkageError` or a `ClassCastException`.
 
   See [Troubleshooting](../reference/troubleshooting.md#linkageerror-at-start-up).
 
@@ -259,5 +271,5 @@ build/generated/ksp/main/kotlin/com/example/myplugin/VersatiaDescriptor.kt
 ```
 
 in the package of your main class. It already lists the elements every plugin inherits from
-`VersatiaPlugin` (the main class as a bean, resource extraction); beans and auto-invoked
-functions add theirs, which is the subject of [Your first plugin](first-plugin.md).
+`VersatiaPlugin` (the main class as a bean, resource extraction, the plugin's coroutine scope);
+beans and auto-invoked functions add theirs, which is the subject of [Your first plugin](first-plugin.md).

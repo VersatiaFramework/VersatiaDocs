@@ -29,7 +29,24 @@ The bean scopes run at `PLUGIN_START_ONLY`: beans are created once and kept. The
 [`Reloadable` beans](reload.md#reloadable-beans) instead. [`@Value` properties](../configuration.md) are set at
 `PLUGIN_RELOAD_OR_START`, before the reloadable beans and the functions. Functions pick their phase per occurrence; put what reads configuration at `PLUGIN_RELOAD_OR_START`, so that a
 [reload](reload.md#designing-for-reload) re-reads it, and keep `PLUGIN_START_ONLY` for what the
-server allows once.
+server allows once. A [`BackgroundTask`](../tasks.md#background-tasks) needs no phase: it begins at
+the tick after the start and is restarted by every reload.
+
+## What happens at stop {/* #what-happens-at-stop */}
+
+When a plugin is disabled, the `STOP` event goes in a fixed order:
+
+1. Every [coroutine of the plugin](../tasks.md#reload-and-stop), its background tasks and what it
+   launched from its `PluginScope`, is cancelled; the runtime runs them on the server thread until
+   they have finished or five seconds have passed, so their `finally` blocks are done.
+2. The `PLUGIN_STOP` functions run, best-effort: one that fails does not keep the others from
+   running.
+3. The plugin's state is dropped: its beans are closed, last created first, and the beans it
+   exposed disappear. Bukkit then unregisters its listeners and cancels its Bukkit tasks.
+
+A stop function can therefore use every bean, and no coroutine of the plugin runs alongside it.
+With [`@DisableVersatiaFeatures(runBackgroundTasks = true)`](../tasks.md#switching-it-off) step 1
+is left out, and the scope is cancelled only in step 3, when the beans are closed.
 
 ## How an annotation declares its phase {/* #how-an-annotation-declares-its-phase */}
 

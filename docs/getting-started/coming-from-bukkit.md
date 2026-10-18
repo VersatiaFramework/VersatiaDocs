@@ -316,31 +316,31 @@ public final class Announcer {
 }
 ```
 
-```kotlin title="Versatia: Announcer.kt"
+```kotlin title="Versatia: AnnouncerTask.kt"
 @LocalBean
-class Announcer(private val plugin: ShopPlugin) {
-    @Value("announce.interval-seconds")
-    val interval = PreviousValueTracking<Int>()
+class AnnouncerTask : BackgroundTask {
+    @Value("announce.interval")
+    var interval = 5.minutes
 
-    private var task: BukkitTask? = null
-
-    @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
-    fun schedule() {
-        if (!interval.changed) return
-        task?.cancel()
-        val ticks = interval.value * 20L
-        task = plugin.runTaskTimer(periodTicks = ticks, delayTicks = ticks) { VersatiaEngine.broadcast(text("Visit the shop with /shop")) }
+    override suspend fun run() {
+        every(interval) { VersatiaEngine.broadcast(text("Visit the shop with /shop")) }
     }
 }
 ```
 
-**18 → 13 lines.** What you no longer write: the remembered previous interval, the default in the
-code, the calls from `onEnable` and from the reload command. `schedule` runs at start and after
-every reload, once the value is set; `interval.changed` is `true` at start and afterwards only when
-the file changed it. The [scheduler helpers](../utilities/misc.md#scheduler) take the plugin as
-receiver and the period first, `runTaskTimer(periodTicks, delayTicks = 0)`, the reverse of
-`BukkitScheduler`, so name both arguments when you pass a delay. Bukkit cancels a plugin's tasks
-when it disables, as before.
+```yaml title="config.yml"
+announce:
+  interval: 5m
+```
+
+**18 → 9 lines.** What you no longer write: the task handle, the remembered previous interval, the
+default in the code, the conversion to ticks, the calls from `onEnable` and from the reload
+command. A [`BackgroundTask`](../tasks.md#background-tasks) runs by itself from the tick after the
+start; every reload cancels it once the values are set and calls `run()` again, so the new interval
+applies, and the plugin's stop cancels it. `every` counts real time and `interval` is a
+[`Duration`](../configuration.md#durations), written `5m` in the file; `everyTicks` counts game
+ticks. The [scheduler helpers](../utilities/misc.md#scheduler) remain for plain Bukkit tasks, with
+the period first, `runTaskTimer(periodTicks, delayTicks = 0)`, the reverse of `BukkitScheduler`.
 
 ## Messages with placeholders {/* #messages-with-placeholders */}
 
@@ -435,8 +435,8 @@ class ShopPlugin : VersatiaPlugin()
 **19 → 2 lines**, plus the `commands:` and `permissions:` entries in `plugin.yml` that disappear.
 What you no longer write: the command, its permission, the list of what to reload and keeping that
 list complete. VersatiaCore's [`/versatia reload shop`](../lifecycle/reload.md), there whenever
-CommandAPI is installed, extracts missing resources, sets the `@Value` properties again, reloads the messages and runs every
-`PLUGIN_RELOAD_OR_START` function, `Announcer.schedule` included. A failure reaches the sender
+CommandAPI is installed, extracts missing resources, sets the `@Value` properties again, reloads the messages, restarts
+every background task, `AnnouncerTask` included, and runs every `PLUGIN_RELOAD_OR_START` function. A failure reaches the sender
 with its cause and leaves the previous values in place. `@FriendlyName` only shortens the name;
 without it the plugin reloads under its `plugin.yml` name. From code, `plugin.versatiaReload()`
 does the same.
@@ -472,7 +472,8 @@ not a supported Versatia plugin. The `checkPluginYml` task of the
 | `isPluginEnabled("Vault")` with class-loading guards             | [`@ConditionalOnPlugin("Vault")`](../optional-plugins.md) and `softdepend:`                      |
 | `getServicesManager().getRegistration(Economy.class)`            | [`VersatiaEngine.loadService<Economy>()`](../utilities/index.md#start-with-versatiaengine)        |
 | a service shared with other plugins through the `ServicesManager` | [`@ExposeSingleton`, `@ExposePrototype`](../dependency-injection/cross-plugin.md)               |
-| `getScheduler().runTaskTimer(plugin, task, delay, period)`       | [`plugin.runTaskTimer(periodTicks, delayTicks)`](../utilities/misc.md#scheduler)                 |
+| `getScheduler().runTaskTimer(plugin, task, delay, period)`       | a [`BackgroundTask`](../tasks.md#background-tasks) with `everyTicks` or `every`, restarted by every reload; [`plugin.runTaskTimer(periodTicks, delayTicks)`](../utilities/misc.md#scheduler) for a plain Bukkit task |
+| `runTaskLater`, `runTaskAsynchronously` and back with `runTask`  | a coroutine of the injected [`PluginScope`](../tasks.md#your-own-coroutines): `delayTicks(20)`, `withContext(Dispatchers.IO) { }` |
 | `Bukkit.broadcast(...)`, `Bukkit.getPlayerExact(name)`           | [`VersatiaEngine.broadcast(...)`, `VersatiaEngine.playerOrNull(name)`](../utilities/index.md#start-with-versatiaengine) |
 | `messages.yml`, `%player%` replacements, `TagResolver`s          | the [Messages module](../modules/messages.md): `messages["key"].send(player, arg("player", player))` |
 | `getLogger().info(...)`                                          | `logger.info(...)` in the main class, [`plugin.log(...)`](../utilities/misc.md#logging) in a bean |

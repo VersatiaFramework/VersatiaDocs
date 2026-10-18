@@ -40,6 +40,7 @@ classes never have to resolve.
 | a bean or a listener class                | the bean is not created, the listener is not registered, the `@AutoInvoke` functions and the [`@Value` properties](configuration.md) of the class are skipped, the class is not loaded |
 | an `object`                               | none of its `@AutoInvoke` functions is called, none of its `@Value` properties is read, and the object is not loaded |
 | an `@AutoInvoke` function                 | the function is not called; the class is still loaded and, for a bean, created                       |
+| a [`BackgroundTask`](tasks.md#background-tasks) class | the task is not created and never runs; when it is a bean, the bean does not exist either; the class is not loaded |
 
 The values of a conditional class are not read, so their file need not exist without the other
 plugin. A function may add plugins of its own to those its class names; all of them have to be

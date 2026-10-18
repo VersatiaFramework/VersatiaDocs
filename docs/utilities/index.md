@@ -36,7 +36,8 @@ Work on something you already hold is a call on that object, not on `VersatiaEng
 
 | Task                                | Where                                                                  |
 |-------------------------------------|------------------------------------------------------------------------|
-| schedule a task                     | `plugin.runTaskLater(20) { }`, see [Scheduler](misc.md#scheduler)      |
+| run work over time                  | a [`BackgroundTask`](../tasks.md#background-tasks) or `scope.launch { }`, see [Tasks and coroutines](../tasks.md) |
+| schedule a plain Bukkit task        | `plugin.runTaskLater(20) { }`, see [Scheduler](misc.md#scheduler)      |
 | log                                 | `logger` or `componentLogger` in the plugin, [`plugin.log`](misc.md#logging) elsewhere |
 | reload your own plugin              | `versatiaReload()`, see [Reloading plugins](../lifecycle/reload.md#from-code) |
 | message one player                  | `player.sendMessage(...)`                                              |
@@ -56,14 +57,14 @@ companion of `VersatiaEngine`; from Java, use `VersatiaEngine.getInstance()` and
 
 | Package        | Contents                                                                                 | Page |
 |----------------|------------------------------------------------------------------------------------------|------|
-| `config`       | strict typed getters for `ConfigurationSection`, YAML file traversal                     | [Configuration](configuration.md) |
-| `collection`   | `addOrThrow`/`putAllOrThrow`-style helpers, `DeepMergeMap`                                | [Collections](collections.md) |
+| `config`       | strict typed getters for `ConfigurationSection`, `Duration` included, YAML file traversal | [Configuration](configuration.md) |
+| `collection`   | `addOrThrow`/`putAllOrThrow`-style helpers, `DeepMergeMap`, `List.cycle`                  | [Collections](collections.md) |
 | `plugin`       | `Plugin.log`, `logWarning`, `logSevere`                                                   | [Scheduler, logging and more](misc.md#logging) |
-| `scheduler`    | `Plugin.runTask*` wrappers over `BukkitScheduler`                                         | [Scheduler, logging and more](misc.md#scheduler) |
+| `scheduler`    | `Plugin.runTask*` wrappers over `BukkitScheduler`, for plain Bukkit tasks; [tasks](../tasks.md) come first | [Scheduler, logging and more](misc.md#scheduler) |
 | `validation`   | `validateAtLeast`-style guards that return the receiver                                   | [Scheduler, logging and more](misc.md#validation) |
 | `reflect`      | access to private members through `kotlin-reflect`                                        | [Scheduler, logging and more](misc.md#reflection) |
 | `inventory`    | `ItemStack` and `Inventory` helpers, raw player-inventory slot indices                    | [Scheduler, logging and more](misc.md#inventory) |
-| `world`        | `Location` helpers                                                                        | [Scheduler, logging and more](misc.md#world) |
+| `world`        | `Location` helpers, `isWithin` among them                                                 | [Scheduler, logging and more](misc.md#world) |
 | `lang`         | enum lookups ignoring case                                                                | [Scheduler, logging and more](misc.md#enums) |
 | `text`         | subscript and superscript digits                                                          | [Scheduler, logging and more](misc.md#text) |
 | `type`         | small value type `Percent`                                                                | [Scheduler, logging and more](misc.md#value-types) |

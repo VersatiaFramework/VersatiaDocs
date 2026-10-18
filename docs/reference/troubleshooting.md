@@ -63,6 +63,19 @@ of them. Only `@ConditionalOnPlugin` may be repeated.
 `@AutoInvoke` or `@Value` sits on a member of a plain class. Move it to the main class, an
 `object` or a bean, or make the class a bean.
 
+### `X.f must not be suspend to be enhanced; implement BackgroundTask ...` {/* #xf-must-not-be-suspend-to-be-enhanced-implement-backgroundtask- */}
+
+The full message is `X.f must not be suspend to be enhanced; implement BackgroundTask for work that
+runs with the plugin, or launch from an injected PluginScope`. The runtime calls an `@AutoInvoke`
+function inside the event and does not wait for a coroutine. Work that runs as long as the plugin
+is a [`BackgroundTask`](../tasks.md#background-tasks); anything else takes a `PluginScope` and
+launches from it, in a plain function:
+
+```kotlin
+@AutoInvoke(Phase.PLUGIN_START_ONLY)
+fun warmUp(scope: PluginScope) = scope.launch { cache.fill() }
+```
+
 ### `@FriendlyName on X has no effect: it belongs on the plugin's main class` {/* #friendlyname-on-x-has-no-effect-it-belongs-on-the-plugins-main-class */}
 
 `@FriendlyName` names the plugin, so it goes on the main class, as one word. See
@@ -160,10 +173,18 @@ java.lang.LinkageError: loader constraint violation: ... kotlin/jvm/functions/Fu
 
 Your plugin has a second copy of Kotlin in its own class loader. Either it lists `kotlin-stdlib`
 (or `kotlin-reflect`) under `libraries:` in `plugin.yml`, or it lists a library built on Kotlin,
-such as `kotlinx-coroutines-core`, which brings `kotlin-stdlib` along. Remove the entry and shade
+such as `kotlinx-serialization-json`, which brings `kotlin-stdlib` along. Remove the entry and shade
 such a library without Kotlin, as shown in [plugin.yml](../getting-started/installation.md#pluginyml):
 VersatiaCore is the single provider of the Kotlin runtime and your plugin reaches it through
 `depend:`. The same happens when a plugin shades Kotlin or VersatiaAPI into its JAR.
+
+`kotlinx.coroutines` is a special case: VersatiaCore provides it too, and your plugin must neither
+list it nor shade it, not even without Kotlin. A second copy breaks with a `LinkageError` naming a
+`kotlinx/coroutines` class, or a `ClassCastException` between two `kotlinx.coroutines` classes of
+the same name, as soon as a coroutine reaches the framework: a `PluginScope`, a `Condition`,
+`delayTicks`. A coroutine library for Bukkit such as MCCoroutine brings its own copy and the same
+failure. Remove the entry or the dependency; the classes come from VersatiaAPI at compile time and
+from VersatiaCore on the server.
 
 ### `Plugin X: no bean provides T, required by Y` {/* #plugin-x-no-bean-provides-t-required-by-y */}
 
@@ -175,6 +196,15 @@ No bean of your plugin and no exposed bean of a plugin enabled earlier provides 
 - Check for a typo in the class name and that the providing plugin is installed.
 - If your plugin can work without it, give the constructor parameter a default value; see
   [Optional dependencies](../dependency-injection/index.md#optional-dependencies).
+
+### `Plugin X: no bean provides com.github.marcoral.versatia.task.PluginScope, ...` {/* #plugin-x-no-bean-provides-comgithubmarcoralversatiataskpluginscope- */}
+
+VersatiaCore exposes `PluginScope` to every plugin, so this means the installed VersatiaCore is
+older than the VersatiaAPI the plugin was built with: install the VersatiaCore matching that API.
+Usually the [descriptor format message](#x-was-built-for-descriptor-format-a-but-this-versatiacore-supports-b)
+comes first. The related `Plugin X: the PluginScope bean is C, not VersatiaCore's; background
+tasks and the stop order need VersatiaCore's` means a bean of your plugin provides `PluginScope`
+and shadows VersatiaCore's; remove it and inject the scope.
 
 ### `Plugin X: T required by Y is ambiguous; candidates: ...` {/* #plugin-x-t-required-by-y-is-ambiguous-candidates- */}
 
@@ -314,6 +344,48 @@ call `supply` before the beans were created. The related `the argument of parame
 supplied after the beans had been created` means it called too late: supply in `process`, not in
 `onPluginEnhanced`.
 
+## While the plugin runs {/* #while-the-plugin-runs */}
+
+### A task logs a failure {/* #a-task-logs-a-failure */}
+
+A background task, a coroutine of a `PluginScope`, a repeated run or a condition check threw; the
+runtime logged it on the plugin's logger and the server goes on. The lines, what each means and
+what follows are listed under [Failures](../tasks.md#failures). The usual causes:
+
+- `Background task X failed; it starts again at the next reload`: `run()` threw; fix it and
+  reload the plugin to start the task again.
+- `Background task X ended with TimeoutCancellationException although nobody cancelled it`: a
+  `withTimeout` inside `run()` ran out; use `withTimeoutOrNull`, or catch the exception.
+- `... a repeated run failed; it runs again on schedule ...`: one run of `everyTicks` or `every`
+  threw; the loop goes on and logs the same failure once.
+- `IllegalStateException: Asynchronous ...` from Paper, logged as `A coroutine failed`: a Bukkit call
+  inside `withContext(Dispatchers.IO) { }`; move it after the block, back on the server thread.
+
+### Something runs twice after a reload {/* #something-runs-twice-after-a-reload */}
+
+A coroutine launched from a `PluginScope` in a `PLUGIN_RELOAD_OR_START` function: the scope
+survives the reload, so every reload starts one more copy. Make the work a
+[`BackgroundTask`](../tasks.md#background-tasks), which the reload cancels and starts again, or
+launch it from a `PLUGIN_START_ONLY` function.
+
+### `Module with the Main dispatcher is missing` {/* #module-with-the-main-dispatcher-is-missing */}
+
+The code uses `Dispatchers.Main`, which exists on Android and in desktop UIs, never on a server.
+Launch from the injected `PluginScope`, whose coroutines run on the server thread, or switch with
+`withContext(scope.serverThread) { }`; see [Threads](../tasks.md#threads).
+
+### `No server clock in this coroutine: ...` {/* #no-server-clock-in-this-coroutine- */}
+
+`delayTicks`, `everyTicks`, `every` or `condition` was called in a coroutine that is not the
+plugin's: one started with `runBlocking`, `GlobalScope` or a scope of your own. Launch it from the
+injected `PluginScope`, or run it in a `BackgroundTask`.
+
+### `A condition is created on the server thread, where its check runs; ...` {/* #a-condition-is-created-on-the-server-thread-where-its-check-runs- */}
+
+`scope.condition` or `condition` was called on another thread, inside `withContext(Dispatchers.IO)`
+or from an asynchronous event say. Create the condition in a bean, a start function or a coroutine
+of the scope on the server thread; its triggers may still fire on any thread.
+
 ## At a reload {/* #at-a-reload */}
 
 ### `Plugin X: reload must run on the server's main thread; ...` {/* #plugin-x-reload-must-run-on-the-servers-main-thread- */}
@@ -371,7 +443,7 @@ When a plugin does not behave as its code suggests, set `debug: true` in
 the plugin. VersatiaCore logs every step of each plugin's start, reload and stop at `INFO`:
 
 ```text
-[debug] Shop START: descriptor format 1.3, 9 elements, 8 for this event
+[debug] Shop START: descriptor format 1.4, 11 elements, 9 for this event
 [debug] Shop START: skipped VaultBridge: @ConditionalOnPlugin(Vault) is not met
 [debug] Shop START: AutoInvokeEnhancementProcessor receives Counter.report()
 [debug] Shop START: created 2 beans: "plugin" (com.example.shop.ShopPlugin), "counter" (com.example.shop.Counter)

@@ -22,8 +22,9 @@ Values re-read by <code>/versatia reload announcer</code>, a derived value rebui
 ## What a reload does {/* #what-a-reload-does */}
 
 The runtime walks the plugin's descriptor at the `RELOAD` event: the elements whose phase is
-`PLUGIN_RELOAD_ONLY` or `PLUGIN_RELOAD_OR_START` run, nothing else. Beans are not re-created and
-listeners stay registered. The [resources](../resources.md) are extracted again, which restores a
+`PLUGIN_RELOAD_ONLY` or `PLUGIN_RELOAD_OR_START` run, nothing else. Beans are not re-created,
+listeners stay registered and the coroutines launched from a [`PluginScope`](../tasks.md#your-own-coroutines)
+go on; every [`BackgroundTask`](../tasks.md#background-tasks) is restarted with the new values. The [resources](../resources.md) are extracted again, which restores a
 file deleted from the data folder and leaves every other file alone. Then the plugin's
 [`@Value` properties](../configuration.md) are set again from the files, then its
 [`Reloadable` beans](#reloadable-beans) are reloaded, then the reload-phase functions run; the
@@ -140,9 +141,10 @@ decides what each piece of code can see:
 | 2    | the [`@Value` properties](../configuration.md) of the main class and of `object`s are set from the files | every `@Value` property is set again |
 | 3    | the beans are created in dependency order; constructors run, receiving their [constructor values](../configuration.md#in-a-constructor), and each bean's body values are set right after its constructor |                |
 | 4    | the [`Reloadable` beans](#reloadable-beans) are reloaded, in creation order | the same                      |
-| 5    | the [listeners](../events.md) are registered                   |                                           |
+| 5    | the [listeners](../events.md) are registered and the [background tasks](../tasks.md#background-tasks) launched | the running calls of the background tasks are cancelled, their `finally` blocks run, and new calls are launched |
 | 6    | the [`@AutoInvoke` functions](auto-invoke.md) of the event run, in descriptor order | the same             |
 | 7    |                                                                | the [plugins holding this plugin's beans with values](#plugins-that-use-the-reloaded-ones-values) reload, each through steps 1 to 6 |
+| 8    | at the next tick, the background tasks' `run()` begins         | the same, once the cancelled calls have finished |
 
 Every value is read from the files before step 2, so a broken file stops the event before anything
 is set or created. The body values of a bean are set right after its own constructor, before it is
@@ -242,15 +244,18 @@ start-only phase for what is genuinely once per life:
 | `PLUGIN_RELOAD_OR_START`   | reading configuration and resource files, (re)building what derives from them: prices, messages, caches, recipes |
 | `PLUGIN_RELOAD_ONLY`       | what a reload adds on top of a start: telling online players, logging what changed; a [`PreviousValueTracking`](../configuration.md#reacting-to-a-change) says what did |
 | `PLUGIN_START_ONLY`        | what the server allows once: registering with other plugins, [registering commands](../commands.md), hooking services, one-off migrations |
-| `PLUGIN_STOP`              | flushing and closing                                                                           |
+| a `BackgroundTask`         | work that runs as long as the plugin, a broadcast, particles, an autosave: its `run()` is cancelled and called again by every reload, after the values are set, so it reads them when it begins; see [Background tasks](../tasks.md#background-tasks) |
+| a `PluginScope` coroutine  | work an event or a command starts, a countdown, a combat tag: a reload leaves it alone, so it keeps the values it began with; never launch repeating work from `PLUGIN_RELOAD_OR_START`, which would start a copy at every reload |
+| `PLUGIN_STOP`              | flushing and closing; the plugin's coroutines are cancelled before, see [What happens at stop](phases.md#what-happens-at-stop) |
 
 A plugin's configuration is therefore [`@Value` properties](../configuration.md), with a mapper
 for anything structured, never a file read in a constructor; what derives from them is rebuilt
 in a `PLUGIN_RELOAD_OR_START` function, the way the
 [first plugin](../getting-started/first-plugin.md) does. `Reloadable` is for the prototypes of
-modules, not for a plugin's own beans; see [Common mistakes](../configuration.md#common-mistakes). Tasks, listeners and [commands](../commands.md#registration-and-reload) are not
-re-registered by a reload, so anything they use should look at the beans' current state rather than
-copy it when they are created. Test it: change a value in the data folder, run
+modules, not for a plugin's own beans; see [Common mistakes](../configuration.md#common-mistakes). Listeners, [commands](../commands.md#registration-and-reload), Bukkit
+tasks and the coroutines of a `PluginScope` are not re-registered or restarted by a reload, so
+anything they use should look at the beans' current state rather than copy it when they are
+created; a `BackgroundTask` is restarted, so it may read its values once, when `run()` begins. Test it: change a value in the data folder, run
 `/versatia reload <name>` and check the plugin picks it up without a restart.
 
 ## From code {/* #from-code */}
@@ -332,5 +337,9 @@ can meet them.
   a reload asked for from a reload function joins the running one.
 - **A consumer's failure undoes nothing.** The owner stays reloaded, the other consumers still
   reload, and the failing one keeps its previous state, as after any failed reload.
+- **A reload restarts background tasks, never the scope's coroutines.** A task's cancelled call
+  finishes, `finally` blocks included, before the reload functions run, and the new call begins at
+  a later tick; a coroutine launched from a `PluginScope` runs on with what it had. See
+  [Reload and stop](../tasks.md#reload-and-stop).
 - **A disabled consumer is forgotten.** Its instances no longer receive the owner's values and it
   is no longer reloaded with the owner.
