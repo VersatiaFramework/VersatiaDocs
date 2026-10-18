@@ -1,0 +1,22 @@
+.since {
+  display: inline-block;
+  margin-left: 0.6em;
+  padding: 0.05em 0.55em;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 999px;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.below {
+  composes: since;
+  display: table;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 0.2em 0 0;
+}

@@ -333,6 +333,11 @@ one line.
   affects it.
 - Every API convention is written on this page; every edge rule of a feature goes into the
   "Corner cases" section of that feature's page.
+- **Versions are `major.minor.patch`**: major for breaking changes, minor for a feature, patch for
+  fixes. A feature added after the first public release carries `<Since v="1.1.0" />`
+  (`@site/src/components/Since`) with the version it arrived in, from `1.1.0` on; `1.0.x` and
+  everything before is unlabelled. On a heading the label stays on the heading line; in text and
+  tables, `<Since v="1.1.0" below />` puts it on its own line under the element.
 - **Plugin builds share one layout.** Repositories are declared only in `settings.gradle.kts`,
   with `RepositoriesMode.FAIL_ON_PROJECT_REPOS` and `mavenLocal()` filtered to the group
   `com.github.marcoral.versatia`; the Versatia version is one `versatiaVersion` value (in `gradle.properties` when the build imports VersatiaCatalog); a plugin depends on
