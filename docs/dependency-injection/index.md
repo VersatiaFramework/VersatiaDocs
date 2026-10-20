@@ -7,7 +7,7 @@ descriptor. There is no container to configure, no module to write and nothing t
 runtime: you annotate classes, the build validates the graph, the runtime instantiates it.
 
 <ExampleCard repo="VersatiaExample-DI-Beans" file="src/main/kotlin/com/github/marcoral/versatia/example/beans/Beans.kt">
-Three local beans created in dependency order, one of them taking the plugin instance.
+Three local beans created in dependency order, each taking the plugin's logger, a bean every plugin has.
 </ExampleCard>
 
 ## Declaring a bean {/* #declaring-a-bean */}
@@ -89,24 +89,54 @@ and a scope annotation on it
 (`MyPlugin is the plugin's main class and a local bean already; remove @LocalBean`), because a
 second plugin instance must never be constructed.
 
-## Beans VersatiaCore provides {/* #beans-versatiacore-provides */}
+## Beans every plugin has {/* #beans-every-plugin-has */}
 
-VersatiaCore exposes two beans that every plugin may inject without declaring anything:
+Every plugin may inject these without declaring anything:
 
-| Type             | Scope              | What it is                                                                  |
-|------------------|--------------------|-----------------------------------------------------------------------------|
-| `PluginRegistry` | exposed singleton  | the running Versatia plugins by friendly name; see [From code](../lifecycle/reload.md#from-code) |
-| `PluginScope`    | exposed prototype  | the plugin's own coroutines, one scope per plugin; see [Your own coroutines](../tasks.md#your-own-coroutines) |
+| Type | Package | What it is | Provided by |
+|---|---|---|---|
+| your main class (bean `plugin`) | yours | the plugin instance, also as `VersatiaPlugin`, `JavaPlugin`, `Plugin`; see [above](#the-plugin-itself). Its `plugin.yml` data is `plugin.pluginMeta` | `@PluginBean` on `VersatiaPlugin` |
+| `Logger` | `java.util.logging` | `plugin.logger`: logs exactly as the plugin does, with its name | VersatiaCore, exposed prototype |
+| `ComponentLogger` | `net.kyori.adventure.text.logger.slf4j` | `plugin.componentLogger`, for logging components; also injectable as `org.slf4j.Logger` | VersatiaCore, exposed prototype |
+| `PluginRegistry` | `com.github.marcoral.versatia` | the running Versatia plugins by friendly name; see [From code](../lifecycle/reload.md#from-code) | VersatiaCore, exposed singleton |
+| `PluginScope` | `com.github.marcoral.versatia.task` | the plugin's own coroutines, one scope per plugin; see [Your own coroutines](../tasks.md#your-own-coroutines) | VersatiaCore, exposed prototype |
 
-```kotlin
+A class that only logs takes the logger, not the plugin:
+
+```kotlin title="Wrong: the plugin injected only to log"
 @LocalBean
-class Teleports(scope: PluginScope) : Listener {
-    private val pending = scope.keyedJobs<UUID>()
+// error-next-line
+class Shop(private val plugin: JavaPlugin) {
+    // error-next-line
+    fun open() = plugin.logger.info("Shop open")
 }
 ```
 
-Being a prototype, `PluginScope` gives every plugin, and every module prototype made for a plugin,
-that plugin's scope.
+```kotlin title="Right"
+import java.util.logging.Logger
+
+@LocalBean
+// fix-next-line
+class Shop(private val logger: Logger) {
+    // fix-next-line
+    fun open() = logger.info("Shop open")
+}
+```
+
+The log line reads `[MyPlugin] Shop open`, as with `plugin.logger`. Take the plugin itself only for
+what the plugin alone has, such as its data folder or the [scheduler helpers](../utilities/misc.md#scheduler);
+the server goes through `VersatiaEngine`. `Server`, the scheduler and the data folder are not beans.
+
+The prototypes are made for the plugin injecting them, so every plugin, and every
+[module](../modules/index.md) prototype made for a plugin, gets that plugin's logger, metadata and
+scope:
+
+```kotlin
+@ExposePrototype
+class Greeter(private val logger: Logger) {
+    fun greet() = logger.info("Hello")   // logged as the plugin that injected the Greeter
+}
+```
 
 ## Your own scope annotations {/* #your-own-scope-annotations */}
 
@@ -233,6 +263,18 @@ The plugin instance is available at all three places as well.
 
 - **A prototype's optional dependencies.** An instance made for a consumer reuses what the owner
   resolved, its default included; it never looks among the consumer's beans for that parameter.
+- **Your own `Logger` bean.** The beans every plugin has are exposed beans, so a local bean of
+  the same type wins: with `@LocalBean class AuditLogger : Logger("audit", null)` every `Logger`
+  parameter of the plugin gets `AuditLogger`. Two local `Logger` beans are ambiguous, a compile
+  error, until `@Primary` or `@Qualifier` decides, as for any type. The same holds for
+  `ComponentLogger` and the others.
+- **The consumer's own rules for a prototype's logger.** A prototype made for another plugin
+  receives the `Logger`, `ComponentLogger` and `PluginScope` that plugin would get
+  itself: its own local `Logger` bean when it declares one, its `plugin.logger` otherwise.
+- **The injected logger is a delegate.** The `Logger` is not the same object as `plugin.logger`:
+  it carries the same name and forwards every record, its level, handlers and filter to
+  `plugin.logger`, so what it logs and every setting made through it are the plugin's. Compare
+  loggers by name, not with `===`. `ComponentLogger` delegates the same way.
 - **A default on a function parameter.** A parameter of an auto-invoked function with a default
   value is injected like any other; only constructor parameters are optional.
 - **A plugin that disables itself while its beans are created** stops the creation: beans not yet

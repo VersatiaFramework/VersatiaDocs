@@ -136,7 +136,19 @@ first line does not colour the second. A message that is a single text is one li
 `{name}` inserts the argument. `{name.property}` inserts one of its properties, and properties
 chain: `{player.location.x}` is the x coordinate of the player's location. The text, not the code,
 picks what to show, so a message file can switch from `{player}` to `{player.name}` without a
-rebuild. What a value offers depends on its type:
+rebuild. An argument is never a tag:
+
+```yaml title="Wrong: MiniMessage leaves the unknown tags as text"
+# error-next-line
+joined: "<yellow><player> joined in <world>"
+```
+
+```yaml title="Right"
+# fix-next-line
+joined: "<yellow>{player} joined in {player.world}"
+```
+
+What a value offers depends on its type:
 
 | Value                              | `{name}` inserts                  | Properties                                                        |
 |------------------------------------|-----------------------------------|-------------------------------------------------------------------|
@@ -162,9 +174,16 @@ of letters, digits, `_` and `-`; braces around anything else (`{}`, `{ x }`, `{1
 text, so JSON or code in a message is left alone.
 
 A backslash escapes a brace, as MiniMessage's `\<` escapes a tag, in the text and inside tag
-arguments alike:
+arguments alike. Without it, a brace meant literally is read as an argument and the call fails
+with `No argument "nick"; the arguments are: player`:
 
-```yaml
+```yaml title="Wrong: {nick} is read as an argument"
+# error-next-line
+help: "Write {nick} in the template to insert your name, {player}."
+```
+
+```yaml title="Right"
+# fix-next-line
 help: "Write \\{nick} in the template to insert your name, {player}."   # shows {nick}
 copy: "<click:suggest_command:'/template \\{nick}'>Copy</click>"        # suggests /template {nick}
 ```

@@ -50,7 +50,10 @@ A parameter satisfied by another prototype, the owner's own or one exposed by a 
 resolved for the consumer as well: the instance is the one the consumer's own beans share. A
 `Messages` prototype taking a `Text` prototype therefore gives each consumer a chain of instances
 made for it; this is how the [Messages module](../modules/messages.md) is built, and how
-[modules](../modules/index.md) build on each other.
+[modules](../modules/index.md) build on each other. The `Logger`, `ComponentLogger`
+and `PluginScope` every plugin has are such prototypes, so a prototype taking one logs and
+launches coroutines as its consumer; see
+[Beans every plugin has](index.md#beans-every-plugin-has).
 
 A [`@Value` property](../configuration.md) of a prototype is read from the owner's files and set
 on every instance, so `@ExposePrototype class PriceList { @Value("tax") var tax = 0.0 }` gives

@@ -454,7 +454,33 @@ VersatiaCore, the module APIs from the module plugins, and `softdepend:` orders 
 [`@ConditionalOnPlugin`](../optional-plugins.md#softdepend) checks. A Paper plugin is therefore
 not a supported Versatia plugin. The `checkPluginYml` task of the
 [template](https://github.com/VersatiaFramework/VersatiaExample-Template) fails the build when
-`src/main/resources/paper-plugin.yml` exists.
+`src/main/resources/paper-plugin.yml` exists, with
+`Versatia plugins use plugin.yml; remove paper-plugin.yml (...)`.
+
+```yaml title="Wrong: src/main/resources/paper-plugin.yml"
+name: MyPlugin
+version: '1.0.0'
+main: com.example.myplugin.MyPlugin
+api-version: '1.21'
+# error-start
+dependencies:
+  server:
+    VersatiaCore:
+      load: BEFORE
+      join-classpath: true
+# error-end
+```
+
+```yaml title="Right: src/main/resources/plugin.yml"
+name: MyPlugin
+version: '1.0.0'
+main: com.example.myplugin.MyPlugin
+api-version: '1.21'
+# fix-start
+depend:
+  - VersatiaCore
+# fix-end
+```
 
 ## Bukkit concept → Versatia {/* #bukkit-concept-versatia */}
 
@@ -476,7 +502,7 @@ not a supported Versatia plugin. The `checkPluginYml` task of the
 | `runTaskLater`, `runTaskAsynchronously` and back with `runTask`  | a coroutine of the injected [`PluginScope`](../tasks.md#your-own-coroutines): `delayTicks(20)`, `withContext(Dispatchers.IO) { }` |
 | `Bukkit.broadcast(...)`, `Bukkit.getPlayerExact(name)`           | [`VersatiaEngine.broadcast(...)`, `VersatiaEngine.playerOrNull(name)`](../utilities/index.md#start-with-versatiaengine) |
 | `messages.yml`, `%player%` replacements, `TagResolver`s          | the [Messages module](../modules/messages.md): `messages["key"].send(player, arg("player", player))` |
-| `getLogger().info(...)`                                          | `logger.info(...)` in the main class, [`plugin.log(...)`](../utilities/misc.md#logging) in a bean |
+| `getLogger().info(...)`                                          | `logger.info(...)` in the main class, an [injected `Logger`](../dependency-injection/index.md#beans-every-plugin-has) in a bean |
 | `paper-plugin.yml`                                               | not supported; [`plugin.yml`](installation.md#pluginyml) with `depend: [VersatiaCore]`           |
 
 Next: [Your first plugin](first-plugin.md) builds a plugin step by step, and the

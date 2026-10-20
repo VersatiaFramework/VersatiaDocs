@@ -38,18 +38,21 @@ extracted copy.
 | the plugin's main class | the plugin instance                         |
 | a Kotlin `object`       | the object                                  |
 | a bean                  | the bean instance of that plugin            |
+| a plain [`Listener`](events.md) or [`BackgroundTask`](tasks.md#background-tasks), or any class a [subclass enhancement](internals/enhancements.md#subclass-enhancements) creates | the one instance the plugin creates for it, which stays no bean |
 
 The same places an [auto-invoked function](lifecycle/auto-invoke.md#where-a-function-may-live) may
 live, for the same reason: the runtime has an instance there. On an `@ExposePrototype` the
 property is set on every instance, the owner's own and each one made for another plugin, from the
 owner's files, and a reload of the owner updates them all and then reloads the plugins holding
-them; see [`@Value` on a prototype](lifecycle/reload.md#value-on-a-prototype). In a bean the property may
-also be declared [in the primary constructor](#in-a-constructor). The property must be a `var`,
+them; see [`@Value` on a prototype](lifecycle/reload.md#value-on-a-prototype). On a plain listener or
+task the property is set right after its constructor, before the listener is registered or the
+task first runs, and again at every reload, before the task restarts. In a bean or a plain
+listener or task the property may also be declared [in the primary constructor](#in-a-constructor). The property must be a `var`,
 or a `val` holding a [`PreviousValueTracking`](#reacting-to-a-change). Visibility does not
 matter: a private property, a `private set` or a private class gets a reflective setter in the
 descriptor, a visible one a direct assignment. Anything else is a compile error: a `val` of any
 other type, a plain constructor parameter, a parameter of a function, a top-level property, a
-property of a plain class.
+property of a plain class that nothing creates.
 
 The initializer is only a placeholder until the runtime sets the value, so pick what reads best:
 `lateinit var motd: String` for a reference type, `var maxPlayers = 0` or
@@ -90,8 +93,9 @@ cooldowns: [10s, 1m]
 ```
 
 A bare number is not a duration: `period: 300` fails with `Value at "auto-broadcast.period" is
-not a duration such as "30s", "5m" or "1h 30m" (units d, h, m, s, ms): "300"`. The value goes
-straight into [`every(period)` or `delay(period)`](tasks.md#ticks-and-time).
+not a duration such as "30s", "5m" or "1h 30m" (units d, h, m, s, ms; must not be negative): "300"`. The value goes
+straight into [`every(period)` or `delay(period)`](tasks.md#ticks-and-time), so a negative
+duration such as `-5s` and `Infinity` are rejected the same way.
 
 ## Mappers {/* #mappers */}
 
@@ -220,7 +224,7 @@ running with the values it had.
 
 ## In a constructor {/* #in-a-constructor */}
 
-A bean may declare a value as a property of its primary constructor:
+A bean, or a plain listener or task, may declare a value as a property of its primary constructor:
 
 ```kotlin
 @LocalBean
@@ -307,6 +311,31 @@ created, like any other [reloadable state](lifecycle/reload.md#designing-for-rel
 
 ## Common mistakes {/* #common-mistakes */}
 
+- **`@Value` on a `val` or a plain constructor parameter.** The runtime assigns the property at
+  start and at every reload, so the build fails with `Shop.name must be a var to be enhanced`, and
+  for the parameter with `Shop.tax must be a var to be enhanced; declare the constructor parameter as a property`:
+
+  ```kotlin title="Wrong"
+  @LocalBean
+  // error-next-line
+  class Shop(@Value("shop.tax") tax: Percent) {
+      @Value("shop.name")
+      // error-next-line
+      val name = ""
+  }
+  ```
+
+  ```kotlin title="Right"
+  @LocalBean
+  // fix-next-line
+  class Shop(@Value("shop.tax") var tax: Percent) {
+      @Value("shop.name")
+      // fix-next-line
+      lateinit var name: String
+  }
+  ```
+
+  A `val` is right only when it holds a [`PreviousValueTracking`](#reacting-to-a-change).
 - **Implementing `Reloadable` to read the plugin's own files.** `Reloadable` exists for the
   prototypes of [modules](modules/index.md), which read the consuming plugin's files and have no
   other way to follow that plugin's reloads. A plugin's own configuration is `@Value` properties,
@@ -345,6 +374,8 @@ created, like any other [reloadable state](lifecycle/reload.md#designing-for-rel
   `@AutoInvoke` function of the event runs, and a failed read leaves every value as it was and runs
   no function.
 - **A duration needs its unit.** `300` is an error, not 300 seconds or ticks; write `300s` or `5m`.
+- **A duration is finite and not negative.** `-5s`, `-Infinity` and `Infinity` are errors: the value
+  is a wait or a period, so `0s` is the shortest one.
 - **A single value where a list belongs** (`hours: 9` for a `List<Int>`) is an error, not a list
   of one. An absent key is never an empty list: it is a missing value, `null` for a nullable
   `List<Int>?` and an error otherwise; write `hours: []` for an empty one.

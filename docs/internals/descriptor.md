@@ -62,7 +62,7 @@ A function the runtime may call.
 | `className`       | Kotlin qualified name of the declaring class                                |
 | `binaryClassName` | JVM name of the declaring class (`com.example.Outer$Inner`)                 |
 | `functionName`    | the function                                                                |
-| `owner`           | a `MemberOwner`: `PLUGIN`, `OBJECT` or `INSTANCE`, who holds the instance to call it on; `INSTANCE` means the processor must obtain it (for `@AutoInvoke`, the bean of that class) |
+| `owner`           | a `MemberOwner`: `PLUGIN`, `OBJECT`, `INSTANCE` or `SUBCLASS_INSTANCE`, who holds the instance to call it on; `INSTANCE` means the processor must obtain it (for `@AutoInvoke`, the bean of that class); `SUBCLASS_INSTANCE`, for `@Value` properties only, is the instance a subclass enhancement creates for a class that is no bean, such as a plain `Listener` |
 | `annotations`     | the attributes written on the function                                      |
 | `parameters`      | one `Parameter` per parameter                                               |
 | `invoker`         | how to call it with a receiver and resolved arguments                        |
@@ -82,7 +82,7 @@ A mutable property the runtime may set.
 | `annotations`      | the attributes written on the property                                      |
 | `setter`           | how to assign it on a receiver                                              |
 | `classAnnotations` | the attributes written on the declaring class                               |
-| `constructorParameter` | for a property declared in a bean's primary constructor, the index of that parameter: its value is passed to the constructor |
+| `constructorParameter` | for a property declared in the primary constructor of a bean or of a `SUBCLASS_INSTANCE` class, the index of that parameter: its value is passed to the constructor |
 
 [`@Value`](../configuration.md) produces these.
 
@@ -157,7 +157,7 @@ the processor emits (shortened):
 
 object VersatiaDescriptor : VersatiaPluginDescriptor {
   override val formatMajor: Int = 1
-  override val formatMinor: Int = 4
+  override val formatMinor: Int = 5
 
   override val elements: List<EnhancedElement>
     get() = listOf(
@@ -232,7 +232,7 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
 ## Format version {/* #format-version */}
 
 The format has its own `major.minor` version, `VersatiaPluginDescriptor.FORMAT_VERSION`, currently
-**`1.4`**. It is independent of the library version. A runtime accepts exactly the version it was
+**`1.5`**. It is independent of the library version. A runtime accepts exactly the version it was
 built with and rejects any other with a message naming the plugin, both versions and the fix; see
 [The runtime](runtime.md#descriptor-format-compatibility).
 

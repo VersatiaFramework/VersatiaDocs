@@ -54,7 +54,10 @@ the consuming plugin; declare it as VersatiaPlugin (or a supertype), which every
 A function marked `@AutoInvoke` is rejected when it
 
 - belongs to a class that is neither the plugin's main class, a Kotlin `object`, nor a bean
-  (`Helper.start cannot be enhanced: Helper is neither the plugin's main class, an object nor a bean`);
+  (`Helper.start cannot be enhanced: Helper is neither the plugin's main class, an object nor a bean`),
+  a plain `Listener` or `BackgroundTask` included (`Broadcasts.prepare cannot be enhanced:
+  Broadcasts is created by a subclass enhancement, which sets only its @Value properties; give it
+  a bean scope such as @LocalBean to enhance its other members`);
 - is an extension, `suspend`, abstract or generic function
   (`Main.start must not be suspend to be enhanced; implement BackgroundTask for work that runs with
   the plugin, or launch from an injected PluginScope`; see [Tasks and coroutines](../tasks.md));
@@ -74,7 +77,10 @@ A property marked [`@Value`](../configuration.md) is rejected when it
   (`Parameter tax of Shop.open() cannot be enhanced; only properties can, constructor properties
   included`);
 - is top-level (`top cannot be enhanced: it is a top-level property; move it into the plugin's
-  main class, an object or a bean`) or belongs to a plain class;
+  main class, an object or a bean`) or belongs to a plain class that no subclass enhancement
+  creates (`Plain.limit cannot be enhanced: Plain is neither the plugin's main class, an object, a
+  bean nor a class a subclass enhancement creates, such as a Listener or a BackgroundTask`); a
+  plain `Listener` or `BackgroundTask` may hold it;
 - overrides a property that is enhanced too (`Main.limit overrides BasePlugin.limit, which is
   enhanced too, ...`);
 - has a type the runtime cannot read (`@Value on Shop.when: Date? is not a supported type;

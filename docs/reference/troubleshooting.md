@@ -61,7 +61,11 @@ of them. Only `@ConditionalOnPlugin` may be repeated.
 ### `X cannot be enhanced: Y is neither the plugin's main class, an object nor a bean` {/* #x-cannot-be-enhanced-y-is-neither-the-plugins-main-class-an-object-nor-a-bean */}
 
 `@AutoInvoke` or `@Value` sits on a member of a plain class. Move it to the main class, an
-`object` or a bean, or make the class a bean.
+`object` or a bean, or make the class a bean. For `@Value` the message goes on `..., a bean nor a
+class a subclass enhancement creates, such as a Listener or a BackgroundTask`: a plain `Listener`
+or `BackgroundTask` may hold one. An `@AutoInvoke` function on such a class reads `Y is created by
+a subclass enhancement, which sets only its @Value properties`; give the class a bean scope such
+as `@LocalBean`.
 
 ### `X.f must not be suspend to be enhanced; implement BackgroundTask ...` {/* #xf-must-not-be-suspend-to-be-enhanced-implement-backgroundtask- */}
 
@@ -443,7 +447,7 @@ When a plugin does not behave as its code suggests, set `debug: true` in
 the plugin. VersatiaCore logs every step of each plugin's start, reload and stop at `INFO`:
 
 ```text
-[debug] Shop START: descriptor format 1.4, 11 elements, 9 for this event
+[debug] Shop START: descriptor format 1.5, 11 elements, 9 for this event
 [debug] Shop START: skipped VaultBridge: @ConditionalOnPlugin(Vault) is not met
 [debug] Shop START: AutoInvokeEnhancementProcessor receives Counter.report()
 [debug] Shop START: created 2 beans: "plugin" (com.example.shop.ShopPlugin), "counter" (com.example.shop.Counter)

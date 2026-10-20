@@ -8,8 +8,7 @@ the plugin does, and is restarted with the new values by every reload; nothing i
 remembered or cancelled by hand:
 
 ```kotlin
-@LocalBean
-class AutoBroadcastTask(private val plugin: BackgroundPlugin) : BackgroundTask {
+class AutoBroadcastTask(private val logger: Logger) : BackgroundTask {
     @Value("auto-broadcast.period")
     var period = 30.seconds
 
@@ -18,10 +17,10 @@ class AutoBroadcastTask(private val plugin: BackgroundPlugin) : BackgroundTask {
 
     override suspend fun run() {
         if (lines.isEmpty()) {
-            plugin.logger.info("No lines to broadcast; add some to config.yml and reload")
+            logger.info("No lines to broadcast; add some to config.yml and reload")
             return
         }
-        plugin.logger.info("Broadcasting ${lines.size} lines every $period")
+        logger.info("Broadcasting ${lines.size} lines every $period")
         val rotation = lines.cycle()
         every(period) { VersatiaEngine.broadcast(text(rotation.next())) }
     }
@@ -36,6 +35,10 @@ auto-broadcast:
     - "Tip: edit config.yml and run /versatia reload broadcast"
     - "Background tasks start by themselves, one tick after the plugin"
 ```
+
+No bean scope is needed: the runtime creates the task with its constructor injected, here with the
+plugin's [`Logger`](dependency-injection/index.md#beans-every-plugin-has), and sets its `@Value`
+properties.
 
 <ExampleCard repo="VersatiaExample-Tasks-Background" file="src/main/kotlin/com/github/marcoral/versatia/example/background/AutoBroadcastTask.kt">
 A <code>BackgroundTask</code> broadcasting the lines of <code>config.yml</code> at a period written as a duration, restarted with the new values by every reload.
@@ -69,15 +72,15 @@ interface BackgroundTask {
 | The task is…                                 | `run()` is called on                                                       |
 |----------------------------------------------|-----------------------------------------------------------------------------|
 | a bean (`@LocalBean`, `@ExposeSingleton`, …) | the bean itself                                                             |
-| a plain class                                | an instance created once per plugin like a bean: one constructor, parameters injected, `@Qualifier` honoured; it is not put into the container |
+| a plain class                                | an instance created once per plugin like a bean: one constructor, parameters injected, `@Qualifier` honoured, `@Value` properties set; it is not put into the container |
 | an `object`                                  | the object                                                                  |
 | the plugin's main class                      | the plugin instance                                                         |
 
 A plain class that is also a [`Listener`](events.md) is created once: the same instance is
-registered and runs. `@Value` properties need a bean, an `object` or the main class, so a plain
-task class holding one is a compile error
-(`Broadcasts.period cannot be enhanced: Broadcasts is neither the plugin's main class, an object nor a bean`);
-make it a `@LocalBean`, as `AutoBroadcastTask` above is.
+registered and runs. A plain task may hold [`@Value`](configuration.md) properties, in its body or
+as constructor `var`s, without becoming a bean: they are set right after its constructor, before
+its first run, and again at every reload before it restarts, as on a bean. Its other members take
+no enhancements: an `@AutoInvoke` function needs a bean, an `object` or the main class.
 
 | Event    | The task                                                                                   |
 |----------|--------------------------------------------------------------------------------------------|
@@ -145,9 +148,34 @@ A combat tag per player as a coroutine of the plugin's own scope, kept in <code>
 - **Cancel the jobs you launch, never the scope.** A cancelled scope runs nothing until the plugin
   restarts, and says so:
   `PluginScope was cancelled by plugin code, so nothing launched from it runs until the plugin restarts; cancel the jobs you launch, not the scope`.
+  The pair below the list shows the difference.
 - **Repeating work is a `BackgroundTask`**, not a launch from a `PLUGIN_RELOAD_OR_START` function:
   the scope survives the reload, so such a function would start a second copy at every reload.
   Launch from events, commands and `PLUGIN_START_ONLY` functions.
+
+```kotlin title="Wrong: stops every coroutine of the plugin"
+@LocalBean
+class Countdown(private val scope: PluginScope) {
+    fun start() = scope.launch { countDown() }
+
+    // error-next-line
+    fun stop() = scope.cancel()
+}
+```
+
+```kotlin title="Right: cancels the job it launched"
+@LocalBean
+class Countdown(private val scope: PluginScope) {
+    private var job: Job? = null
+
+    fun start() {
+        job = scope.launch { countDown() }
+    }
+
+    // fix-next-line
+    fun stop() = job?.cancel()
+}
+```
 
 ### Keyed jobs {/* #keyed-jobs */}
 
@@ -260,17 +288,17 @@ without a `Condition` suffix.
 `whenever` suits a background task that should run only in some state:
 
 ```kotlin
-class SpawnBeaconTask(private val plugin: ConditionsPlugin) : BackgroundTask {
+class SpawnBeaconTask(private val logger: Logger) : BackgroundTask {
     override suspend fun run() {
         val anyoneOnline = condition(recheckOn<PlayerJoinEvent>(immediately = true), recheckOn<PlayerQuitEvent>()) {
             VersatiaEngine.onlinePlayers.isNotEmpty()
         }
         whenever(anyoneOnline) {
-            plugin.logger.info("Beacon on")
+            logger.info("Beacon on")
             try {
                 everyTicks(10, delayTicks = 0) { spawnSparks() }
             } finally {
-                plugin.logger.info("Beacon off")
+                logger.info("Beacon off")
             }
         }
     }
@@ -303,6 +331,79 @@ By default the check runs **once, at the next tick, on the server thread, howeve
 came**: a thousand moves in one tick cost one check. `condition.recheck()` checks by hand, right
 after you change what the check reads: called on the server thread it updates `value` before it
 returns, called from another thread it checks at the next tick.
+
+### Closing a condition {/* #closing-a-condition */}
+
+A condition made for one request belongs to that request's coroutine. Made with `scope.condition`,
+it lives as long as the plugin instead:
+
+```kotlin title="Wrong: a plugin-long condition per /home"
+@LocalBean
+class Homes(private val scope: PluginScope) {
+    fun teleportHome(player: Player, home: Location) {
+        val start = player.location.block
+        // error-next-line
+        val standsStill = scope.condition(recheckOn<PlayerMoveEvent>(player)) {
+            player.location.block == start
+        }
+        scope.launch {
+            if (runOnceWhile(standsStill) { delay(5.seconds) }) player.teleport(home)
+        }
+    }
+}
+```
+
+```kotlin title="Right: the condition belongs to the coroutine"
+@LocalBean
+class Homes(private val scope: PluginScope) {
+    fun teleportHome(player: Player, home: Location) {
+        val start = player.location.block
+        scope.launch {
+            // fix-next-line
+            val standsStill = condition(recheckOn<PlayerMoveEvent>(player)) {
+                player.location.block == start
+            }
+            if (runOnceWhile(standsStill) { delay(5.seconds) }) player.teleport(home)
+        }
+    }
+}
+```
+
+The first keeps its `PlayerMoveEvent` listener after the teleport, one more for every `/home` until
+the plugin stops; the second loses it when the coroutine ends.
+
+`condition.close()` ends a condition before its owner does: its events stop triggering it, rechecks
+do nothing and `value` keeps the last result. A condition that must live outside a coroutine, such
+as one per online player, is made with `scope.condition` and closed when its player leaves:
+
+```kotlin title="Right: closed when the player leaves"
+@LocalBean
+class Grounded(private val scope: PluginScope) : Listener {
+    private val conditions = mutableMapOf<UUID, Condition>()
+
+    fun of(player: Player) = conditions.getValue(player.uniqueId)
+
+    @EventHandler
+    fun onJoin(event: PlayerJoinEvent) {
+        val player = event.player
+        conditions[player.uniqueId] = scope.condition(recheckOn<PlayerMoveEvent>(player)) { player.isOnGround }
+    }
+
+    @EventHandler
+    fun onQuit(event: PlayerQuitEvent) {
+        // fix-next-line
+        conditions.remove(event.player.uniqueId)?.close()
+    }
+}
+```
+
+A `Condition` is `AutoCloseable`, so `use { }` closes one at the end of a block:
+
+```kotlin
+scope.condition(recheckOn<PlayerMoveEvent>(player)) { player.isOnGround }.use { grounded ->
+    awaitUntil(grounded)
+}
+```
 
 ### In the handler or at the next tick {/* #in-the-handler-or-at-the-next-tick */}
 
@@ -441,17 +542,37 @@ are still running. Every feature a plugin inherits and its switch are listed und
 
 ## Migrating from Bukkit tasks {/* #migrating-from-bukkit-tasks */}
 
-| Before                                                              | Now                                                                  |
+| Bukkit                                                              | Versatia                                                             |
 |---------------------------------------------------------------------|----------------------------------------------------------------------|
 | `runTaskTimer` in `onEnable`, cancelled and rescheduled by a reload command | a `BackgroundTask` with `everyTicks` or `every`; the reload restarts it |
-| `object X : VersatiaBackgroundTask()` with `periodTicks()`, `delayTicks()` and `run()` | `class XTask : BackgroundTask` whose `run()` calls `everyTicks(periodTicks, delayTicks) { }` |
-| `redeployOnReload()`                                                | always: every reload calls `run()` again                             |
-| `asynchronous() = true`                                             | `withContext(Dispatchers.IO) { }` around the blocking part only      |
-| `shouldBeRunning()` and `notifyConditionShouldBeChecked()` from listeners | a `Condition` with `recheckOn` triggers, consumed by `whenever(condition) { }` |
-| `onConditionTurnedTrue()`, `onConditionTurnedFalse()`, `onStop()`   | the start of the `whenever` block and its `finally`                  |
-| `VersatiaFiniteTask` with `totalStepsCount()`, `ticksBetweenSteps()`, `runStep()` and `onComplete()` | a `for` loop with `delayTicks` in `runOnceWhile`, launched in `KeyedJobs`; the code after the loop is the completion |
-| a `VersatiaTask` created per request, its values in a static object | `scope.launch` from a bean holding the `@Value` properties          |
-| `stop()`, `isRunning()`                                             | `job.cancel()` and `job.isActive`, or `jobs.cancel(key)` and `key in jobs` |
+| a `BukkitRunnable` subclass with `runTaskTimer(plugin, delay, period)` | `class XTask : BackgroundTask` whose `run()` calls `everyTicks(periodTicks, delayTicks) { }` |
+| `runTaskAsynchronously` and a `runTask` back to the main thread      | `withContext(Dispatchers.IO) { }` around the blocking part only; the code after it is back on the server thread |
+| a repeating task that checks a state on every tick                  | a `Condition` with `recheckOn` triggers, consumed by `whenever(condition) { }` |
+| code at the start and end of that state, kept in flags              | the start of the `whenever` block and its `finally`                  |
+| a countdown: a counter field decremented by a repeating task        | a `for` loop with `delayTicks` in `runOnceWhile`, launched in `KeyedJobs`; the code after the loop is the completion |
+| a `Map<UUID, BukkitTask>` of per-player tasks                       | `scope.keyedJobs<UUID>()`: launching for a key replaces its job      |
+| `task.cancel()`, `isCancelled()`, `Bukkit.getScheduler().isCurrentlyRunning(id)` | `job.cancel()` and `job.isActive`, or `jobs.cancel(key)` and `key in jobs` |
+
+A timer kept from Bukkit habits survives the reload, so a reload function scheduling it adds one
+more each time:
+
+```kotlin title="Wrong: one more autosave timer at every reload"
+object Autosave {
+    @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
+    // error-next-line
+    fun start(plugin: JavaPlugin) = plugin.runTaskTimer(periodTicks = 6000) { save() }
+}
+```
+
+```kotlin title="Right: a background task, restarted by the reload"
+// fix-next-line
+object AutosaveTask : BackgroundTask {
+    override suspend fun run() {
+        // fix-next-line
+        every(5.minutes) { save() }
+    }
+}
+```
 
 The [scheduler helpers](utilities/misc.md#scheduler) stay for plain Bukkit tasks: a one-off
 `plugin.runTaskLater`, or an API that wants a `BukkitTask`. Bukkit cancels those when the plugin
@@ -488,8 +609,18 @@ is disabled, and a reload leaves them alone.
 - **Weather events take the filter form**, `recheckOn<WeatherChangeEvent> { it.world == world }`.
 - **Rechecks come before timers.** Within one tick the rechecks run before the tick waits end, so a
   condition turning false in the tick a countdown ends cuts the countdown short.
-- **A failing check** keeps the condition's last value and is logged when a trigger ran it; at
-  creation and in `recheck()` on the server thread the exception reaches the caller.
+- **A failing check** reaches the caller at creation and in `condition.recheck()` called on the
+  server thread, while a recheck run by a trigger logs the exception and keeps the condition's last
+  value.
+- **`scope.condition(...)` lives as long as the plugin**, listeners included, so one made per player
+  or per request piles up until the plugin stops. Close it with `condition.close()` when its player
+  leaves, or make it with `condition(...)` inside the request's coroutine, which closes it when it
+  ends.
+- **A closed condition** keeps its last `value`; `recheck()` and its triggers do nothing, a recheck
+  already queued for the next tick is dropped, and closing it again does nothing. `close()` may be
+  called from any thread.
+- **`@Value` in a plain task** is set before its first run and at every reload before it restarts,
+  on the one instance the plugin creates; a broken file leaves the running values as they were.
 - **A plain class that is a `Listener` and a `BackgroundTask` is one instance**, registered and run.
 - **`delayTicks(0)` waits for the next tick**, never resumes in place, so a loop around it cannot
   freeze the server; a negative delay is an error.

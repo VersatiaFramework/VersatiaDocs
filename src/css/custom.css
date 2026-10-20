@@ -12,6 +12,10 @@
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.08);
   --versatia-hero-start: #eef0fb;
   --versatia-on-primary: #fff;
+  --versatia-error-line-bg: rgba(255, 129, 130, 0.22);
+  --versatia-error-line-border: #cf222e;
+  --versatia-fix-line-bg: rgba(74, 194, 107, 0.2);
+  --versatia-fix-line-border: #1a7f37;
 }
 
 [data-theme='dark'] {
@@ -27,6 +31,28 @@
   --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.08);
   --versatia-hero-start: #1c1f33;
   --versatia-on-primary: #15171f;
+  --versatia-error-line-bg: rgba(248, 81, 73, 0.18);
+  --versatia-error-line-border: #f85149;
+  --versatia-fix-line-bg: rgba(46, 160, 67, 0.2);
+  --versatia-fix-line-border: #3fb950;
+}
+
+/* Wrong and right snippets: the faulty line red, the fix green, like a diff; lines span the block as highlighted ones do */
+.code-block-error-line,
+.code-block-fix-line {
+  display: block;
+  margin: 0 calc(-1 * var(--ifm-pre-padding));
+  padding: 0 var(--ifm-pre-padding);
+}
+
+.code-block-error-line {
+  background-color: var(--versatia-error-line-bg);
+  box-shadow: inset 3px 0 0 var(--versatia-error-line-border);
+}
+
+.code-block-fix-line {
+  background-color: var(--versatia-fix-line-bg);
+  box-shadow: inset 3px 0 0 var(--versatia-fix-line-border);
 }
 
 /* Infima keeps tables display: block with overflow: auto, so a wide table scrolls inside the article */

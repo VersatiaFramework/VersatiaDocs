@@ -21,7 +21,7 @@ A plain listener with an injected bean and a listener that is itself a bean, bot
 | The listener is…                        | Registered instance                                                       |
 |-----------------------------------------|---------------------------------------------------------------------------|
 | a bean (`@LocalBean`, `@ExposeSingleton`, …) | the bean itself; nothing is created twice                              |
-| a plain class                           | a new instance, created like a bean: one constructor, parameters injected, `@Qualifier` honoured; it is **not** put into the container. A class that is also a [`BackgroundTask`](tasks.md#background-tasks) is created once, and that instance both listens and runs |
+| a plain class                           | a new instance, created like a bean: one constructor, parameters injected, `@Qualifier` honoured; it is **not** put into the container. Its [`@Value`](configuration.md) properties are set before it is registered and again at every reload. A class that is also a [`BackgroundTask`](tasks.md#background-tasks) is created once, and that instance both listens and runs |
 | an `object`                             | the object                                                                |
 | the plugin's main class                 | the plugin instance                                                       |
 

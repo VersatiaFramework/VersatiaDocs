@@ -183,6 +183,24 @@ const config: Config = {
       theme: prismThemes.github,
       darkTheme: prismThemes.oneDark,
       additionalLanguages: ['kotlin', 'java', 'groovy', 'yaml', 'properties', 'bash', 'json'],
+      // Setting magicComments replaces the defaults, so the highlight entry is repeated here
+      magicComments: [
+        {
+          className: 'theme-code-block-highlighted-line',
+          line: 'highlight-next-line',
+          block: {start: 'highlight-start', end: 'highlight-end'},
+        },
+        {
+          className: 'code-block-error-line',
+          line: 'error-next-line',
+          block: {start: 'error-start', end: 'error-end'},
+        },
+        {
+          className: 'code-block-fix-line',
+          line: 'fix-next-line',
+          block: {start: 'fix-start', end: 'fix-end'},
+        },
+      ],
     },
     mermaid: {
       theme: {light: 'neutral', dark: 'dark'},

@@ -22,7 +22,7 @@ VersatiaCore installed. Repositories are named
 Files shipped under <code>resources/</code> in the JAR appear in the data folder when the plugin starts. Nothing to declare.
 </ExampleCard>
 <ExampleCard repo="VersatiaExample-DI-Beans" file="src/main/kotlin/com/github/marcoral/versatia/example/beans/Beans.kt">
-Three local beans created in dependency order, one of them taking the plugin instance, which is a bean without any annotation.
+Three local beans created in dependency order, each taking the plugin's <code>Logger</code>, a bean every plugin has without declaring it.
 </ExampleCard>
 <ExampleCard repo="VersatiaExample-DI-Qualifiers" file="src/main/kotlin/com/github/marcoral/versatia/example/qualifiers/Greeters.kt">
 Two beans provide one interface: <code>@Primary</code> picks the default, <code>@Qualifier</code> asks for the other by name.

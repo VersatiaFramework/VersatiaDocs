@@ -216,9 +216,9 @@ class PriceList(@Value("base-price") var basePrice: Double) {
 
 // Shop, which gets its own PriceList
 @LocalBean
-class Checkout(private val plugin: ShopPlugin, private val prices: PriceList) {
+class Checkout(private val logger: Logger, private val prices: PriceList) {
     @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
-    fun rebuild() = plugin.logger.info("Tax is now ${prices.tax}")   // runs again after every reload of Economy
+    fun rebuild() = logger.info("Tax is now ${prices.tax}")   // runs again after every reload of Economy
 }
 ```
 
@@ -247,6 +247,43 @@ start-only phase for what is genuinely once per life:
 | a `BackgroundTask`         | work that runs as long as the plugin, a broadcast, particles, an autosave: its `run()` is cancelled and called again by every reload, after the values are set, so it reads them when it begins; see [Background tasks](../tasks.md#background-tasks) |
 | a `PluginScope` coroutine  | work an event or a command starts, a countdown, a combat tag: a reload leaves it alone, so it keeps the values it began with; never launch repeating work from `PLUGIN_RELOAD_OR_START`, which would start a copy at every reload |
 | `PLUGIN_STOP`              | flushing and closing; the plugin's coroutines are cancelled before, see [What happens at stop](phases.md#what-happens-at-stop) |
+
+What derives from the values is built at `PLUGIN_RELOAD_OR_START`; built at `PLUGIN_START_ONLY`, it
+keeps the values of the start while the property follows every reload:
+
+```kotlin title="Wrong: the label never sees a reloaded value"
+@LocalBean
+class Rewards {
+    @Value("rewards.daily")
+    var daily = 0
+
+    var label = text("")
+        private set
+
+    // error-next-line
+    @AutoInvoke(Phase.PLUGIN_START_ONLY)
+    fun build() {
+        label = text("Daily reward: $daily coins")
+    }
+}
+```
+
+```kotlin title="Right"
+@LocalBean
+class Rewards {
+    @Value("rewards.daily")
+    var daily = 0
+
+    var label = text("")
+        private set
+
+    // fix-next-line
+    @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
+    fun build() {
+        label = text("Daily reward: $daily coins")
+    }
+}
+```
 
 A plugin's configuration is therefore [`@Value` properties](../configuration.md), with a mapper
 for anything structured, never a file read in a constructor; what derives from them is rebuilt

@@ -165,9 +165,12 @@ beans?.instancesOf(target.className)             // warning: internal plumbing o
   runs nothing until the plugin restarts.
 - **Waiting for a state is a `Condition`**, rechecked on the events that change it, never a loop
   that polls. `scope.condition` for a state the plugin watches as long as it runs, `condition()`
-  inside a coroutine for one task or request, so its listeners go with it. The default recheck at
-  the next tick is right for the events that fire before their change; `immediately = true` only
-  for those that fire after it, such as `PlayerJoinEvent`. See [Conditions](../tasks.md#conditions).
+  inside a coroutine for one task or request, so its listeners go with it. A `scope.condition(...)`
+  made for anything shorter than the plugin, such as one per online player, is closed with
+  `close()` when that ends; otherwise its listeners pile up until the plugin stops. The default
+  recheck at the next tick is right for the events that fire before their change;
+  `immediately = true` only for those that fire after it, such as `PlayerJoinEvent`. See
+  [Closing a condition](../tasks.md#closing-a-condition) and the pair below the list.
 - **The server thread is never blocked.** Blocking I/O goes into `withContext(Dispatchers.IO) { }`
   and the Bukkit calls stay outside it; no `Thread.sleep`, `runBlocking` or `future.get()` in a
   coroutine of the scope. See [Threads](../tasks.md#threads).
@@ -179,10 +182,37 @@ beans?.instancesOf(target.className)             // warning: internal plumbing o
 - **Plain Bukkit tasks stay with the [scheduler helpers](../utilities/misc.md#scheduler)**: a
   one-off `plugin.runTaskLater`, or an API that wants a `BukkitTask`.
 
+```kotlin title="Wrong: one plugin-long listener more per /home"
+fun teleportHome(player: Player, home: Location) {
+    val start = player.location.block
+    // error-next-line
+    val standsStill = scope.condition(recheckOn<PlayerMoveEvent>(player)) { player.location.block == start }
+    scope.launch { if (runOnceWhile(standsStill) { delay(5.seconds) }) player.teleport(home) }
+}
+```
+
+```kotlin title="Right: the listener goes with the coroutine"
+fun teleportHome(player: Player, home: Location) {
+    val start = player.location.block
+    scope.launch {
+        // fix-next-line
+        val standsStill = condition(recheckOn<PlayerMoveEvent>(player)) { player.location.block == start }
+        if (runOnceWhile(standsStill) { delay(5.seconds) }) player.teleport(home)
+    }
+}
+```
+
 ## Beans {/* #beans */}
 
 - **The primary constructor is the injection point.** Its parameters are the dependencies; a
   secondary constructor is for other callers, never for the runtime.
+- **Inject the logger, not the plugin, when you only log**: `class Shop(private val logger: Logger)`,
+  or a `ComponentLogger` to log components. It logs exactly as `plugin.logger` does. The plugin is
+  taken for what only the plugin has, such as its data folder or the scheduler helpers (and then
+  `plugin.logger` is at hand). See [Beans every plugin has](../dependency-injection/index.md#beans-every-plugin-has).
+- **An injected logger is named like the plugin's property**: a `java.util.logging.Logger`
+  parameter is `logger`, a `ComponentLogger` is `componentLogger`, so `logger.info(...)` reads the
+  same in a bean as in the main class.
 - **An optional dependency is a default value**, `class PriceList(format: PriceFormat = PlainFormat)`,
   never a nullable parameter, a lookup or a try-and-catch: a bean providing the type replaces the
   default without a change to the class. See [Optional dependencies](../dependency-injection/index.md#optional-dependencies).
@@ -250,7 +280,8 @@ around. A shorthand is not forced where the direct API is at hand: a plugin logs
   consumer implements `Reloadable`.
 - **Nothing is kept in the module's own plugin:** no data folder, no logger, no reference to its
   main class. Everything belongs to the consumer, reached through a `JavaPlugin` (or `Plugin`)
-  parameter of the prototype.
+  parameter of the prototype, or through a `Logger` or `ComponentLogger` parameter, which receives
+  the consumer's.
 - **API and implementation are separate repositories**, `VersatiaModule-<Name>` (public) and
   `VersatiaModule-<Name>Impl` (private). Consumers compile against the API only, through
   VersatiaStarter or `compileOnly`, and never pack it into their JAR;
@@ -333,6 +364,9 @@ one line.
   affects it.
 - Every API convention is written on this page; every edge rule of a feature goes into the
   "Corner cases" section of that feature's page.
+- **An easy mistake is shown as a wrong and a right snippet**, two consecutive code blocks titled
+  `Wrong` and `Right`, the faulty line marked red with `// error-next-line` and the fix green with
+  `// fix-next-line`; see the README of VersatiaDocs.
 - **Versions are `major.minor.patch`**: major for breaking changes, minor for a feature, patch for
   fixes. A feature added after the first public release carries `<Since v="1.1.0" />`
   (`@site/src/components/Since`) with the version it arrived in, from `1.1.0` on; `1.0.x` and

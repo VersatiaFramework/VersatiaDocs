@@ -202,6 +202,15 @@ every bean class with values) or that takes such a bean of the owner through its
 directly or through other beans of the owner (`recordDependencies`), transitively, once each and in start order; see
 [Plugins that use the reloaded one's values](../lifecycle/reload.md#plugins-that-use-the-reloaded-ones-values).
 
+The [beans every plugin has](../dependency-injection/index.md#beans-every-plugin-has) apart from
+the plugin itself are ordinary exposed beans of VersatiaCore's own descriptor: `PluginRegistryBean`
+(singleton) and the prototypes `PluginScopeBean`, `PluginLoggerBean` and
+`PluginComponentLoggerBean`, each taking the consuming `Plugin`, so the first row above gives every
+consumer its own. `PluginLoggerBean` extends `Logger` under the name of `plugin.logger` and
+forwards records, level, handlers and filter to it; `PluginComponentLoggerBean` delegates every
+method to `plugin.componentLogger`. Neither the build nor the pipeline knows these
+types.
+
 ### Lifetime {/* #lifetime */}
 
 A plugin's bean session, and the beans it exposed, live exactly as long as the plugin: created when

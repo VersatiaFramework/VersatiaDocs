@@ -226,7 +226,16 @@ Two rules:
   `kotlinx-serialization-json` brings `kotlin-stdlib` along, so listing it under `libraries:` has
   the same effect. Shade such a library into your JAR instead and leave Kotlin out:
 
-    ```kotlin
+    ```yaml title="Wrong: plugin.yml loads a second Kotlin"
+    depend:
+      - VersatiaCore
+    # error-start
+    libraries:
+      - org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0
+    # error-end
+    ```
+
+    ```kotlin title="Right: build.gradle.kts shades the library without Kotlin"
     plugins {
         id("com.gradleup.shadow") version "8.3.5"
     }
@@ -237,8 +246,10 @@ Two rules:
 
     tasks.shadowJar {
         dependencies {
+            // fix-start
             exclude(dependency("org.jetbrains.kotlin:.*"))
             exclude(dependency("org.jetbrains.kotlinx:kotlinx-coroutines-.*"))
+            // fix-end
         }
     }
     ```
@@ -271,5 +282,9 @@ build/generated/ksp/main/kotlin/com/example/myplugin/VersatiaDescriptor.kt
 ```
 
 in the package of your main class. It already lists the elements every plugin inherits from
-`VersatiaPlugin` (the main class as a bean, resource extraction, the plugin's coroutine scope);
-beans and auto-invoked functions add theirs, which is the subject of [Your first plugin](first-plugin.md).
+`VersatiaPlugin` (the main class as a bean, resource extraction, the binding of the plugin's
+coroutine scope to its start and stop); beans and auto-invoked functions add theirs, which is the
+subject of [Your first plugin](first-plugin.md). The other
+[beans every plugin has](../dependency-injection/index.md#beans-every-plugin-has), such as its
+`Logger` and `PluginScope`, are not listed: VersatiaCore's own descriptor exposes them, so a
+parameter of their type is recorded like any other dependency.

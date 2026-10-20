@@ -5,8 +5,10 @@ finding players, broadcasting or loading a service, are on [`VersatiaEngine`](in
 
 ## Logging {/* #logging */}
 
-Package `util.plugin`. Shorthands over `Plugin.logger` for places that hold a `Plugin`, such as a
-bean that takes the plugin as a constructor parameter:
+Package `util.plugin`. Shorthands over `Plugin.logger` for places that hold a `Plugin` anyway, such
+as a bean that takes the plugin for its data folder or a processor with `context.plugin`. A class
+that only logs takes a `Logger` instead; see
+[Beans every plugin has](../dependency-injection/index.md#beans-every-plugin-has).
 
 ```kotlin
 plugin.log("Loaded")                       // INFO
@@ -40,7 +42,17 @@ plugin.cancelAllTasks()
 ```
 
 The timer variants take the period first and the delay second: `runTaskTimer(periodTicks, delayTicks = 0)`.
-This is the reverse of `BukkitScheduler`, so name both arguments when you pass a delay.
+This is the reverse of `BukkitScheduler`, so name both arguments when you pass a delay:
+
+```kotlin title="Wrong: every 100 ticks after one second, not every second after five"
+// error-next-line
+plugin.runTaskTimer(100, 20) { autosave() }
+```
+
+```kotlin title="Right"
+// fix-next-line
+plugin.runTaskTimer(periodTicks = 20, delayTicks = 100) { autosave() }
+```
 
 Each variant has a `*WithContext` twin whose lambda receives the `BukkitTask`, so a repeating task
 can cancel itself:

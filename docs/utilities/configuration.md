@@ -60,7 +60,8 @@ those types. Write `getIntOrNull("size") ?: 5` and `getIntListOrThrow("hours")` 
 - `getPercent*` requires a trailing `%` (`"12.5%"`).
 - `getDuration*` reads a `kotlin.time.Duration` written in Kotlin's notation, `30s`, `5m`,
   `1h 30m`, `500ms`, `2d`, or in ISO-8601, `PT5M`. A bare number such as `300` is rejected, since
-  it names no unit: `Value at "period" is not a duration such as "30s", "5m" or "1h 30m" (units d, h, m, s, ms): "300"`.
+  it names no unit: `Value at "period" is not a duration such as "30s", "5m" or "1h 30m" (units d, h, m, s, ms; must not be negative): "300"`.
+  Negative and infinite durations (`-5s`, `Infinity`) are rejected with the same message.
 - Enum getters match the constant name ignoring case and list the allowed names in the error.
 
 Every `ConfigurationValueException` message contains the full dotted path of the key

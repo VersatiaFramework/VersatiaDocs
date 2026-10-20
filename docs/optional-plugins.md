@@ -15,14 +15,15 @@ A <code>Payments</code> bean backed by Vault when it is installed, <code>@Condit
 import com.github.marcoral.versatia.ConditionalOnPlugin
 import com.github.marcoral.versatia.VersatiaEngine
 import com.github.marcoral.versatia.loadService
+import java.util.logging.Logger
 
 @ConditionalOnPlugin("Vault")
 @LocalBean
-class VaultBridge(private val plugin: ShopPlugin) : Listener {
+class VaultBridge(private val logger: Logger) : Listener {
     private val economy = VersatiaEngine.loadService<Economy>()
 
     @AutoInvoke(Phase.PLUGIN_START_ONLY)
-    fun announce() = plugin.logger.info("Vault found, prices are charged")
+    fun announce() = logger.info("Vault found, prices are charged")
 
     @EventHandler
     fun onBuy(event: BuyEvent) = economy.withdrawPlayer(event.player, event.price)

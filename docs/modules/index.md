@@ -87,7 +87,9 @@ and the module fits the ecosystem.
   Per-plugin state and registrations live in that instance.
 - **Keep nothing in the module's own plugin.** No data folder, no logger, no reference to the
   main class: everything belongs to the consumer, reached through a parameter typed `JavaPlugin`
-  (or `Plugin`), which a prototype receives as the consuming plugin.
+  (or `Plugin`), which a prototype receives as the consuming plugin. A prototype that only logs
+  takes a `Logger` or `ComponentLogger` instead, and gets the consumer's; see
+  [Beans every plugin has](../dependency-injection/index.md#beans-every-plugin-has).
 - **Implement `Reloadable`** on the prototype when it reads anything from the consumer's data
   folder, and read it in `reload()`; see [Reloadable beans](../lifecycle/reload.md#reloadable-beans).
   This is what the hook exists for: a plugin's own files are `@Value` properties, a module's

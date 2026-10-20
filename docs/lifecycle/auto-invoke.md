@@ -61,13 +61,14 @@ beans other plugins exposed.
 fun open(@Qualifier("grumpy") clerk: Greeter) { /* ... */ }
 ```
 
-The plugin instance is a local bean as well, so a function in an `object` or a bean can receive
-it without reaching for `JavaPlugin.getProvidingPlugin`:
+The plugin instance is a local bean as well, and so are its logger and the other
+[beans every plugin has](../dependency-injection/index.md#beans-every-plugin-has), so a function in
+an `object` or a bean receives them without reaching for `JavaPlugin.getProvidingPlugin`:
 
 ```kotlin
 object Metrics {
     @AutoInvoke(Phase.PLUGIN_START_ONLY)
-    fun start(plugin: JavaPlugin) { plugin.logger.info("metrics on") }
+    fun start(plugin: JavaPlugin, logger: Logger) = logger.info("metrics on, writing to ${plugin.dataFolder}")
 }
 ```
 
