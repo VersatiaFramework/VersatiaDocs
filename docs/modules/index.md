@@ -12,6 +12,7 @@ lists the ones it uses.
 | Module   | Repository                                                                                  | What it gives you                                                 |
 |----------|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------|
 | Messages | [VersatiaModule-Messages](https://github.com/VersatiaFramework/VersatiaModule-Messages)     | [a bank of messages per plugin](messages.md), read from its `messages/` directory and reloaded with it, in MiniMessage with runtime arguments: `{player.name}` |
+| Database | [VersatiaModule-Database](https://github.com/VersatiaFramework/VersatiaModule-Database)     | [a database per plugin](database/index.md), injected and ready: SQLite with no setup, H2, MySQL, MariaDB or PostgreSQL by configuration, with migrations, background work and write-behind caches of rows |
 
 ## Using a module {/* #using-a-module */}
 
@@ -67,6 +68,13 @@ Nothing marks the type as foreign: it is a dependency like any other.
 On the server, drop the module's JAR (`VersatiaModule-Messages-0.0.1.jar`) into `plugins/` next to
 VersatiaCore. Like VersatiaCore, modules are not on a Maven repository yet: build the module and
 run `./gradlew publishToMavenLocal` in its checkout to get the artifact.
+
+:::admin
+
+The server admin installs every module a plugin lists under `depend:`; see
+[Modules](/admin/installation#modules) in the server admin guide.
+
+:::
 
 ## One instance per plugin {/* #one-instance-per-plugin */}
 

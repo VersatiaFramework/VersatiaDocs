@@ -116,7 +116,7 @@ VersatiaCore's end-to-end test compile sample plugins with it in-process.
   and `kotlin-reflect` for compilation and runtime; consumers declare none of them, but still need
   the Paper repository because Gradle does not inherit repositories.
 - `VersatiaAPI/api` does not use the compiler's explicit API mode: exported declarations carry no
-  modifier and return types are inferred; see [Best practices](../reference/best-practices.md#notation).
+  modifier and return types are inferred.
   Almost everything in `ksp` is internal.
 - `VersatiaCore`'s `jar` task unpacks the `VersatiaAPI-*` JARs into the plugin JAR, because
   VersatiaAPI is not published remotely and Paper's `libraries:` mechanism cannot fetch it.

@@ -15,6 +15,13 @@ Tab completion offers the registered names. The command exists only while the
 [CommandAPI](https://commandapi.dev/) plugin, release 12.x, is installed; without it a plugin
 still reloads [from code](#from-code) with `versatiaReload()`.
 
+:::admin
+
+What a reload changes on the server, and what needs a restart, is explained to the server admin in
+[`/versatia reload`](/admin/commands#versatia-reload).
+
+:::
+
 <ExampleCard repo="VersatiaExample-Lifecycle-Reload" file="src/main/kotlin/com/github/marcoral/versatia/example/reload/Announcer.kt">
 Values re-read by <code>/versatia reload announcer</code>, a derived value rebuilt in a <code>PLUGIN_RELOAD_OR_START</code> function, a task rescheduled only when <code>PreviousValueTracking</code> says its interval changed, and a reload from code.
 </ExampleCard>

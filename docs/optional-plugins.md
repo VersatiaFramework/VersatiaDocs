@@ -1,6 +1,7 @@
 # Optional plugins
 
 import ExampleCard from '@site/src/components/ExampleCard';
+import Audience from '@site/src/components/Audience';
 
 `@ConditionalOnPlugin("Vault")` keeps an element out of the runtime's work unless every named
 plugin is enabled on the server. It is how a Versatia plugin integrates with a plugin that may or
@@ -33,6 +34,13 @@ class VaultBridge(private val logger: Logger) : Listener {
 With Vault installed, `VaultBridge` is created, its listener registered and `announce` called.
 Without it, none of that happens and the class is never loaded, so its references to Vault's
 classes never have to resolve.
+
+:::admin
+
+For the server admin, an optional plugin takes effect only after a restart, and a `Skipped ...`
+line is information; see [Optional plugins](/admin/installation#optional-plugins) in the server admin guide.
+
+:::
 
 ## Where it goes {/* #where-it-goes */}
 
@@ -128,7 +136,7 @@ Checkout conditional on the same plugins or declare a provider without the condi
 and two providers left without a decision while a plugin is enabled are reported as
 `Dependency Payments of Checkout is ambiguous while "Vault" is enabled; candidates: ...`.
 
-## `softdepend:` {/* #softdepend */}
+## `softdepend:` <Audience who="developer" /> {/* #softdepend */}
 
 List the plugins under `softdepend:` in `plugin.yml`:
 

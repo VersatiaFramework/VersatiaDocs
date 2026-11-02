@@ -29,11 +29,81 @@
   max-width: 34rem;
 }
 
-.buttons {
-  display: flex;
-  flex-wrap: wrap;
+.paths {
+  margin-top: 1.25rem;
+}
+
+.pathsQuestion {
+  margin-bottom: 0.6rem;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pathCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
   gap: 0.75rem;
-  margin-top: 1rem;
+}
+
+.path {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-top: 3px solid var(--versatia-audience);
+  border-radius: 0.6rem;
+  background: var(--ifm-background-surface-color);
+  color: var(--ifm-font-color-base);
+  transition:
+    border-color var(--ifm-transition-fast) ease,
+    background-color var(--ifm-transition-fast) ease;
+}
+
+.path:hover {
+  border-color: var(--versatia-audience);
+  background: var(--versatia-audience-bg);
+  color: var(--ifm-font-color-base);
+  text-decoration: none;
+}
+
+.developer {
+  --versatia-audience: var(--versatia-developer);
+  --versatia-audience-bg: var(--versatia-developer-bg);
+}
+
+.admin {
+  --versatia-audience: var(--versatia-admin);
+  --versatia-audience-bg: var(--versatia-admin-bg);
+}
+
+.pathTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.pathIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: var(--versatia-audience);
+}
+
+.pathText {
+  flex: 1;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.9rem;
+}
+
+.pathCta {
+  color: var(--versatia-audience);
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .heroCode {

@@ -1,10 +1,18 @@
 # VersatiaDocs
 
 Documentation site of the **Versatia framework**, built with [Docusaurus](https://docusaurus.io/).
-The pages are Markdown files under `docs/`, the landing page is `src/pages/index.tsx`, the
-navigation is `sidebars.ts` and the site settings are in `docusaurus.config.ts`.
+The pages are Markdown files in three documentations, each with its own sidebar:
 
-The site documents the framework as a whole and is written for plugin authors. The repositories of
+| Folder          | Address          | Sidebar                   | For                                        |
+|-----------------|------------------|---------------------------|--------------------------------------------|
+| `docs/`         | `/docs`          | `sidebars.ts`             | the plugin developer, stable features      |
+| `experimental/` | `/experimental`  | `sidebarsExperimental.ts` | the plugin developer, experimental features |
+| `admin/`        | `/admin`         | `sidebarsAdmin.ts`        | the server admin, without code; experimental modules under `admin/experimental/` |
+
+The landing page is `src/pages/index.tsx` and the site settings, the navbar and the footer of each
+audience are in `docusaurus.config.ts`.
+
+The site documents the framework as a whole, for plugin developers and server admins. The repositories of
 the individual projects (VersatiaAPI, VersatiaCore and the example plugins) keep their own
 `docs/*.md` with implementation notes.
 

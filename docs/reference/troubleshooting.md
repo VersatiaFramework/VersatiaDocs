@@ -1,11 +1,17 @@
+---
+counterpart: /admin/troubleshooting
+---
+
 # Troubleshooting
+
+import Audience from '@site/src/components/Audience';
 
 Messages you may meet, what they mean and what to do. Build-time messages point at a file and
 line; runtime messages come from VersatiaCore while a plugin enables, reloads or disables and
 affect only that plugin. Every check the build makes, with its message, is listed in
 [Compile-time checks](compile-time-checks.md).
 
-## At build time {/* #at-build-time */}
+## At build time <Audience who="developer" /> {/* #at-build-time */}
 
 ### `No class extending org.bukkit.plugin.java.JavaPlugin found in the sources` {/* #no-class-extending-orgbukkitpluginjavajavaplugin-found-in-the-sources */}
 
@@ -447,7 +453,7 @@ When a plugin does not behave as its code suggests, set `debug: true` in
 the plugin. VersatiaCore logs every step of each plugin's start, reload and stop at `INFO`:
 
 ```text
-[debug] Shop START: descriptor format 1.5, 11 elements, 9 for this event
+[debug] Shop START: descriptor format 1.6, 11 elements, 9 for this event
 [debug] Shop START: skipped VaultBridge: @ConditionalOnPlugin(Vault) is not met
 [debug] Shop START: AutoInvokeEnhancementProcessor receives Counter.report()
 [debug] Shop START: created 2 beans: "plugin" (com.example.shop.ShopPlugin), "counter" (com.example.shop.Counter)
@@ -457,7 +463,7 @@ the plugin. VersatiaCore logs every step of each plugin's start, reload and stop
 
 Values are logged by key only, never with what the file holds. Turn it off again the same way;
 while it is off nothing is written. `/versatia info <plugin>` shows the same state at a glance;
-see [Commands](../commands.md#versatia-info).
+see [`/versatia info`](/admin/commands#versatia-info).
 
 ## Looking at what was generated {/* #looking-at-what-was-generated */}
 

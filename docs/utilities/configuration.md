@@ -35,7 +35,7 @@ Which families exist for which `X`:
 | `X`                                                         | Families                                                    |
 |-------------------------------------------------------------|-------------------------------------------------------------|
 | `Boolean`, `Int`, `Long`, `Float`, `Double`, `String`        | `getXOrNull`, `getXOrThrow`, `ifXPresent`, `getXListOrNull`, `getXListOrThrow` |
-| `UInt`, `ULong`, `Percent`, `Duration`, any enum             | all single-value families, and `getXList`                   |
+| `UInt`, `ULong`, `Percent`, `Duration`, `Secret`, any enum   | all single-value families, and `getXList`                   |
 | `UByte`, `UShort`                                            | `getXList`                                                  |
 | `Color`, `ItemStack`, `Location`, `Vector`, `OfflinePlayer`, `ConfigurationSection` | `getXOrThrow`, `ifXPresent`            |
 
@@ -63,6 +63,17 @@ those types. Write `getIntOrNull("size") ?: 5` and `getIntListOrThrow("hours")` 
   it names no unit: `Value at "period" is not a duration such as "30s", "5m" or "1h 30m" (units d, h, m, s, ms; must not be negative): "300"`.
   Negative and infinite durations (`-5s`, `Infinity`) are rejected with the same message.
 - Enum getters match the constant name ignoring case and list the allowed names in the error.
+- String getters accept only text: an unquoted number, boolean or date (`01234`, `1.10`, `yes`) is
+  read by YAML as another type, so Bukkit's `getString` returns `"668"`, `"1.1"`, `"true"`. The
+  strict getters reject it and ask for quotes: `Value at "code" is read as a number (668), not text; quote it, ...`.
+- `getSecret*` reads a [`Secret`](../configuration.md#secrets): text, with every `${env:NAME}`
+  replaced by the environment variable and every `${file:PATH}` by the file's content (a relative
+  path starts at the server folder, an absolute one is taken as it is). `${pluginfile:PATH}` starts
+  at the plugin's data folder, so it works in a file loaded with `loadYamlOrThrow(file, plugin)`
+  (what `@Value` and `forEachYamlFile` use); in a file loaded otherwise it fails, naming the
+  `${file:plugins/<plugin>/PATH}` to write instead. A variable
+  that is not set, a file that cannot be read, any other `${...}` and a value YAML read as a number,
+  a boolean or a date (an unquoted `0123` or `yes`) are rejected; no message shows the value.
 
 Every `ConfigurationValueException` message contains the full dotted path of the key
 (`section.pathOf(key)`), so the user can find the line in the file. The optional `exceptionMessage`

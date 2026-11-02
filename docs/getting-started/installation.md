@@ -1,34 +1,29 @@
+---
+counterpart: /admin/installation
+---
+
 # Installation
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import Audience from '@site/src/components/Audience';
 
 Versatia has two halves. The server needs **VersatiaCore**; your build needs **VersatiaAPI**,
 which comes with **VersatiaStarter**.
 
-## On the server {/* #on-the-server */}
+## On the server <Audience who="admin" /> {/* #on-the-server */}
 
-1. Run Paper **1.21.4** on Java **21** or newer.
-2. Drop `VersatiaCore-0.0.1.jar` into the `plugins/` directory.
+The server needs Paper **1.21.4** on Java **21**, **VersatiaCore** in `plugins/`, and the
+[modules](../modules/index.md) your plugin uses. Installing, configuring and updating them is
+covered by the [server admin guide](/admin/installation), which is also the page to send to the
+people who run your plugin.
 
-At its first start VersatiaCore writes its own configuration, `plugins/VersatiaCore/config.yml`:
-
-```yaml
-# Logs every step of each Versatia plugin's start, reload and stop at INFO; for diagnosing a plugin, off otherwise
-debug: false
-```
-
-With `debug: true` the log describes what the runtime does with each plugin (see
-[Troubleshooting](../reference/troubleshooting.md#debug-mode)). The file is read at start and at
-every reload of VersatiaCore, so `/versatia reload VersatiaCore` switches it without a restart; a
-deleted file comes back at that reload.
-
-VersatiaCore is the only plugin that ships the Kotlin runtime: its `plugin.yml` lists
-`kotlin-stdlib`, `kotlin-reflect` and `kotlinx-coroutines-core-jvm` under `libraries:`, and Paper
-downloads them at its first start (and keeps them under `libraries/`). Every Versatia plugin reaches
-Kotlin and `kotlinx.coroutines` through VersatiaCore, which is why your plugin must **not** list
-either itself (see [below](#pluginyml)). A plugin built against a VersatiaAPI needs the VersatiaCore
-of the same release; an older one refuses it with the
+What matters for your build: VersatiaCore is the only plugin that ships the Kotlin runtime. Its
+`plugin.yml` lists `kotlin-stdlib`, `kotlin-reflect` and `kotlinx-coroutines-core-jvm` under
+`libraries:`, and every Versatia plugin reaches Kotlin and `kotlinx.coroutines` through
+VersatiaCore, which is why your plugin must **not** list either itself (see [below](#pluginyml)).
+A plugin built against a VersatiaAPI needs the VersatiaCore of the same release; any other refuses
+it with the
 [descriptor format message](../reference/troubleshooting.md#x-was-built-for-descriptor-format-a-but-this-versatiacore-supports-b).
 
 :::info[Where do the JARs come from?]
@@ -40,35 +35,7 @@ JAR; its repository is private and access to the sources is granted by the Versa
 
 :::
 
-### Soft dependencies {/* #soft-dependencies */}
-
-VersatiaCore works on its own. Some of its features appear only when another plugin is installed
-next to it; VersatiaCore lists these under `softdepend:` and nothing else changes without them.
-
-| Plugin                                   | Version | What it enables                                              |
-|------------------------------------------|---------|--------------------------------------------------------------|
-| [CommandAPI](https://commandapi.dev/)    | 12.x    | the `/versatia` command, today [`/versatia reload`](../lifecycle/reload.md) |
-
-Without CommandAPI a plugin still reloads itself from code with
-[`versatiaReload()`](../lifecycle/reload.md#from-code). A CommandAPI release VersatiaCore is not
-compatible with costs only the command; VersatiaCore logs one warning:
-
-```
-/versatia could not be registered. The installed CommandAPI 13.0.0 may not be compatible with the
-12.x release VersatiaCore is built against; everything except the command keeps working.
-```
-
-### Modules {/* #modules */}
-
-Features beyond the runtime come as [modules](../modules/index.md), one plugin JAR each, installed
-next to VersatiaCore when a plugin on the server needs them; each plugin lists the modules it uses
-under `depend:`.
-
-| Module JAR                          | Plugin name               | Needs        |
-|-------------------------------------|---------------------------|--------------|
-| `VersatiaModule-Messages-0.0.1.jar` | `VersatiaModule-Messages` | VersatiaCore |
-
-## In your build {/* #in-your-build */}
+## In your build <Audience who="developer" /> {/* #in-your-build */}
 
 A Versatia plugin is an ordinary Kotlin/JVM Gradle project with the KSP plugin applied. The
 repositories are declared once, in `settings.gradle.kts`.
@@ -184,7 +151,7 @@ dependencies {
 
 The catalog matches the framework release: Kotlin and KSP at the versions Versatia is compiled
 with, plus `libs.paper.api` (for `testImplementation`), `libs.versatia.api`,
-`libs.versatia.messages`, `libs.commandapi.*`, `libs.snakeyaml` and `libs.kotlinx.coroutines.test`
+`libs.versatia.messages`, `libs.versatia.database`, `libs.commandapi.*`, `libs.snakeyaml` and `libs.kotlinx.coroutines.test`
 (for `testImplementation`; `kotlinx-coroutines-core` itself comes with VersatiaAPI). Your own
 libraries stay in your build, or in a second catalog of your own.
 
@@ -204,7 +171,7 @@ plugin you inject beans from, which you add as
 
 :::
 
-## plugin.yml {/* #pluginyml */}
+## plugin.yml <Audience who="developer" /> {/* #pluginyml */}
 
 ```yaml
 name: MyPlugin

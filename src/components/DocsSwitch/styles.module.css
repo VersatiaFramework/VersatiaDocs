@@ -1,0 +1,104 @@
+/* No display here: Infima hides .navbar__item below 997px, where the switch moves to the mobile sidebar */
+.item {
+  line-height: 1;
+}
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 999px;
+  background: var(--ifm-color-emphasis-100);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  color: var(--ifm-color-emphasis-700);
+  transition:
+    background-color var(--ifm-transition-fast) ease,
+    color var(--ifm-transition-fast) ease,
+    box-shadow var(--ifm-transition-fast) ease;
+}
+
+.option:hover {
+  color: var(--ifm-color-emphasis-900);
+  text-decoration: none;
+}
+
+.option:focus-visible {
+  outline: 2px solid var(--ifm-color-primary);
+  outline-offset: 1px;
+}
+
+.active,
+.active:hover {
+  background: var(--versatia-switch-active-bg);
+  color: var(--ifm-color-primary);
+  box-shadow: 0 1px 2px var(--versatia-switch-shadow);
+}
+
+.experimental,
+.experimental:hover {
+  color: var(--versatia-experimental);
+}
+
+.dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--versatia-experimental);
+  opacity: 0.55;
+}
+
+.experimental .dot {
+  opacity: 1;
+}
+
+/* In the mobile sidebar the switch spans the menu, under a small caption */
+.mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.5rem var(--ifm-menu-link-padding-horizontal) 0.75rem;
+}
+
+.caption {
+  color: var(--ifm-color-emphasis-600);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mobile .switch {
+  display: flex;
+  width: 100%;
+}
+
+.mobile .option {
+  flex: 1;
+  justify-content: center;
+  padding: 0.55rem 0.8rem;
+}
+
+/* A compact switch where the desktop navbar gets crowded */
+@media (min-width: 997px) and (max-width: 1240px) {
+  .switch {
+    font-size: 0.75rem;
+  }
+
+  .option {
+    gap: 0.3rem;
+    padding: 0.35rem 0.55rem;
+  }
+}

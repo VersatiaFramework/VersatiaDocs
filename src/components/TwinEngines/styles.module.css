@@ -1,0 +1,19 @@
+.twin {
+  display: inline-block;
+  margin-left: 0.4em;
+  padding: 0 0.5em;
+  border: 1px dashed var(--versatia-twin);
+  border-radius: 999px;
+  color: var(--versatia-twin);
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.5;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.twin:hover {
+  border-style: solid;
+  color: var(--versatia-twin);
+  text-decoration: none;
+}

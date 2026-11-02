@@ -6,6 +6,7 @@ import Layout from '@theme/Layout';
 import Heading from '@theme/Heading';
 import CodeBlock from '@theme/CodeBlock';
 import HomepageFeatures from '@site/src/components/HomepageFeatures';
+import {AudienceIcon, type Who} from '@site/src/components/Audience/icons';
 
 import styles from './index.module.css';
 
@@ -26,6 +27,44 @@ class ShopConfig {
     var prices: Map<String, Int> = emptyMap()
 }`;
 
+const paths: {who: Who; question: string; text: string; to: string; cta: string}[] = [
+  {
+    who: 'developer',
+    question: 'I write plugins',
+    text: 'Build Paper plugins in Kotlin: beans, configuration values, commands, tasks and modules.',
+    to: '/docs',
+    cta: 'Developer documentation',
+  },
+  {
+    who: 'admin',
+    question: 'I run a server',
+    text: 'A plugin needs VersatiaCore? Install it, configure the plugins built on it and reload them without a restart.',
+    to: '/admin',
+    cta: 'Server admin guide',
+  },
+];
+
+/** The home page asks who the reader is instead of guessing: one card per audience, each opening its documentation. */
+function Paths() {
+  return (
+    <nav className={styles.paths} aria-label="Where to start">
+      <p className={styles.pathsQuestion}>What brings you here?</p>
+      <div className={styles.pathCards}>
+        {paths.map(path => (
+          <Link key={path.who} to={path.to} className={clsx(styles.path, styles[path.who])}>
+            <span className={styles.pathTitle}>
+              <AudienceIcon who={path.who} className={styles.pathIcon} />
+              {path.question}
+            </span>
+            <span className={styles.pathText}>{path.text}</span>
+            <span className={styles.pathCta}>{path.cta} →</span>
+          </Link>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
 function Hero() {
   const {siteConfig} = useDocusaurusContext();
   return (
@@ -42,14 +81,7 @@ function Hero() {
               resolved at compile time, executed by a small runtime, with nothing discovered on the
               server.
             </p>
-            <div className={styles.buttons}>
-              <Link className="button button--primary button--lg" to="/docs/getting-started/installation">
-                Get started
-              </Link>
-              <Link className="button button--secondary button--outline button--lg" to="/docs">
-                Read the introduction
-              </Link>
-            </div>
+            <Paths />
           </div>
           <div className={clsx('col col--6', styles.heroCode)}>
             <CodeBlock language="kotlin" title="ShopPlugin.kt">

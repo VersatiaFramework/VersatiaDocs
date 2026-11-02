@@ -1,186 +1,69 @@
 # Best practices
 
-The conventions the framework follows and expects from anyone extending it: plugin authors who
-define their own scopes or enhancements, and contributors to VersatiaAPI and VersatiaCore. Each
-rule comes with the reason behind it.
+The rules that keep a plugin built on Versatia, or an extension of the framework, working with it
+rather than around it. Each links to the page with the details.
 
-## Extending the framework {/* #extending-the-framework */}
+## Writing a plugin {/* #writing-a-plugin */}
 
-**A feature is definitions plus processors, nothing else.** Adding one puts annotations,
-attributes and enums into VersatiaAPI and enhancement processors into VersatiaCore (or into your
-own plugin). The loader, the dispatcher, the main class and the descriptor model stay untouched.
-If a feature seems to need a change to the pipeline, the feature is modelled wrong: record what it
-needs as an [attribute](../internals/enhancements.md#versatiaattribute) and interpret it in the
-processor.
+### Beans {/* #beans */}
 
-**Record facts, not interpretations.** The descriptor stores classes, supertypes, parameters and
-the annotations written on them. It never stores what a feature makes of those facts: there is no
-"bean name" field, the DI processor derives the name from `@Qualifier`. Keep new features to the
-same standard, so that the descriptor stays neutral and every feature reads it the same way.
+- **Inject through the primary constructor**, and keep beans, constructors and members as private
+  as you like: the generated code reaches them without wider visibility.
+- **Inject `logger` when you only log**, not the plugin; a `ComponentLogger` is `componentLogger`.
+  See [Beans every plugin has](../dependency-injection/index.md#beans-every-plugin-has).
+- **An optional dependency is a default value**, `class PriceList(format: PriceFormat = PlainFormat)`,
+  never a nullable parameter or a lookup. See [Optional dependencies](../dependency-injection/index.md#optional-dependencies).
+- **An integration is a conditional bean**: `@ConditionalOnPlugin("Vault")`, with `@Primary` over a
+  fallback, never an `isPluginEnabled` check. See [Conditional beans](../optional-plugins.md#conditional-beans).
 
-## Naming {/* #naming */}
+### Configuration and reload {/* #reloadable-plugins */}
 
-| What                                   | Convention                                                   | Example                                   |
-|----------------------------------------|--------------------------------------------------------------|-------------------------------------------|
-| an `EnhancementProcessor` implementation | `<Feature>EnhancementProcessor`                             | `LocalBeanEnhancementProcessor`, `AutoInvokeEnhancementProcessor` |
-| a shared base of several processors    | the same suffix                                              | `BeanScopeEnhancementProcessor`           |
-| the processor names a feature publishes | an `object` named `<Feature>Processors` holding `const val`s with the fully qualified names | `BeanProcessors.LOCAL`, `LifecycleProcessors.AUTO_INVOKE` |
-| an enhancement annotation              | what it does to the element, no `Versatia` prefix            | `@LocalBean`, `@AutoInvoke`               |
-| an attribute annotation                | the fact it records                                          | `@Qualifier`, `@Primary`                  |
-| a reserved bean name                   | a constant next to the feature                               | `BeanNames.PLUGIN`                        |
-| a `VersatiaEngine` shortcut            | an extension on `VersatiaEngine.Companion` in `VersatiaEngineExtensions.kt`; Bukkit's term without `get`; a lookup that can miss ends in `OrNull`, a bare name never misses or throws an exception naming the fix; a property for argument-less state that does not depend on the calling thread, a function otherwise; never a Kotlin standard-library top-level name | `onlinePlayers`, `playerOrNull(id)`, `loadService<T>()`, `reload(name)` |
-| a `BackgroundTask` implementation      | what it does, ending in `Task`; in the package of the feature it serves, not in a package of its own | `AutoBroadcastTask`, `brawl/BrawlParticlesTask` |
-| a `Condition`                          | the state it describes, without `is` (it is a flow, not a `Boolean`) and without a `Condition` suffix | `standsStill`, `anyoneOnline`, `brawlActive` |
-| a `KeyedJobs`                          | the plural of what one job is                                | `teleports`, `combatTags`                 |
-| an injected `PluginScope`              | `scope`                                                      | `class Teleports(scope: PluginScope)`     |
-| a module                               | API repository, Maven artifact and plugin name `VersatiaModule-<Name>`; implementation repository `VersatiaModule-<Name>Impl`; package `com.github.marcoral.versatia.<name>`, one per part when it has several | `VersatiaModule-Messages`, `VersatiaModule-MessagesImpl`, `com.github.marcoral.versatia.messages` and `.text` |
+- **Configuration is [`@Value` properties](../configuration.md)**; the default is in the shipped
+  file, not in the code.
+- **What derives from a value is never computed in a constructor**: read it in a getter, rebuild it
+  in a `PLUGIN_RELOAD_OR_START` function, or react with [`PreviousValueTracking`](../configuration.md#reacting-to-a-change).
+  The same holds for what derives from another plugin's beans. See
+  [Designing for reload](../lifecycle/reload.md#designing-for-reload).
+- **Listeners and coroutines read the beans' current state** instead of copying values when they
+  start; a reload does not restart them.
+- **`Reloadable` is for module prototypes only**; a plugin's own bean gets its values from `@Value`.
 
-The suffix makes a processor recognisable wherever its name appears: in a descriptor, in an error
-message, in a stack trace; the `Task` suffix does the same for the classes the framework runs by
-itself, so a reader knows the class is never called by plugin code. The constants exist because `@VersatiaEnhancement` takes the processor
-as a string (the plugin does not compile against the runtime); a constant keeps the string in one
-place and lets the compile-time step reuse it.
+### Secrets {/* #secrets */}
 
-## Packages {/* #packages */}
+A password, a token or an API key is a [`Secret`](../configuration.md#secrets), never a `String`;
+`reveal()` only in the call that hands it over. The shipped file holds `''`, which switches the
+feature off.
 
-Packages are organised **by feature**, as if VersatiaAPI, VersatiaCore and the `ksp` module were
-slices of one monolith. The same package name holds the feature's definitions in VersatiaAPI and
-its processors in VersatiaCore.
-
-| Package (under `com.github.marcoral.versatia`) | Holds                                                                           |
-|------------------------------------------------|---------------------------------------------------------------------------------|
-| the root                                       | the enhancement mechanism (`@VersatiaEnhancement`, `@VersatiaAttribute`, `EnhancementProcessor`, `EnhancementContext`, `StateStore`, the phases) and the plugin bootstrap (`VersatiaPlugin`, `VersatiaEngine`), with the static shortcuts over the server (`VersatiaEngineExtensions.kt`); in VersatiaCore also the runtime pipeline |
-| `engine.*`                                     | technical internals that deliver no feature of their own but are needed for the framework to work, such as `engine.descriptor` |
-| `di`, `lifecycle`, `config`, …                 | one feature each: definitions in the API, processors in the runtime             |
-| `<anything>.command`                           | the commands of a feature or of a plugin, always in a subpackage named `command` (`engine.command` holds `/versatia`) |
-| `util.*`                                       | helpers on objects a caller holds and pure functions, grouped by the domain they touch; server-wide work with no receiver is on `VersatiaEngine`, and `util` never imports the root package |
-| `ksp`, `ksp.<feature>`                         | the compile-time step: generic parts in `ksp`, feature-specific collectors and checks in `ksp.di`, `ksp.lifecycle`, `ksp.config` |
-
-There are no packages named after layers (`core`, `service`, `impl`): a reader looking for
-"everything about beans" opens `di` in both repositories and finds it.
-
-## Writing a processor {/* #writing-a-processor */}
-
-- **No constructor arguments.** The runtime creates a processor with its no-argument constructor
-  or uses the instance of a Kotlin `object`, one per class, shared by every plugin.
-- **No state in fields.** Constants in a companion object are fine; whatever a processor must
-  remember goes into `context.state` (per plugin,
-  dropped on disable) or `context.runtimeState` (as long as VersatiaCore runs) under a `StateKey`.
-  Both stores are shared with other processors; nothing is ever a global.
-- **Clean up with `AutoCloseable`.** An entry in the plugin state that holds resources, or that
-  registered something elsewhere (the bean session registers exposed beans), implements
-  `AutoCloseable`; the runtime closes it on disable. Processors never hook the stop event just to
-  clean up; they hook it only for an order the close cannot give, as `PluginScopeEnhancementProcessor`
-  does to cancel and await the plugin's coroutines before the stop functions run (the beans close
-  after them).
-- **Depend on another feature through a contract in VersatiaAPI and its state entry**, never
-  through the runtime or through the other feature's classes in VersatiaCore. The auto-invoke
-  processor injects through `context.state[BeanResolver.KEY]`; the runtime does not know that
-  lifecycle functions need beans, and a processor in another plugin injects the same way.
-- **Defer work that needs the whole plugin** with `context.onPluginEnhanced { }`. Beans are created
-  there, after all scopes declared theirs; functions run there, after the beans exist.
-- **What every plugin gets is an annotation on `VersatiaPlugin`.** An enhancement declared on a
-  base class applies to every main class extending it, so a feature every plugin needs
-  (`@PluginBean`, `@ExtractResources`) is one annotation there, never a special case in the
-  compile-time step or the runtime. Its processor accepts only the `PluginTarget`, exactly once.
-  If plugins may opt out, the feature gets a `Boolean` in `@DisableVersatiaFeatures`, marked with
-  `@VersatiaDisabler`; no feature has a switch annotation of its own.
-- **Use the processor helpers** instead of re-implementing what Core's processors do:
-  `element.targetAs<FunctionTarget>(this)` for the target, `context.receiverOf(target)` for the
-  instance a member belongs to, `context.inject(target.description, target.parameters)` for its
-  arguments and `context.failure(message)` for an error that names the plugin (see
-  [Defining your own enhancement](../internals/enhancements.md#defining-your-own-enhancement)).
-- **Read facts from the element**, not from the classes: the attributes on the target and its
-  parameters, the arguments of the producing annotation. A processor that needs reflection on the
-  plugin's classes to find out what was annotated is working around the descriptor.
-
-## Internal plumbing {/* #internal-plumbing */}
-
-Some of VersatiaAPI is public only because the compile-time step, the generated descriptor and
-VersatiaCore live in different modules: the `*Processors` name holders of the built-in features,
-`ValueTypes`, `VersatiaPluginDescriptor` and `DescriptorVersion`, the `Direct` and `Reflective`
-implementations of `Instantiator`, `Invoker` and `Setter`, `BeanResolver.supply`,
-`onInstanceCreated` and `instancesOf`, `VersatiaEngine.enhance` and `disable`, `Phase.appliesTo`.
-They are marked `@VersatiaInternalApi`, an opt-in marker of level `WARNING`:
-
-```kotlin
-val beans = context.state[BeanResolver.KEY]
-beans?.resolve(description, target.parameters)   // the processor contract: no warning
-beans?.instancesOf(target.className)             // warning: internal plumbing of Versatia
+```kotlin title="Wrong"
+@Value("discord.token")
+// error-next-line
+lateinit var token: String
 ```
 
-- **Plugin authors and custom processors never opt in.** A warning from the marker means the code
-  reaches into the framework's own wiring, which may change without notice; what a processor
-  needs (`EnhancedElement` and its targets, `create`, `invoke` and `set` on the interfaces,
-  `BeanResolver.resolve` and `instanceOf`, the state stores) stays unmarked.
-- **The generated descriptor opts in for its own file** (`@file:OptIn(VersatiaInternalApi::class)`),
-  so no plugin sees a warning for code it did not write.
-- **Framework modules opt in module-wide**: the `api` and `ksp` modules, VersatiaCore and the
-  implementation repository of every module add
-  `optIn.add("com.github.marcoral.versatia.VersatiaInternalApi")` to `kotlin.compilerOptions`.
-- **Mark only what nothing outside the framework needs**, never a type a processor sees in a
-  signature it uses: the marker spreads to every declaration whose signature names a marked type.
+```kotlin title="Right"
+@Value("discord.token")
+// fix-next-line
+var token = Secret.EMPTY
 
-## Reloadable plugins {/* #reloadable-plugins */}
+@AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
+fun connect() {
+    if (token.isEmpty()) return logger.info("Discord bridge off: discord.token is empty")
+    client.login(token.reveal())
+}
+```
 
-- **A plugin's configuration is [`@Value` properties](../configuration.md).** The runtime sets them
-  from the shipped files at start and at every reload, before anything else of the event; a type
-  the runtime does not read gets a `ValueMapper`. The default lives in the file, not in the code,
-  and a missing value is reported instead of silently defaulted.
-- **`Reloadable` is for the prototypes of modules.** An instance a module makes for a consuming
-  plugin reads that plugin's files and has no other way to follow its reloads; `reload()` is
-  called once the consumer's values are set and at every reload. A plugin's own bean never
-  implements it: that is a module's job done by hand, and `@Value` does it.
-- **What derives from the values is rebuilt at `PLUGIN_RELOAD_OR_START`, never in a constructor.**
-  Constructors wire dependencies and run once; a `PLUGIN_RELOAD_OR_START` function sees the new
-  values and rebuilds caches and recipes. `PLUGIN_RELOAD_ONLY` is for what a reload adds on
-  top of a start, `PLUGIN_START_ONLY` for what the server allows once.
-- **Repeating work is a `BackgroundTask`**, which every reload restarts once the values are set;
-  see [Tasks and threads](#tasks-and-threads).
-- **Listeners and the scope's coroutines read the beans' current state** instead of copying values
-  when they are created; a reload does not re-register or restart them. See [Reloading plugins](../lifecycle/reload.md#designing-for-reload).
-- **A value derived from others is read at use, recomputed or reacted to.** A getter
-  (`val priceWithTax get() = ...`) first; a `PLUGIN_RELOAD_OR_START` function when it is
-  expensive; a [`PreviousValueTracking`](../configuration.md#reacting-to-a-change) when the work
-  should happen only on a change. A bean that needs a value while it is constructed declares it
-  as a `@Value` [constructor property](../configuration.md#in-a-constructor); a constructor may read
-  the values of the main class, of `object`s and of the beans it takes, never those of its own body.
-- **What derives from another plugin's beans is rebuilt at `PLUGIN_RELOAD_OR_START` too.** A
-  plugin using a bean another plugin exposes with `@Value` properties, or wrapping one of its beans that has them, is reloaded right after that plugin, so a function of
-  that phase sees the owner's new values; nothing has to poll for them. See
-  [Reloading plugins](../lifecycle/reload.md#plugins-that-use-the-reloaded-ones-values).
+### Tasks and threads {/* #tasks-and-threads */}
 
-
-## Tasks and threads {/* #tasks-and-threads */}
-
-- **Work that runs as long as the plugin is a `BackgroundTask`**, never a timer scheduled in a
-  start or reload function: the runtime starts it at the tick after the start, restarts it with the
-  new values at every reload and cancels it before the stop functions. A task that needs `@Value`
-  properties is a bean or an `object`. See [Background tasks](../tasks.md#background-tasks).
-- **Work something starts is launched from an injected `PluginScope`**, named `scope`, from an
-  event, a command or a `PLUGIN_START_ONLY` function; never repeating work from
-  `PLUGIN_RELOAD_OR_START`, which the reload would start a second time. One job per player or
-  arena goes into `scope.keyedJobs<K>()`, which replaces the previous job.
-- **Cancel the jobs you launch, never the scope.** The scope belongs to the plugin; a cancelled one
-  runs nothing until the plugin restarts.
-- **Waiting for a state is a `Condition`**, rechecked on the events that change it, never a loop
-  that polls. `scope.condition` for a state the plugin watches as long as it runs, `condition()`
-  inside a coroutine for one task or request, so its listeners go with it. A `scope.condition(...)`
-  made for anything shorter than the plugin, such as one per online player, is closed with
-  `close()` when that ends; otherwise its listeners pile up until the plugin stops. The default
-  recheck at the next tick is right for the events that fire before their change;
-  `immediately = true` only for those that fire after it, such as `PlayerJoinEvent`. See
-  [Closing a condition](../tasks.md#closing-a-condition) and the pair below the list.
-- **The server thread is never blocked.** Blocking I/O goes into `withContext(Dispatchers.IO) { }`
-  and the Bukkit calls stay outside it; no `Thread.sleep`, `runBlocking` or `future.get()` in a
-  coroutine of the scope. See [Threads](../tasks.md#threads).
-- **Game time is `delayTicks` and `everyTicks`, real time is `delay` and `every`**; a period read
-  from configuration is a `Duration` (`30s`, `5m`), not a number of ticks or seconds.
-- **`kotlinx.coroutines` comes from VersatiaAPI and VersatiaCore only.** A plugin or a module never
-  lists it under `libraries:`, never shades it and never adds a coroutine library for Bukkit such
-  as MCCoroutine; see [plugin.yml](../getting-started/installation.md#pluginyml).
-- **Plain Bukkit tasks stay with the [scheduler helpers](../utilities/misc.md#scheduler)**: a
-  one-off `plugin.runTaskLater`, or an API that wants a `BukkitTask`.
+- **Work as long as the plugin runs is a [`BackgroundTask`](../tasks.md#background-tasks)**, never
+  a timer started in a start or reload function.
+- **Work something starts is launched from the injected `scope`**; one job per player goes into
+  `scope.keyedJobs<K>()`. Cancel your jobs, never the scope.
+- **Waiting for a state is a [`Condition`](../tasks.md#conditions)**, never a polling loop. One made
+  for a single task is `condition(...)` inside its coroutine; a `scope.condition(...)` made for a
+  player or a request is closed with `close()` when that ends.
+- **The server thread is never blocked**: blocking I/O goes into `withContext(Dispatchers.IO) { }`.
+  See [Threads](../tasks.md#threads).
+- **Periods from configuration are `Duration`s** (`30s`, `5m`), not numbers of ticks.
 
 ```kotlin title="Wrong: one plugin-long listener more per /home"
 fun teleportHome(player: Player, home: Location) {
@@ -202,183 +85,69 @@ fun teleportHome(player: Player, home: Location) {
 }
 ```
 
-## Beans {/* #beans */}
+### Naming {/* #naming */}
 
-- **The primary constructor is the injection point.** Its parameters are the dependencies; a
-  secondary constructor is for other callers, never for the runtime.
-- **Inject the logger, not the plugin, when you only log**: `class Shop(private val logger: Logger)`,
-  or a `ComponentLogger` to log components. It logs exactly as `plugin.logger` does. The plugin is
-  taken for what only the plugin has, such as its data folder or the scheduler helpers (and then
-  `plugin.logger` is at hand). See [Beans every plugin has](../dependency-injection/index.md#beans-every-plugin-has).
-- **An injected logger is named like the plugin's property**: a `java.util.logging.Logger`
-  parameter is `logger`, a `ComponentLogger` is `componentLogger`, so `logger.info(...)` reads the
-  same in a bean as in the main class.
-- **An optional dependency is a default value**, `class PriceList(format: PriceFormat = PlainFormat)`,
-  never a nullable parameter, a lookup or a try-and-catch: a bean providing the type replaces the
-  default without a change to the class. See [Optional dependencies](../dependency-injection/index.md#optional-dependencies).
-- **An integration is a conditional bean with a fallback.** `@ConditionalOnPlugin("Vault")` on
-  the integration, `@Primary` on it where another provider exists, never an `isPluginEnabled`
-  check in code. See [Conditional beans](../optional-plugins.md#conditional-beans).
-- **An attribute written in many places becomes an annotation of your own**, meta-annotated with
-  it: `@Qualifier("fast") annotation class Fast`, `@ConditionalOnPlugin("Vault") annotation class
-  WithVault`. It behaves exactly like the attribute written directly. See
-  [Your own attribute annotations](../dependency-injection/index.md#your-own-attribute-annotations).
+| What                       | Convention                                         | Example                       |
+|----------------------------|----------------------------------------------------|-------------------------------|
+| a `BackgroundTask`         | what it does plus `Task`, in the package of the feature it serves | `AutoBroadcastTask` |
+| a `Condition`              | the state it describes, without `is`               | `standsStill`, `anyoneOnline` |
+| a `KeyedJobs`              | the plural of one job                              | `teleports`, `combatTags`     |
+| an injected `PluginScope`  | `scope`                                            | `class Teleports(scope: PluginScope)` |
 
-## Commands {/* #commands */}
+### Commands {/* #commands */}
 
-- **Commands live in a `command` subpackage** of the feature or plugin they belong to, one class
-  or object per command: `com.github.marcoral.versatia.engine.command.VersatiaCommand`.
-- **Commands are written with the [CommandAPI](https://commandapi.dev/) Kotlin DSL**, declared in
-  an `@AutoInvoke(Phase.PLUGIN_START_ONLY)` function and unregistered at `PLUGIN_STOP`. The
-  CommandAPI plugin is a soft dependency, so the object carries
-  `@ConditionalOnPlugin("CommandAPI")` and is never loaded without it.
-- **Permissions are named `versatia.<plugin>.command.<command>`**; VersatiaCore's reload is
-  `versatia.core.command.reload`. Declare them in `plugin.yml` with a default. See
-  [Commands](../commands.md).
+Commands are written with the [CommandAPI](https://commandapi.dev/) Kotlin DSL in a `command`
+subpackage, registered at `PLUGIN_START_ONLY` under `@ConditionalOnPlugin("CommandAPI")`, and
+guarded by `versatia.<plugin>.command.<command>`. See [Commands](../commands.md).
 
-## Entry points {/* #entry-points */}
+### Server-wide calls {/* #entry-points */}
 
-**A basic use case is one call on an injected object.** Reloading the plugin is
-`plugin.versatiaReload()` on the injected plugin instance, the running plugins are an injected
-`PluginRegistry`, anything server-wide is `VersatiaEngine.<call>`; nothing a plugin does every day
-goes through `ServicesManager`, a cast or a reflective helper. When a documented snippet needs such
-a lookup, the API is missing a method and gets one.
+Work with no receiver starts at `VersatiaEngine` (`VersatiaEngine.playerOrNull(name)`,
+`loadService<Economy>()`, `reload("shop")`); work on an object you hold is a call on that object
+(`plugin.runTaskLater(20) { }`). Never `ServicesManager`, a cast or a reflective lookup for
+everyday work. See [Utilities](../utilities/index.md#start-with-versatiaengine).
 
-**Server-wide work starts at `VersatiaEngine`.** Finding players and worlds, services,
-broadcasting, console commands, thread checks and reloading another plugin are extensions on the
-companion of `VersatiaEngine`: `VersatiaEngine.playerOrNull(name)`,
-`VersatiaEngine.loadService<Economy>()`, `VersatiaEngine.reload("shop")`; see
-[Utilities](../utilities/index.md#start-with-versatiaengine). Work on an object you hold is a call on that
-object (`plugin.runTaskLater(20) { }`, `event.callEvent()`, `section.getIntOrThrow("size")`); the
-facade never takes that object as a parameter. Code and docs use the facade, not `Bukkit.x` or
-`server.x`, for everything it covers, in the main class too. A new member needs no receiver, is
-routine, is at least as good as the Bukkit call it replaces and delegates in one expression to
-Bukkit or `VersatiaEngine.instance`; logic goes into a type that runs without a server
-(`PluginRegistry.getOrThrow`). A member Bukkit allows only on the main thread checks that first
-with `checkPrimaryThread(action)`, as `dispatchConsoleCommand` and the runtime's start, reload and
-stop do, so the wrong thread fails with the fix (`... must run on the server's main thread; schedule
-it with plugin.runTask { ... }`); pure helpers check nothing. The helper a shortcut replaces is
-moved, never kept as an alias.
-`enhance` and `disable` have no shortcut: only `VersatiaPlugin` calls them.
+### Plugin builds {/* #plugin-builds */}
 
-**Derive first, configure only to override.** Whatever the build or the runtime can work out is
-not written by the author: the main class is found by its supertype, a bean name comes from its
-class. Explicit configuration (`versatia.pluginYml`, `@Qualifier`) exists only to override what was
-derived.
+A plugin depends on `VersatiaStarter` and `VersatiaAPI-ksp`, and its JAR carries nothing the
+server provides: no VersatiaAPI, Kotlin, `kotlinx.coroutines`, Paper API or module API, and no
+coroutine library for Bukkit. A second copy breaks class loading. See
+[plugin.yml](../getting-started/installation.md#pluginyml).
 
-**Use and grow the `util.*` helpers.** Where Bukkit plumbing gets clumsy (a nullable lookup, a
-cast, a loop over a section), code calls the helper, and a missing one is added rather than worked
-around. A shorthand is not forced where the direct API is at hand: a plugin logs through its own
-`logger`.
+## Extending Versatia {/* #extending-versatia */}
 
-## Modules {/* #modules */}
+For authors of scopes, enhancements and modules.
 
-- **Features beyond the runtime are modules, never packages of VersatiaCore.** A module is a
-  plugin written against VersatiaAPI alone; VersatiaCore knows nothing about it. See [Modules](../modules/index.md).
-- **The entry point is an `@ExposePrototype` behind an interface.** Each consumer gets its own
-  instance; per-plugin state and registrations live there, and a prototype that reads from the
-  consumer implements `Reloadable`.
-- **Nothing is kept in the module's own plugin:** no data folder, no logger, no reference to its
-  main class. Everything belongs to the consumer, reached through a `JavaPlugin` (or `Plugin`)
-  parameter of the prototype, or through a `Logger` or `ComponentLogger` parameter, which receives
-  the consumer's.
-- **API and implementation are separate repositories**, `VersatiaModule-<Name>` (public) and
-  `VersatiaModule-<Name>Impl` (private). Consumers compile against the API only, through
-  VersatiaStarter or `compileOnly`, and never pack it into their JAR;
-  the implementation is `internal`, and its JAR carries the API classes.
-- **A module building on another injects its prototype** and relies on the runtime to make the
-  whole chain for the consumer; it never looks the other module up.
-- **A module's coroutines are the consumer's.** A prototype that runs coroutines takes a
-  `PluginScope` in its constructor and receives the consuming plugin's scope, so the consumer's
-  stop cancels them and its logger reports their failures; the module launches nothing from a scope
-  of its own.
-- **Text from outside is inserted as text, never parsed.** A tag bridging another plugin (a
-  PlaceholderAPI value, say) inserts the string as a text component, never through
-  `Tag.preProcessParsed` or `context.deserialize`, since it may carry what a player typed; see
-  [Tags with access to the arguments](../modules/messages.md#tags-with-access-to-the-arguments).
-- **One package per part of a module.** A module made of several parts gives each its own package,
-  in the API and in the implementation alike, and lets dependencies point one way: the Messages
-  module keeps the bank in `messages` and the parser in `text`, which knows nothing of messages.
+### Definitions and processors {/* #extending-the-framework */}
 
-## Attributes the runtime reads itself {/* #attributes-the-runtime-reads-itself */}
+- **A feature is annotations in the API plus an [enhancement processor](../internals/enhancements.md)**;
+  the loader and the descriptor stay untouched. What a feature needs is recorded as an attribute
+  and interpreted in its processor.
+- **A feature every plugin needs is an annotation on `VersatiaPlugin`**, switched off through
+  `@DisableVersatiaFeatures`, never a special case in the build or the runtime.
+- **A processor is stateless**: a no-argument class or an `object`; what it remembers goes into
+  `context.state` (per plugin) or `context.runtimeState`, and resources there implement
+  `AutoCloseable`, closed on disable.
+- **It depends on another feature through that feature's API contract** (`context.state[BeanResolver.KEY]`),
+  defers whole-plugin work with `context.onPluginEnhanced { }`, reads facts from the element rather
+  than by reflection, and reports with `context.failure(message)`.
+- **Names**: `<Feature>EnhancementProcessor`, its class name held in a `<Feature>Processors` object;
+  an enhancement annotation says what it does (`@LocalBean`), an attribute the fact it records
+  (`@Qualifier`).
 
-Two attributes are read by the pipeline rather than by a processor, because they concern every
-element or the plugin as a whole: `@ConditionalOnPlugin` decides whether an element is dispatched
-at all, like the phase does, and `@FriendlyName` names the plugin in the runtime's registry.
-Keep that list short. A fact that only one feature interprets belongs to that feature's processor.
+### Internal plumbing {/* #internal-plumbing */}
 
-## Errors {/* #errors */}
+Declarations marked `@VersatiaInternalApi` (an opt-in warning) are public only so that the
+compile-time step, the descriptor and VersatiaCore can reach them. A plugin or a custom processor
+never opts in: the warning means the code reaches into wiring that may change without notice.
 
-- **Compile time beats runtime.** Whatever can be checked from the sources is checked by the KSP
-  processor, with the error pointing at the declaration (`Dependency cycle: Alpha -> Beta -> Alpha`).
-  No descriptor is generated when a check fails, so a broken plugin never reaches a server.
-- **Runtime errors name the plugin and the fix.** `Plugin Gamma: no bean provides
-  com.example.alpha.Secret, required by com.example.gamma.Spy`;
-  `Plugin MyPlugin needs the enhancement processor com.example.MyProcessor, which is not available.
-  Is the plugin providing it installed and listed under depend:?` An `EnhancementException` out of
-  `onEnable` disables that plugin only.
-- **Fail before exposing.** The runtime loads every processor a plugin needs before any of them runs;
-  the bean session resolves all dependencies before exposing anything. A plugin that cannot be
-  enhanced exposes nothing to other plugins and is not registered; its resources may already be
-  extracted and some of its beans constructed, which is one more reason for constructors without
-  side effects.
+### Modules {/* #modules */}
 
-## Encapsulation {/* #encapsulation */}
+- **The entry point is an `@ExposePrototype` behind an interface**, so each consumer gets its own
+  instance; one that reads the consumer's files implements `Reloadable`.
+- **Everything belongs to the consumer**: the module keeps nothing in its own plugin and takes the
+  consumer's plugin, logger and `PluginScope` as constructor parameters.
+- **API and implementation are separate**: `VersatiaModule-<Name>` (public, compiled against) and
+  `VersatiaModule-<Name>Impl` (`internal`, its JAR carries the API classes).
 
-Beans, constructors, functions, properties and their types may be `private`. The generator emits a
-direct call or assignment when the generated code can see the member and a reflective fallback otherwise, never
-asking the author to widen visibility and never initialising classes as a side effect. New element
-kinds follow the same rule: offer a `Direct` variant and a `Reflective` one.
-
-## Notation {/* #notation */}
-
-Kotlin is written as tersely as the language allows. The rules, in the order they most often apply:
-
-- **Expression bodies.** A function whose body is one expression uses `=`, never a block with a
-  single `return` or call: `operator fun plusAssign(other: Map<out K, Any?>) = merge(other)`.
-- **Inferred types.** A property or function whose type the compiler infers does not spell it out:
-  `val KEY = StateKey<BeanResolver>("beans")`,
-  `const val AUTO_INVOKE = "com.github.marcoral.versatia.lifecycle.AutoInvokeEnhancementProcessor"`.
-  A type is written where it changes the result: where the body calls a Java method and inference
-  would produce a platform type, where the function is recursive, or where the compiler would
-  expose an `internal` type through a public function.
-- **No braces around one statement.** An `if`, `else`, `for` or `while` whose body is a single
-  statement is written without braces, on the same line or on the next one when it is long. A
-  `when` branch is written the same way.
-- **No redundant modifiers.** `public` is Kotlin's default and is never written; `internal` and
-  `private` mark what is not part of the contract. VersatiaAPI does not use the compiler's explicit
-  API mode, which would demand both `public` and the return types above.
-- **No warnings.** Code triggers no compiler warnings and no IntelliJ inspections: no redundant
-  `else`, cast or `when` subject, nothing unused.
-
-The rules apply to tests and examples as much as to the libraries: a test that is one assertion is
-one line.
-
-## Repositories and documentation {/* #repositories-and-documentation */}
-
-- Every repository is independent: separate build, no composite build, no compile dependency on
-  the runtime. Projects meet only through published artifacts and the descriptor format.
-- Everything in a repository is in English: identifiers, strings, log messages, comments, docs.
-- Code comments are rare; explanations live in the `docs/*.md` of the repository (implementation
-  notes) and on this site (what plugin authors need). The site is updated with every change that
-  affects it.
-- Every API convention is written on this page; every edge rule of a feature goes into the
-  "Corner cases" section of that feature's page.
-- **An easy mistake is shown as a wrong and a right snippet**, two consecutive code blocks titled
-  `Wrong` and `Right`, the faulty line marked red with `// error-next-line` and the fix green with
-  `// fix-next-line`; see the README of VersatiaDocs.
-- **Versions are `major.minor.patch`**: major for breaking changes, minor for a feature, patch for
-  fixes. A feature added after the first public release carries `<Since v="1.1.0" />`
-  (`@site/src/components/Since`) with the version it arrived in, from `1.1.0` on; `1.0.x` and
-  everything before is unlabelled. On a heading the label stays on the heading line; in text and
-  tables, `<Since v="1.1.0" below />` puts it on its own line under the element.
-- **Plugin builds share one layout.** Repositories are declared only in `settings.gradle.kts`,
-  with `RepositoriesMode.FAIL_ON_PROJECT_REPOS` and `mavenLocal()` filtered to the group
-  `com.github.marcoral.versatia`; the Versatia version is one `versatiaVersion` value (in `gradle.properties` when the build imports VersatiaCatalog); a plugin depends on
-  `VersatiaStarter` and `VersatiaAPI-ksp`; `checkPluginYml` guards `plugin.yml`. See
-  [Plugin build scripts](../contributing/building.md#plugin-build-scripts).
-- **Nothing the server provides goes into a plugin JAR**: not VersatiaAPI, Kotlin, the Paper API,
-  a module API or another plugin's classes. VersatiaStarter exports with `compileOnlyApi`, another
-  plugin is `compileOnly`, and a test needing them at runtime uses `testImplementation`.
-- Machine-specific values (`pluginsDir`) live in a gitignored `local.properties` next to a
-  committed `local.properties.example`; the build works without the file.
+See [Modules](../modules/index.md).

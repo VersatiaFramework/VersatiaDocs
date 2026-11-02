@@ -1,0 +1,41 @@
+.audience {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  margin-left: 0.6em;
+  padding: 0.05em 0.6em 0.05em 0.45em;
+  border: 1px solid var(--versatia-audience-color);
+  border-radius: 999px;
+  background-color: var(--versatia-audience-bg);
+  color: var(--versatia-audience-color);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.admin {
+  --versatia-audience-color: var(--versatia-admin);
+  --versatia-audience-bg: var(--versatia-admin-bg);
+}
+
+.developer {
+  --versatia-audience-color: var(--versatia-developer);
+  --versatia-audience-bg: var(--versatia-developer-bg);
+}
+
+.icon {
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+  fill: currentColor;
+}
+
+/* Under a table cell or a paragraph: on its own line, without the gap a heading needs */
+.below {
+  display: flex;
+  width: fit-content;
+  margin: 0.25em 0 0;
+}

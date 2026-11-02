@@ -1,0 +1,63 @@
+/* No display outside the media query: Infima hides .navbar__item below 997px, where the tabs move to the mobile sidebar */
+@media (min-width: 997px) {
+  .tabs {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-right: 0.5rem;
+    padding: 0 0.75rem 0 0;
+    border-right: 1px solid var(--ifm-color-emphasis-300);
+  }
+
+  /* The admin's guide has no links after the tabs, so nothing to separate */
+  .tabs:last-child {
+    border-right: none;
+  }
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tabs .tab {
+  padding: 0.35rem 0.75rem;
+}
+
+.icon {
+  width: 1rem;
+  height: 1rem;
+  fill: var(--versatia-audience);
+  opacity: 0.7;
+}
+
+.developer {
+  --versatia-audience: var(--versatia-developer);
+  --versatia-audience-bg: var(--versatia-developer-bg);
+}
+
+.admin {
+  --versatia-audience: var(--versatia-admin);
+  --versatia-audience-bg: var(--versatia-admin-bg);
+}
+
+.tab:hover {
+  background: var(--versatia-audience-bg);
+  color: var(--versatia-audience);
+  text-decoration: none;
+}
+
+.active,
+.active:hover {
+  background: var(--versatia-audience-bg);
+  color: var(--versatia-audience);
+  box-shadow: inset 0 0 0 1px var(--versatia-audience);
+}
+
+.active .icon {
+  opacity: 1;
+}

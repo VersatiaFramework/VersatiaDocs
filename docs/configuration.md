@@ -1,3 +1,7 @@
+---
+counterpart: /admin/configuration-files
+---
+
 # Configuration values
 
 import ExampleCard from '@site/src/components/ExampleCard';
@@ -31,6 +35,14 @@ class Shop {
 [`resources/`](resources.md), so the defaults are the file itself and the administrator edits the
 extracted copy.
 
+:::admin
+
+The server admin edits the values in `plugins/<Name>/` and applies them with `/versatia reload <name>`;
+[Configuration files](/admin/configuration-files) in the server admin guide explains how values are
+written and what a mistake does.
+
+:::
+
 ## Where a property may live {/* #where-a-property-may-live */}
 
 | Owner                   | Set on                                      |
@@ -55,15 +67,16 @@ other type, a plain constructor parameter, a parameter of a function, a top-leve
 property of a plain class that nothing creates.
 
 The initializer is only a placeholder until the runtime sets the value, so pick what reads best:
-`lateinit var motd: String` for a reference type, `var maxPlayers = 0` or
-`var tax = Percent.ZERO` or `var period = 30.seconds` for a primitive or a value class such as
-`Int`, `UInt`, `Percent` or `Duration`, which Kotlin does not allow as `lateinit`.
+`lateinit var motd: String` for a reference type, `var maxPlayers = 0`,
+`var tax = Percent.ZERO`, `var period = 30.seconds` or `var token = Secret.EMPTY` for a primitive or
+a value class such as `Int`, `UInt`, `Percent`, `Duration` or `Secret`, which Kotlin does not allow
+as `lateinit`.
 
 ## Supported types {/* #supported-types */}
 
 | Type                                             | Read as                                                         |
 |--------------------------------------------------|-----------------------------------------------------------------|
-| `Boolean`, `Int`, `Long`, `Float`, `Double`, `UInt`, `ULong`, `String`, `Percent`, `Duration` | one value, with the [strict getters](utilities/configuration.md): `3000000000` is not an `Int`, `-1` is not a `UInt`, `12.5%` is a `Percent`, `30s` is a `Duration` |
+| `Boolean`, `Int`, `Long`, `Float`, `Double`, `UInt`, `ULong`, `String`, `Percent`, `Duration`, `Secret` | one value, with the [strict getters](utilities/configuration.md): `3000000000` is not an `Int`, `-1` is not a `UInt`, an unquoted `01234` is not a `String`, `12.5%` is a `Percent`, `30s` is a `Duration`, and a [`Secret`](#secrets) is text, `${env:NAME}`, `${file:PATH}` or `${pluginfile:PATH}` |
 | any enum                                         | one value, matched by constant name ignoring case; `java.time.DayOfWeek` and `Material` included |
 | `Color`, `Location`, `OfflinePlayer`, `Vector`, `ItemStack`, `ConfigurationSection` | one value, with Bukkit's own deserialisation |
 | `List<T>`, `Set<T>`                              | a YAML list of `T`, for `T` among the scalars and enums above, every element checked like a single value; a single value where the list belongs is an error, not a list of one |
@@ -96,6 +109,63 @@ A bare number is not a duration: `period: 300` fails with `Value at "auto-broadc
 not a duration such as "30s", "5m" or "1h 30m" (units d, h, m, s, ms; must not be negative): "300"`. The value goes
 straight into [`every(period)` or `delay(period)`](tasks.md#ticks-and-time), so a negative
 duration such as `-5s` and `Infinity` are rejected the same way.
+
+### Secrets {/* #secrets */}
+
+A password, a token or an API key is a `Secret` (`com.github.marcoral.versatia.util.type`). It
+prints as `****`, so a log line, a message or an exception never shows it, and the file may name
+where the secret is instead of holding it:
+
+```kotlin
+import com.github.marcoral.versatia.util.type.Secret
+
+@LocalBean
+class DiscordBridge(private val logger: Logger) {
+    @Value("discord.token")
+    var token = Secret.EMPTY
+
+    @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
+    fun connect() {
+        logger.info("Connecting with token $token")      // Connecting with token ****
+        client.login(token.reveal())                      // the secret itself, only where it is needed
+    }
+}
+```
+
+```yaml title="config.yml"
+discord:
+  token: ${env:SHOP_DISCORD_TOKEN}                     # an environment variable of the server process
+  # token: ${file:/run/secrets/shop_discord_token}     # or a file holding only the secret
+  # token: ${pluginfile:discord-token.txt}             # or a file in the plugin's folder, plugins/Shop/discord-token.txt
+  # token: 'mfa.3kX9...'                               # or the secret itself
+```
+
+| Written                  | Becomes                                                                 |
+|--------------------------|-------------------------------------------------------------------------|
+| text                     | the text, as written                                                    |
+| `${env:NAME}`            | the environment variable `NAME` of the server process                   |
+| `${file:PATH}`           | the content of the file, read as UTF-8 without its trailing line breaks; a relative path starts at the server folder, the one holding `server.properties`, and an absolute one (`/etc/minecraft/token.txt`, `C:/secrets/token.txt`) is taken as it is |
+| `${pluginfile:PATH}`     | the same for a file in the plugin's data folder: `${pluginfile:api-key.txt}` in `plugins/Shop/config.yml` reads `plugins/Shop/api-key.txt` |
+| both inside text         | each one replaced: `Bot ${env:SHOP_TOKEN}`                              |
+
+The references are resolved at every start and reload, so a secret rotated in its file or
+variable is picked up by `/versatia reload <name>`. A variable that is not set or a file that is
+missing fails like any wrong value, naming the key and the reference, never the secret:
+
+```
+Plugin Shop: com.example.DiscordBridge.token could not be read from config.yml: Value at "discord.token" uses ${env:SHOP_DISCORD_TOKEN}, which is not set; set that environment variable for the server, or write the value instead
+```
+
+An empty secret, the default of a shipped file, switches its feature off by
+[convention](reference/best-practices.md#secrets): check `token.isEmpty()`. Docker and Kubernetes
+hand secrets to a container as files under `/run/secrets/`, which is what `${file:PATH}` is for. `List<Secret>` and `Map<String, Secret>` read every element the same way.
+
+:::admin
+
+How the server admin hands over a secret, with `${env:...}`, `${file:...}` or `${pluginfile:...}`, is
+explained in [Secrets](/admin/configuration-files#secrets) of the server admin guide.
+
+:::
 
 ## Mappers {/* #mappers */}
 
@@ -138,8 +208,7 @@ class Shop {
 }
 ```
 
-```yaml
-# config.yml
+```yaml title="config.yml"
 shop:
   restock-seconds: 30
   price-range:
@@ -349,6 +418,33 @@ created, like any other [reloadable state](lifecycle/reload.md#designing-for-rel
   administrator sees it; an optional value is a nullable property.
 - **Copying a value into a listener or task.** Read the property when the event or tick
   happens; a reload changes the property, not the copy.
+- **A password or a token as a `String`.** Any log line or message that prints it shows it, and
+  the file has to hold it in plain text. Make it a [`Secret`](#secrets), which prints as `****` and
+  can come from an environment variable or a file, and call `reveal()` only where it is handed over:
+
+  ```kotlin title="Wrong"
+  @Value("discord.token")
+  // error-next-line
+  lateinit var token: String
+
+  fun connect() {
+      // error-next-line
+      logger.info("Connecting with token $token")       // the token is in the server log
+      client.login(token)
+  }
+  ```
+
+  ```kotlin title="Right"
+  @Value("discord.token")
+  // fix-next-line
+  var token = Secret.EMPTY
+
+  fun connect() {
+      // fix-next-line
+      logger.info("Connecting with token $token")       // Connecting with token ****
+      client.login(token.reveal())
+  }
+  ```
 
 ## Corner cases {/* #corner-cases */}
 
@@ -374,6 +470,19 @@ created, like any other [reloadable state](lifecycle/reload.md#designing-for-rel
   `@AutoInvoke` function of the event runs, and a failed read leaves every value as it was and runs
   no function.
 - **A duration needs its unit.** `300` is an error, not 300 seconds or ticks; write `300s` or `5m`.
+- **A `String` or a `Secret` is text.** An unquoted `01234`, `1.10`, `yes` or `2024-01-01` is
+  something else to YAML (668, 1.1, `true`, a date), and Bukkit's `getString` would quietly return
+  `"668"`. Such a value is an error asking for quotes instead: `Value at "code" is read as a number
+  (668), not text; quote it, ...`; write `code: '01234'`. A secret's message never shows the value.
+- **A secret's references are resolved once.** What a variable or a file holds is taken as written,
+  even when it contains `${env:...}`. Any other `${...}` in a secret is an error naming the reference
+  (`${DB_PASSWORD}` gets "did you mean `${env:DB_PASSWORD}`?"), so a secret that really contains `${`
+  goes into a file or a variable. An unclosed `${` is plain text.
+- **A secret's file is read whole.** Its content without a byte order mark and without the line
+  breaks at its end is the secret, so a multi-line key keeps its inner line breaks; a file that is
+  not UTF-8 is an error.
+- **An empty secret prints as `''`**, so a log line tells an unset password from a set one, which
+  prints as `****`.
 - **A duration is finite and not negative.** `-5s`, `-Infinity` and `Infinity` are errors: the value
   is a wait or a period, so `0s` is the shortest one.
 - **A single value where a list belongs** (`hours: 9` for a `List<Int>`) is an error, not a list

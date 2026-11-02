@@ -20,6 +20,21 @@ A plugin shipping two files under <code>resources/</code> and logging them from 
 The directory layout under `resources/` is kept. Only files are copied; an empty directory in the
 JAR creates nothing.
 
+:::developer
+
+Everything under `src/main/resources/resources/` is copied into the plugin's data folder, with its
+layout, and never overwritten once it is there: what you ship are the defaults. Anything else in
+`src/main/resources/`, such as `plugin.yml`, stays inside the JAR.
+
+:::
+
+:::admin
+
+The server admin's side, editing the copies and getting a default back, is in
+[Configuration files](/admin/configuration-files#where-the-files-come-from) of the server admin guide.
+
+:::
+
 ## Existing files are never overwritten {/* #existing-files-are-never-overwritten */}
 
 A file that already exists in the data folder is left exactly as it is, whatever the JAR contains.

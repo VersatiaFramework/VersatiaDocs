@@ -6,6 +6,7 @@ description: What Versatia is, how its two halves cooperate and what the framewo
 ---
 
 import Link from '@docusaurus/Link';
+import Audience from '@site/src/components/Audience';
 
 **Versatia** is a framework for [Paper](https://papermc.io/) **1.21.4** plugins written in Kotlin.
 Its mission is to remove the Bukkit boilerplate from plugins: wiring singletons, passing
@@ -131,8 +132,34 @@ This buys four things:
 
 Beyond the runtime, [modules](modules/index.md) add what plugins use every day, each as a plugin of its own
 that exposes a bean, such as a bank of messages per plugin, read from its data folder, reloaded with it
-and written in MiniMessage with runtime arguments in braces. [VersatiaStarter](getting-started/installation.md#in-your-build)
+and written in MiniMessage with runtime arguments in braces, or a database per plugin, migrated and
+ready, on SQLite or a database server. [VersatiaStarter](getting-started/installation.md#in-your-build)
 brings the API of all of them into a build with one dependency.
+
+## Who is this for {/* #who-is-this-for */}
+
+This documentation is for the **plugin developer**, who writes the plugin. The **server admin**,
+who installs it and edits its files on the server without touching its code, has a documentation
+of their own, the [server admin guide](/admin), switched to with **Server admins** in the navbar.
+Where a developer page still has a part for the admin, two markers keep the parts apart:
+
+:::admin
+
+The server admin's part: the files in `plugins/<Name>/` to edit (and the ones to leave alone),
+commands, permissions and what takes effect at a reload or only after a restart.
+
+:::
+
+:::developer
+
+The plugin developer's part: the build, what goes under `src/main/resources/`, annotations and
+code.
+
+:::
+
+A section or a table row meant for one of them carries a label on its line:
+<Audience who="admin" /> <Audience who="developer" />. Anything unmarked concerns the developer, or
+both.
 
 ## Versions {/* #versions */}
 

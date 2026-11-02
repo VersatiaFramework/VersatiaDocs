@@ -41,7 +41,24 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Modules',
       link: {type: 'doc', id: 'modules/index'},
-      items: ['modules/messages'],
+      items: [
+        'modules/messages',
+        {
+          type: 'category',
+          label: 'Database',
+          link: {type: 'doc', id: 'modules/database/index'},
+          items: [
+            'modules/database/statements',
+            'modules/database/background',
+            'modules/database/stores',
+            'modules/database/migrations',
+            'modules/database/configuration',
+            'modules/database/operations',
+            'modules/database/best-practices',
+            'modules/database/corner-cases',
+          ],
+        },
+      ],
     },
     {
       type: 'category',

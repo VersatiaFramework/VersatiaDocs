@@ -51,8 +51,7 @@ records it in the descriptor.
 `currency` is a [`@Value` property](../configuration.md): the runtime sets it from `config.yml` in
 the plugin's data folder. Ship the file with its default under `src/main/resources/resources/`:
 
-```yaml
-# src/main/resources/resources/config.yml
+```yaml title="src/main/resources/resources/config.yml"
 currency: coins
 ```
 
@@ -188,7 +187,7 @@ and, on shutdown, `Bye`.
 ## Reload it {/* #reload-it */}
 
 Change `currency` to `gems` in `plugins/MyPlugin/config.yml` and run `/versatia reload MyPlugin`
-(the command needs [CommandAPI](installation.md#soft-dependencies) on the server). The runtime
+(the command needs [CommandAPI](/admin/installation#soft-dependencies) on the server). The runtime
 sets `currency` again, then runs `start`, because its phase is `PLUGIN_RELOAD_OR_START`:
 
 ```

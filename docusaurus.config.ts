@@ -7,6 +7,84 @@ const organizationName = 'VersatiaFramework';
 const projectName = 'VersatiaDocs';
 const github = `https://github.com/${organizationName}`;
 
+// :::admin and :::developer mark what the server admin and the plugin developer must know (src/theme/Admonition/Types.tsx)
+const admonitions = {keywords: ['admin', 'developer'], extendDefaults: true};
+
+// Footer columns per audience (src/theme/Footer/Links): the developer's are the theme's own, the admin guide and pages
+// of no audience (the home page) replace them with theirs
+const adminGuideLinks = [
+  {label: 'Server admin guide', to: '/admin'},
+  {label: 'Installation', to: '/admin/installation'},
+  {label: 'Configuration files', to: '/admin/configuration-files'},
+  {label: 'Commands and permissions', to: '/admin/commands'},
+  {label: 'Database module', to: '/admin/database'},
+  {label: 'Troubleshooting', to: '/admin/troubleshooting'},
+];
+const githubLinks = [
+  {label: 'VersatiaFramework', href: github},
+  {label: 'VersatiaAPI', href: `${github}/VersatiaAPI`},
+  {label: 'VersatiaStarter', href: `${github}/VersatiaStarter`},
+  {label: 'VersatiaExamples', href: `${github}/VersatiaExamples`},
+];
+const developerFooter = [
+  {
+    title: 'Learn',
+    items: [
+      {label: 'Introduction', to: '/docs'},
+      {label: 'Installation', to: '/docs/getting-started/installation'},
+      {label: 'Your first plugin', to: '/docs/getting-started/first-plugin'},
+      {label: 'Server admin guide', to: '/admin'},
+    ],
+  },
+  {
+    title: 'Features',
+    items: [
+      {label: 'Dependency injection', to: '/docs/dependency-injection'},
+      {label: 'Auto-invoked functions', to: '/docs/lifecycle/auto-invoke'},
+      {label: 'Configuration values', to: '/docs/configuration'},
+      {label: 'Event listeners', to: '/docs/events'},
+      {label: 'Tasks and coroutines', to: '/docs/tasks'},
+      {label: 'Modules', to: '/docs/modules'},
+      {label: 'Utilities', to: '/docs/utilities'},
+    ],
+  },
+  {
+    title: 'Reference',
+    items: [
+      {label: 'Architecture', to: '/docs/internals/architecture'},
+      {label: 'Best practices', to: '/docs/reference/best-practices'},
+      {label: 'Troubleshooting', to: '/docs/reference/troubleshooting'},
+      {label: 'Building the framework', to: '/docs/contributing/building'},
+    ],
+  },
+  {title: 'GitHub', items: githubLinks},
+];
+const footerLinks = {
+  admin: [
+    {title: 'Server admins', items: adminGuideLinks},
+    {
+      title: 'More',
+      items: [
+        {label: 'Developer documentation', to: '/docs'},
+        {label: 'Versatia on GitHub', href: github},
+      ],
+    },
+  ],
+  home: [
+    {
+      title: 'Developers',
+      items: [
+        {label: 'Introduction', to: '/docs'},
+        {label: 'Installation', to: '/docs/getting-started/installation'},
+        {label: 'Your first plugin', to: '/docs/getting-started/first-plugin'},
+        {label: 'Examples', to: '/docs/examples'},
+      ],
+    },
+    {title: 'Server admins', items: adminGuideLinks},
+    {title: 'GitHub', items: githubLinks},
+  ],
+};
+
 const config: Config = {
   title: 'Versatia',
   tagline: 'Declare what your Paper plugin has. Versatia takes care of when and how.',
@@ -36,6 +114,8 @@ const config: Config = {
     },
   },
 
+  customFields: {footerLinks},
+
   i18n: {
     defaultLocale: 'en',
     locales: ['en'],
@@ -49,6 +129,7 @@ const config: Config = {
           sidebarPath: './sidebars.ts',
           showLastUpdateTime: false,
           editUrl: `${github}/${projectName}/edit/master/`,
+          admonitions,
         },
         sitemap: {
           ignorePatterns: [`/${projectName}/search/**`, `/${projectName}/search`],
@@ -63,6 +144,32 @@ const config: Config = {
 
   plugins: [
     [
+      // Experimental features live in their own docs instance, reached through the navbar switch, which shows while it holds one
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'experimental',
+        path: 'experimental',
+        routeBasePath: 'experimental',
+        sidebarPath: './sidebarsExperimental.ts',
+        showLastUpdateTime: false,
+        editUrl: `${github}/${projectName}/edit/master/`,
+        admonitions,
+      },
+    ],
+    [
+      // The server admin's documentation: installing, configuring and operating plugins, without code
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'admin',
+        path: 'admin',
+        routeBasePath: 'admin',
+        sidebarPath: './sidebarsAdmin.ts',
+        showLastUpdateTime: false,
+        editUrl: `${github}/${projectName}/edit/master/`,
+        admonitions,
+      },
+    ],
+    [
       '@docusaurus/plugin-client-redirects',
       {
         // Pages that moved keep their old addresses, which READMEs and bookmarks still use
@@ -70,6 +177,20 @@ const config: Config = {
           {from: '/docs/best-practices', to: '/docs/reference/best-practices'},
           {from: '/docs/troubleshooting', to: '/docs/reference/troubleshooting'},
           {from: '/docs/dependency-injection/compile-time-checks', to: '/docs/reference/compile-time-checks'},
+          // The Database module left the experimental docs once finished
+          {from: '/experimental/modules/database', to: '/docs/modules/database'},
+          {from: '/experimental/modules/database/statements', to: '/docs/modules/database/statements'},
+          {from: '/experimental/modules/database/background', to: '/docs/modules/database/background'},
+          {from: '/experimental/modules/database/stores', to: '/docs/modules/database/stores'},
+          {from: '/experimental/modules/database/migrations', to: '/docs/modules/database/migrations'},
+          {from: '/experimental/modules/database/configuration', to: '/docs/modules/database/configuration'},
+          {from: '/experimental/modules/database/operations', to: '/docs/modules/database/operations'},
+          {from: '/experimental/modules/database/best-practices', to: '/docs/modules/database/best-practices'},
+          {from: '/experimental/modules/database/corner-cases', to: '/docs/modules/database/corner-cases'},
+          {from: '/admin/experimental/database', to: '/admin/database'},
+          {from: '/admin/experimental/database/configuration', to: '/admin/database/configuration'},
+          {from: '/admin/experimental/database/data', to: '/admin/database/data'},
+          {from: '/admin/experimental/database/operations', to: '/admin/database/operations'},
         ],
       },
     ],
@@ -82,7 +203,15 @@ const config: Config = {
       {
         hashed: true,
         indexBlog: false,
-        docsRouteBasePath: '/docs',
+        docsRouteBasePath: ['/docs', '/experimental', '/admin'],
+        docsDir: ['docs', 'experimental', 'admin'],
+        // One index per area: each documentation searches its own pages, and pages of none (the home page) all
+        searchContextByPaths: [
+          {label: 'Stable', path: 'docs'},
+          {label: 'Experimental', path: 'experimental'},
+          {label: 'Server admins', path: 'admin'},
+        ],
+        useAllContextsWithNoSearchContext: true,
         highlightSearchTermsOnTargetPage: true,
         searchResultLimits: 10,
       },
@@ -111,22 +240,29 @@ const config: Config = {
         alt: 'Versatia',
         src: 'img/logo.svg',
       },
+      // The audience tabs lead; the links after them belong to the developer's documentation and show only there
       items: [
         {
-          type: 'docSidebar',
-          sidebarId: 'docs',
+          type: 'custom-audienceTabs',
           position: 'left',
-          label: 'Documentation',
         },
         {
+          type: 'custom-audienceLink',
+          audience: 'developer',
           to: '/docs/getting-started/installation',
           position: 'left',
           label: 'Getting started',
         },
         {
+          type: 'custom-audienceLink',
+          audience: 'developer',
           to: '/docs/examples',
           position: 'left',
           label: 'Examples',
+        },
+        {
+          type: 'custom-docsSwitch',
+          position: 'right',
         },
         {
           href: github,
@@ -137,52 +273,13 @@ const config: Config = {
     },
     footer: {
       style: 'dark',
-      links: [
-        {
-          title: 'Learn',
-          items: [
-            {label: 'Introduction', to: '/docs'},
-            {label: 'Installation', to: '/docs/getting-started/installation'},
-            {label: 'Your first plugin', to: '/docs/getting-started/first-plugin'},
-          ],
-        },
-        {
-          title: 'Features',
-          items: [
-            {label: 'Dependency injection', to: '/docs/dependency-injection'},
-            {label: 'Auto-invoked functions', to: '/docs/lifecycle/auto-invoke'},
-            {label: 'Configuration values', to: '/docs/configuration'},
-            {label: 'Event listeners', to: '/docs/events'},
-            {label: 'Tasks and coroutines', to: '/docs/tasks'},
-            {label: 'Modules', to: '/docs/modules'},
-            {label: 'Utilities', to: '/docs/utilities'},
-          ],
-        },
-        {
-          title: 'Reference',
-          items: [
-            {label: 'Architecture', to: '/docs/internals/architecture'},
-            {label: 'Best practices', to: '/docs/reference/best-practices'},
-            {label: 'Troubleshooting', to: '/docs/reference/troubleshooting'},
-            {label: 'Building the framework', to: '/docs/contributing/building'},
-          ],
-        },
-        {
-          title: 'GitHub',
-          items: [
-            {label: 'VersatiaFramework', href: github},
-            {label: 'VersatiaAPI', href: `${github}/VersatiaAPI`},
-            {label: 'VersatiaStarter', href: `${github}/VersatiaStarter`},
-            {label: 'VersatiaExamples', href: `${github}/VersatiaExamples`},
-          ],
-        },
-      ],
+      links: developerFooter,
       copyright: `Copyright © ${new Date().getFullYear()} ${organizationName}. Versatia framework for Paper 1.21.4. Documentation built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.oneDark,
-      additionalLanguages: ['kotlin', 'java', 'groovy', 'yaml', 'properties', 'bash', 'json'],
+      additionalLanguages: ['kotlin', 'java', 'groovy', 'yaml', 'properties', 'bash', 'json', 'sql'],
       // Setting magicComments replaces the defaults, so the highlight entry is repeated here
       magicComments: [
         {

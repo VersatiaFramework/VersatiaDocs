@@ -1,3 +1,7 @@
+---
+counterpart: /admin/commands
+---
+
 # Commands
 
 Versatia has no command annotation: a plugin declares its commands with the
@@ -53,8 +57,7 @@ object ShopCommand {
 
 CommandAPI itself is a plugin on the server; its Kotlin DSL is a library the plugin ships:
 
-```kotlin
-// build.gradle.kts
+```kotlin title="build.gradle.kts"
 val commandApiVersion = "12.1.0"
 
 dependencies {
@@ -71,8 +74,7 @@ tasks.jar {
 }
 ```
 
-```yaml
-# plugin.yml
+```yaml title="plugin.yml"
 depend:
   - VersatiaCore
 softdepend:
@@ -99,6 +101,13 @@ it has none) and `<command>` the subcommand it guards:
 | ShopPlugin, `@FriendlyName("shop")` | `shop` | `/shop price <item>` | `versatia.shop.command.price` |
 
 Keep the names in `const val`s of the command object, next to the code that checks them.
+
+:::admin
+
+Command permissions follow one pattern on every Versatia plugin; the
+[server admin guide](/admin/commands#permissions) explains them to the people who grant them.
+
+:::
 
 ## Registration and reload {/* #registration-and-reload */}
 
@@ -175,31 +184,10 @@ object VersatiaCommand {
 
 ### `/versatia info` {/* #versatia-info */}
 
-`/versatia info` changes nothing; it shows what the runtime keeps. Without an argument it lists
-the running Versatia plugins with their friendly name, plugin name, version and descriptor format:
-
-```text
-VersatiaCore (VersatiaCore 0.0.1), descriptor format 1.5
-economy (Economy 1.2.0), descriptor format 1.5
-shop (Shop 0.4.0), descriptor format 1.5
-```
-
-With a friendly name it adds the plugin's beans with their class and scope, the exposed beans
-other plugins use, the plugins [its reloads cascade to](lifecycle/reload.md#plugins-that-use-the-reloaded-ones-values)
-and the files its `@Value` properties read:
-
-```text
-economy (Economy 1.2.0), descriptor format 1.5
-Beans (3):
-  "plugin" com.example.economy.EconomyPlugin, local
-  "clock" com.example.economy.Clock, exposed singleton
-  "priceList" com.example.economy.PriceList, exposed prototype
-Exposed beans used by others: "priceList" by shop
-Reloads cascade to: shop
-@Value files: config.yml
-```
-
-It needs `versatia.core.command.info`, given to operators by default.
+`/versatia info [plugin]` lists the running Versatia plugins, and for one plugin its beans by
+scope, the exposed beans other plugins use, the plugins its reloads cascade to and its `@Value`
+files. Its output is described in the [server admin guide](/admin/commands#versatia-info); while
+you develop, it is the quickest check that a bean exists and in which scope.
 
 ## Corner cases {/* #corner-cases */}
 

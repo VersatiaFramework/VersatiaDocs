@@ -16,6 +16,14 @@
   --versatia-error-line-border: #cf222e;
   --versatia-fix-line-bg: rgba(74, 194, 107, 0.2);
   --versatia-fix-line-border: #1a7f37;
+  --versatia-experimental: #b45309;
+  --versatia-switch-active-bg: #fff;
+  --versatia-switch-shadow: rgba(0, 0, 0, 0.14);
+  --versatia-admin: #0f766e;
+  --versatia-admin-bg: rgba(13, 148, 136, 0.08);
+  --versatia-developer: #6d28d9;
+  --versatia-developer-bg: rgba(124, 58, 237, 0.07);
+  --versatia-twin: #0369a1;
 }
 
 [data-theme='dark'] {
@@ -35,6 +43,78 @@
   --versatia-error-line-border: #f85149;
   --versatia-fix-line-bg: rgba(46, 160, 67, 0.2);
   --versatia-fix-line-border: #3fb950;
+  --versatia-experimental: #f5a524;
+  --versatia-switch-active-bg: #2a2e3d;
+  --versatia-switch-shadow: rgba(0, 0, 0, 0.5);
+  --versatia-admin: #2dd4bf;
+  --versatia-admin-bg: rgba(45, 212, 191, 0.1);
+  --versatia-developer: #b197fc;
+  --versatia-developer-bg: rgba(167, 139, 250, 0.1);
+  --versatia-twin: #7dd3fc;
+}
+
+/* Audience admonitions (:::admin, :::developer): body text stays the page's, the accent colours border, icon and title */
+.alert--admin,
+.alert--developer {
+  --ifm-alert-foreground-color: var(--ifm-font-color-base);
+  --ifm-alert-background-color-highlight: rgba(127, 127, 127, 0.15);
+}
+
+.alert--admin {
+  --ifm-alert-background-color: var(--versatia-admin-bg);
+  --ifm-alert-border-color: var(--versatia-admin);
+  --versatia-audience-accent: var(--versatia-admin);
+}
+
+.alert--developer {
+  --ifm-alert-background-color: var(--versatia-developer-bg);
+  --ifm-alert-border-color: var(--versatia-developer);
+  --versatia-audience-accent: var(--versatia-developer);
+}
+
+.alert--admin > :first-child,
+.alert--developer > :first-child {
+  color: var(--versatia-audience-accent);
+}
+
+.alert--admin .versatia-audience-icon,
+.alert--developer .versatia-audience-icon {
+  fill: var(--versatia-audience-accent);
+}
+
+/* The experimental documentation is marked by an amber line under the navbar on every one of its pages */
+html.plugin-id-experimental .navbar {
+  box-shadow: inset 0 -2px 0 var(--versatia-experimental), var(--ifm-navbar-shadow);
+}
+
+/* The server admin's documentation takes the admin accent as its primary colour, on a slightly green surface */
+html.plugin-id-admin {
+  --ifm-color-primary: #0f766e;
+  --ifm-color-primary-dark: #0d6a63;
+  --ifm-color-primary-darker: #0c645e;
+  --ifm-color-primary-darkest: #0a534d;
+  --ifm-color-primary-light: #118279;
+  --ifm-color-primary-lighter: #12887e;
+  --ifm-color-primary-lightest: #14998f;
+  --ifm-background-surface-color: #f3faf9;
+  --versatia-hero-start: #e6f6f4;
+}
+
+html.plugin-id-admin[data-theme='dark'] {
+  --ifm-color-primary: #2dd4bf;
+  --ifm-color-primary-dark: #22c5b0;
+  --ifm-color-primary-darker: #20baa6;
+  --ifm-color-primary-darkest: #1a9989;
+  --ifm-color-primary-light: #4cdac8;
+  --ifm-color-primary-lighter: #58dccc;
+  --ifm-color-primary-lightest: #7fe5d8;
+  --ifm-background-color: #121b1b;
+  --ifm-background-surface-color: #182424;
+  --versatia-hero-start: #172a28;
+}
+
+html.plugin-id-admin .navbar {
+  box-shadow: inset 0 -2px 0 var(--versatia-admin), var(--ifm-navbar-shadow);
 }
 
 /* Wrong and right snippets: the faulty line red, the fix green, like a diff; lines span the block as highlighted ones do */
@@ -62,6 +142,12 @@
 
 .markdown table code {
   overflow-wrap: anywhere;
+}
+
+/* A table of short code values that scrolls sideways instead of breaking them, such as the database tokens */
+.markdown .table-nowrap table code {
+  overflow-wrap: normal;
+  white-space: nowrap;
 }
 
 .theme-doc-sidebar-menu {

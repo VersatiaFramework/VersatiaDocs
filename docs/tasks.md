@@ -27,8 +27,7 @@ class AutoBroadcastTask(private val logger: Logger) : BackgroundTask {
 }
 ```
 
-```yaml
-# config.yml
+```yaml title="config.yml"
 auto-broadcast:
   period: 30s
   lines:
@@ -192,6 +191,39 @@ arena or a block. It is thread-safe.
 
 An entry goes by itself when its job completes, so the map never holds finished jobs. The jobs are
 children of the scope, so the plugin's stop cancels them too.
+
+### Per-player state {/* #per-player-state */}
+
+State that lives only while the server runs, a combat tag, an open menu, a pending request, is a
+`scope.perPlayer<T>()`: one value per player, thread-safe, that goes by itself when the player
+quits.
+
+```kotlin
+@LocalBean
+class Combat(scope: PluginScope) {
+    private val tags = scope.perPlayer<Instant>(keepAfterQuit = 30.seconds)
+
+    fun tag(player: Player) {
+        tags[player] = Instant.now().plusSeconds(15)
+    }
+
+    fun isTagged(player: Player) = tags[player]?.isAfter(Instant.now()) == true
+}
+```
+
+| Member                     | Does                                                         |
+|----------------------------|--------------------------------------------------------------|
+| `tags[player]`             | the player's value, or `null`                                |
+| `tags[player] = value`     | sets it                                                      |
+| `tags.remove(player)`      | removes it and returns it                                    |
+| `player in tags`           | whether there is one                                         |
+| `tags.getOrPut(player) { }` | the value, made by the block when there is none             |
+
+A player's value goes when they quit, after the plugin's own quit handlers ran, so they can still
+read it. With `keepAfterQuit` it goes that long after the quit instead, unless the player joins
+again meanwhile: a combat tag that should punish a log-out survives it. A reload keeps the values;
+the plugin's stop clears them and removes the listeners. Nothing is written anywhere: data that
+must survive a restart belongs in a database or a file.
 
 ## Ticks and time {/* #ticks-and-time */}
 
@@ -488,6 +520,7 @@ server, not only the coroutine.
 | a `BackgroundTask`'s call                   | cancelled after the values are set and the `Reloadable` beans reloaded, before the reload functions; called again at the next tick | cancelled before the stop functions |
 | coroutines launched from a `PluginScope`    | left alone                                                     | cancelled before the stop functions          |
 | a condition made with `scope.condition`     | kept                                                           | its listeners go                             |
+| the values of `scope.perPlayer`             | kept                                                           | cleared, its listeners go                    |
 | a condition made in a coroutine             | goes with its coroutine                                        | goes with its coroutine                      |
 
 A reload cancels a task's call, so its `finally` blocks run inside the reload, before the reload

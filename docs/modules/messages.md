@@ -1,3 +1,7 @@
+---
+counterpart: /admin/messages
+---
+
 # Messages module
 
 import ExampleCard from '@site/src/components/ExampleCard';
@@ -39,8 +43,7 @@ Ship the files under `src/main/resources/resources/messages/`; [resource extract
 puts them into `plugins/<Name>/messages/` on the first start, where server owners edit them. Any
 `.yml` or `.yaml` there, in any subdirectory, is read:
 
-```yaml
-# messages/shop.yml
+```yaml title="messages/shop.yml"
 shop:
   open: "<green>The shop is open: {offers} offers today."
   bought: "<green>{player} bought {item} for <gold>{price}</gold> coins."
@@ -66,6 +69,13 @@ Invalid YAML is reported with the file and the place:
 Every standard MiniMessage tag works in angle brackets; the arguments are in braces, as
 [below](#arguments-and-properties).
 
+:::admin
+
+Server admins edit the texts without the code; [Editing messages](/admin/messages) in the server
+admin guide is the page to send them to.
+
+:::
+
 ### Legacy colour codes {/* #legacy-colour-codes */}
 
 MiniMessage shows `&a` and `§l` as text. A message using them is reported once per load, through
@@ -81,8 +91,7 @@ or digit right before it, unless that character ends another code: `&a&lSale` ha
 the warning off for your plugin in `messages/.versatia.yml`, which you can ship with the other
 files:
 
-```yaml
-# messages/.versatia.yml
+```yaml title="messages/.versatia.yml"
 legacy-color-warnings: false
 ```
 

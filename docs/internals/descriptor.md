@@ -232,7 +232,7 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
 ## Format version {/* #format-version */}
 
 The format has its own `major.minor` version, `VersatiaPluginDescriptor.FORMAT_VERSION`, currently
-**`1.5`**. It is independent of the library version. A runtime accepts exactly the version it was
+**`1.6`**. It is independent of the library version. A runtime accepts exactly the version it was
 built with and rejects any other with a message naming the plugin, both versions and the fix; see
 [The runtime](runtime.md#descriptor-format-compatibility).
 

@@ -57,7 +57,7 @@ companion of `VersatiaEngine`; from Java, use `VersatiaEngine.getInstance()` and
 
 | Package        | Contents                                                                                 | Page |
 |----------------|------------------------------------------------------------------------------------------|------|
-| `config`       | strict typed getters for `ConfigurationSection`, `Duration` included, YAML file traversal | [Configuration](configuration.md) |
+| `config`       | strict typed getters for `ConfigurationSection`, `Duration` and `Secret` included, YAML file traversal | [Configuration](configuration.md) |
 | `collection`   | `addOrThrow`/`putAllOrThrow`-style helpers, `DeepMergeMap`, `List.cycle`                  | [Collections](collections.md) |
 | `plugin`       | `Plugin.log`, `logWarning`, `logSevere`                                                   | [Scheduler, logging and more](misc.md#logging) |
 | `scheduler`    | `Plugin.runTask*` wrappers over `BukkitScheduler`, for plain Bukkit tasks; [tasks](../tasks.md) come first | [Scheduler, logging and more](misc.md#scheduler) |
@@ -67,7 +67,7 @@ companion of `VersatiaEngine`; from Java, use `VersatiaEngine.getInstance()` and
 | `world`        | `Location` helpers, `isWithin` among them                                                 | [Scheduler, logging and more](misc.md#world) |
 | `lang`         | enum lookups ignoring case                                                                | [Scheduler, logging and more](misc.md#enums) |
 | `text`         | subscript and superscript digits                                                          | [Scheduler, logging and more](misc.md#text) |
-| `type`         | small value type `Percent`                                                                | [Scheduler, logging and more](misc.md#value-types) |
+| `type`         | small value types `Percent` and `Secret`                                                  | [Scheduler, logging and more](misc.md#value-types) |
 
 None of the helpers needs VersatiaCore's runtime; they are plain Kotlin extension functions and
 small types. Everything in VersatiaAPI without a visibility modifier is part of the contract;
