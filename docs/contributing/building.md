@@ -9,10 +9,10 @@ page is for building the framework itself; plugin authors only need the
 | Repository                   | Produces                                                             |
 |------------------------------|----------------------------------------------------------------------|
 | `VersatiaAPI`                | `VersatiaAPI` (API), `VersatiaAPI-ksp` (processor) and `VersatiaCatalog` (shared versions), published to the local Maven repository |
-| `VersatiaCore`               | the server plugin JAR, bundling the VersatiaAPI classes; a private repository, built by the Versatia team |
+| `VersatiaCore`               | the server plugin JAR, bundling the VersatiaAPI classes |
 | `VersatiaModule-<Name>`      | a [module](../modules/index.md)'s API, published to the local Maven repository                |
-| `VersatiaModule-<Name>Impl`  | the module's plugin JAR, bundling its API classes; private, like VersatiaCore                 |
-| `VersatiaStarter`            | `VersatiaStarter`, the one dependency a plugin build needs: it exports VersatiaAPI and the module APIs |
+| `VersatiaModule-<Name>Impl`  | the module's plugin JAR, bundling its API classes; a private repository                       |
+| `VersatiaStarter`            | `VersatiaStarter`, one dependency for a plugin using modules: it exports VersatiaAPI and the module APIs |
 | `VersatiaExample-*`          | the example plugins, one repository per feature; see [Example plugins](../examples/index.md) |
 | `VersatiaDocs`               | this site                                                            |
 
@@ -31,7 +31,7 @@ cd VersatiaCore && ./gradlew build
 ```
 
 ```bash
-cd VersatiaModule-Messages && ./gradlew publishToMavenLocal
+cd VersatiaModule-Database && ./gradlew publishToMavenLocal
 ```
 
 ```bash
@@ -39,15 +39,15 @@ cd VersatiaStarter && ./gradlew publishToMavenLocal
 ```
 
 ```bash
-cd VersatiaModule-MessagesImpl && ./gradlew build
+cd VersatiaModule-DatabaseImpl && ./gradlew build
 ```
 
 ```bash
 cd VersatiaExample-DI-Beans && ./gradlew build
 ```
 
-Every example depends on VersatiaStarter, so the starter and the module APIs are published before
-any example builds. Every example repository builds the same way; the two-plugin examples are
+Every example depends on VersatiaAPI; the Database example depends on VersatiaStarter, so the
+starter and the module APIs are published before it builds. Every example repository builds the same way; the two-plugin examples are
 single Gradle builds with one module per plugin.
 
 Repeat `publishToMavenLocal` in VersatiaAPI after every change that a dependent project should
@@ -65,7 +65,8 @@ shows:
 - Versions come from [VersatiaCatalog](#versions): `settings.gradle.kts` imports it as `libs` at
   `versatiaVersion` from `gradle.properties`, the only place the Versatia version is written, and
   the build script uses `alias(libs.plugins.kotlin.jvm)`, `alias(libs.plugins.ksp)`,
-  `libs.versatia.starter`, `libs.versatia.ksp` and `libs.snakeyaml`.
+  `libs.versatia.api` (`libs.versatia.starter` where a module is used), `libs.versatia.ksp` and
+  `libs.snakeyaml`.
 - `checkPluginYml`, part of `check` and so of `build`, fails the build when `plugin.yml` does not
   parse, lacks `name`, `version` or `main`, or does not list `VersatiaCore` under `depend:`.
   Paper would only skip such a plugin at start, with an error in the server log. It also fails
@@ -98,12 +99,12 @@ Every third-party version (Kotlin, KSP, KotlinPoet, kctfork, Paper API, CommandA
 lives in one file, `gradle/libs.versions.toml` of VersatiaAPI. Its `catalog` module publishes the
 file as the version catalog `com.github.marcoral.versatia:VersatiaCatalog`, adding the version
 `versatia` and the libraries `versatia-api`, `versatia-ksp`, `versatia-starter` and
-`versatia-messages`. The framework version itself is `versatiaVersion` in each repository's
+`versatia-database`. The framework version itself is `versatiaVersion` in each repository's
 `gradle.properties`; every other repository imports the catalog at that version in
 `settings.gradle.kts`, so VersatiaAPI's `publishToMavenLocal` must run first (`scripts/build-all.sh`
 does). A version bump is one edit in `libs.versions.toml`.
 
-VersatiaModule-Messages is the exception: it builds without any Versatia artifact (its own CI
+VersatiaModule-Database is the exception: it builds without any Versatia artifact (its own CI
 builds it alone), so it keeps literal Kotlin and Paper API versions, which must match the catalog.
 
 When bumping Kotlin, pick the `kotlin-compile-testing` fork (`dev.zacsweers.kctfork`) release built

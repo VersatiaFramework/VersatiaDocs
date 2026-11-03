@@ -49,7 +49,7 @@ the owner's concrete class is a compile error. The owner's own instance is never
 A parameter satisfied by another prototype, the owner's own or one exposed by a third plugin, is
 resolved for the consumer as well: the instance is the one the consumer's own beans share. A
 `Messages` prototype taking a `Text` prototype therefore gives each consumer a chain of instances
-made for it; this is how the [Messages module](../modules/messages.md) is built, and how
+made for it; this is how [`Messages`](../messages.md) is built, and how
 [modules](../modules/index.md) build on each other. The `Logger`, `ComponentLogger`
 and `PluginScope` every plugin has are such prototypes, so a prototype taking one logs and
 launches coroutines as its consumer; see

@@ -28,10 +28,9 @@ it with the
 
 :::info[Where do the JARs come from?]
 
-Versatia is not published to a Maven repository yet. VersatiaAPI is open source: build it and
-publish it to your local Maven repository, the steps are in
-[Building the framework](../contributing/building.md). VersatiaCore is distributed as a plugin
-JAR; its repository is private and access to the sources is granted by the Versatia team.
+Versatia is not published to a Maven repository yet. VersatiaAPI and VersatiaCore are open
+source: build VersatiaAPI and publish it to your local Maven repository, then build the
+VersatiaCore plugin JAR; the steps are in [Building the framework](../contributing/building.md).
 
 :::
 
@@ -151,7 +150,7 @@ dependencies {
 
 The catalog matches the framework release: Kotlin and KSP at the versions Versatia is compiled
 with, plus `libs.paper.api` (for `testImplementation`), `libs.versatia.api`,
-`libs.versatia.messages`, `libs.versatia.database`, `libs.commandapi.*`, `libs.snakeyaml` and `libs.kotlinx.coroutines.test`
+`libs.versatia.database`, `libs.commandapi.*`, `libs.snakeyaml` and `libs.kotlinx.coroutines.test`
 (for `testImplementation`; `kotlinx-coroutines-core` itself comes with VersatiaAPI). Your own
 libraries stay in your build, or in a second catalog of your own.
 

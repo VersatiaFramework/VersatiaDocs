@@ -2,24 +2,22 @@
 counterpart: /admin/messages
 ---
 
-# Messages module
+# Messages
 
 import ExampleCard from '@site/src/components/ExampleCard';
 
-[VersatiaModule-Messages](https://github.com/VersatiaFramework/VersatiaModule-Messages) reads
+Versatia reads
 every YAML file under `messages/` in your plugin's data folder into a bank of messages, keeps it
 up to date with `/versatia reload`, and sends them with **runtime arguments**. The text is
 [MiniMessage](https://docs.advntr.dev/minimessage/format.html): angle brackets are formatting,
 braces are data. The code hands over values, the text decides what to show of them.
 
-<ExampleCard repo="VersatiaExample-Modules-Messages" file="src/main/resources/resources/messages" fileLabel="messages/">
+<ExampleCard repo="VersatiaExample-Text-Messages" file="src/main/resources/resources/messages" fileLabel="messages/">
 Two message files, a service sending one with arguments, values that describe themselves and a reload that picks up edits without a line of code.
 </ExampleCard>
 
-Set-up is the same as for every [module](index.md#using-a-module): the API comes with
-[VersatiaStarter](../getting-started/installation.md#in-your-build), `VersatiaModule-Messages` goes
-under `depend:`, and the module's JAR on the server. The module gives your plugin two beans, each
-in a package of its own:
+Nothing to install or declare: every plugin may inject two beans VersatiaCore provides, each in a
+package of its own:
 
 | Inject     | Package                                 | What it is                                                   |
 |------------|-----------------------------------------|--------------------------------------------------------------|
@@ -39,7 +37,7 @@ class Shop(private val messages: Messages) {
 
 ## The files {/* #the-files */}
 
-Ship the files under `src/main/resources/resources/messages/`; [resource extraction](../resources.md)
+Ship the files under `src/main/resources/resources/messages/`; [resource extraction](resources.md)
 puts them into `plugins/<Name>/messages/` on the first start, where server owners edit them. Any
 `.yml` or `.yaml` there, in any subdirectory, is read:
 
@@ -252,7 +250,7 @@ fun describe(text: Text) = text.present<Duration> { duration ->
 ```
 
 The registration applies to everything your plugin parses, its messages included, and to nothing
-else: `Text` is a [module prototype](#one-instance-per-plugin). Among registered types, the one
+else: `Text` is a [prototype of each plugin](#one-instance-per-plugin). Among registered types, the one
 nearest to the value's class wins, so a presentation for `Entity` applies to a villager and a more
 specific one for `Player` to players; your registrations take precedence over the built-in ones,
 `String`, numbers and collections included, registering a type again replaces its presentation,
@@ -306,15 +304,15 @@ standard tag; names starting with `versatia-argument-` are reserved for the brac
 
 `/versatia reload <name>` re-reads the files before your reload-phase functions run; nothing in
 your plugin knows about it, because the `Messages` instance made for your plugin is a
-[`Reloadable` bean](../lifecycle/reload.md#reloadable-beans) of your plugin. A file that fails to
+[`Reloadable` bean](lifecycle/reload.md#reloadable-beans) of your plugin. A file that fails to
 read (invalid YAML, a duplicate key, a value that is not text) fails the reload with
 `Plugin X: ... failed to reload` and a cause naming the file, and the previous messages stay in
 use; at start-up the plugin does not enable.
 
 ## One instance per plugin {/* #one-instance-per-plugin */}
 
-`Messages` and `Text` are [module prototypes](index.md#one-instance-per-plugin): the instances you
-inject are your plugin's own. Your `Messages` reads your data folder and parses with your `Text`,
+`Messages` and `Text` are [exposed prototypes](dependency-injection/scopes.md#exposeprototype) of VersatiaCore: the
+instances you inject are your plugin's own. Your `Messages` reads your data folder and parses with your `Text`,
 the same instance your beans inject, so the presentations and tags you register apply to your
 messages. Two plugins never see each other's messages or registrations, and neither needs the
 other's keys to be unique.

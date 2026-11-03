@@ -60,7 +60,7 @@ class Shop {
 }
 ```
 
-Texts shown to players belong to the [Messages module](modules/messages.md), which reads
+Texts shown to players belong to [Messages](messages.md), which reads
 `messages/`. A file of your own format is read in a `PLUGIN_RELOAD_OR_START` function, so a reload
 picks up its changes, with `loadYamlOrThrow` and the strict getters of the
 [configuration utilities](utilities/configuration.md); never in a constructor, which runs once.

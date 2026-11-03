@@ -3,20 +3,19 @@
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-VersatiaCore is a runtime, not a toolkit: it reads descriptors and runs processors, and the only
-features it knows are beans, lifecycle phases, configuration values, resources, listeners and tasks. Everything else a plugin
-uses day to day comes as a **module**: a plugin of its own, written against VersatiaAPI like any
+VersatiaCore is a runtime, not a toolkit: it reads descriptors and runs processors, and the features
+it knows are beans, lifecycle phases, configuration values, resources, listeners, tasks and
+[messages](../messages.md). What not every server needs comes as a **module**: a plugin of its own, written against VersatiaAPI like any
 other, that exposes a bean. A server installs the modules it needs next to VersatiaCore; a plugin
 lists the ones it uses.
 
 | Module   | Repository                                                                                  | What it gives you                                                 |
 |----------|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------|
-| Messages | [VersatiaModule-Messages](https://github.com/VersatiaFramework/VersatiaModule-Messages)     | [a bank of messages per plugin](messages.md), read from its `messages/` directory and reloaded with it, in MiniMessage with runtime arguments: `{player.name}` |
 | Database | [VersatiaModule-Database](https://github.com/VersatiaFramework/VersatiaModule-Database)     | [a database per plugin](database/index.md), injected and ready: SQLite with no setup, H2, MySQL, MariaDB or PostgreSQL by configuration, with migrations, background work and write-behind caches of rows |
 
 ## Using a module {/* #using-a-module */}
 
-Every module follows the same three steps, shown here for Messages. With
+Every module follows the same three steps, shown here for Database. With
 [VersatiaStarter](../getting-started/installation.md#in-your-build) the first one is already done:
 the starter exports the API of every module.
 
@@ -31,7 +30,7 @@ dependencies {
 ```
 
 The starter brings the module's API. A build that depends on `VersatiaAPI` alone adds the module
-as `compileOnly("com.github.marcoral.versatia:VersatiaModule-Messages:0.0.1")`. Either way the API
+as `compileOnly("com.github.marcoral.versatia:VersatiaModule-Database:0.0.1")`. Either way the API
 is on the compile classpath only: on the server the classes come from the module's plugin, and
 nothing the server provides goes into your JAR; see
 [In your build](../getting-started/installation.md#in-your-build). The artifact holds the module's
@@ -43,7 +42,7 @@ API only; the implementation lives in the plugin JAR.
 ```yaml
 depend:
   - VersatiaCore
-  - VersatiaModule-Messages
+  - VersatiaModule-Database
 ```
 
 The module's plugin name is the repository name. Listing it guarantees the module is up before
@@ -54,9 +53,10 @@ your plugin and lets your class loader see its classes.
 
 ```kotlin
 @LocalBean
-class Shop(private val messages: Messages) {
-    fun offer(player: Player, item: ItemStack) =
-        messages["shop.offer"].send(player, arg("item", item), arg("price", 5))
+class Coins(private val database: Database) {
+    fun richest(limit: Int) = database.async {
+        sql("SELECT name FROM {prefix}profiles ORDER BY coins DESC LIMIT :limit", "limit" to limit).list<String>()
+    }
 }
 ```
 
@@ -65,7 +65,7 @@ Nothing marks the type as foreign: it is a dependency like any other.
 </TabItem>
 </Tabs>
 
-On the server, drop the module's JAR (`VersatiaModule-Messages-0.0.1.jar`) into `plugins/` next to
+On the server, drop the module's JAR (`VersatiaModule-Database-0.0.1.jar`) into `plugins/` next to
 VersatiaCore. Like VersatiaCore, modules are not on a Maven repository yet: build the module and
 run `./gradlew publishToMavenLocal` in its checkout to get the artifact.
 

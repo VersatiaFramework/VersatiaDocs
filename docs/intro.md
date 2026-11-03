@@ -43,7 +43,7 @@ everything is dropped when the plugin disables. `/versatia reload` reads `prices
 | Project             | What it is      | Where it runs                                                                      |
 |---------------------|-----------------|------------------------------------------------------------------------------------|
 | **VersatiaAPI** | a library       | in your build: the API you compile against and a compile-time code generator        |
-| **VersatiaCore**    | a server plugin | on the server, next to your plugin: the runtime that gives the API its behaviour; distributed as a JAR, its sources are private |
+| **VersatiaCore**    | a server plugin | on the server, next to your plugin: the runtime that gives the API its behaviour; distributed as a JAR, its sources are open |
 
 Your plugin depends on VersatiaAPI at compile time and lists VersatiaCore under `depend:` in
 its `plugin.yml`. It never compiles against VersatiaCore.

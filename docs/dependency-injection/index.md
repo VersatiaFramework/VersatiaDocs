@@ -100,6 +100,8 @@ Every plugin may inject these without declaring anything:
 | `ComponentLogger` | `net.kyori.adventure.text.logger.slf4j` | `plugin.componentLogger`, for logging components; also injectable as `org.slf4j.Logger` | VersatiaCore, exposed prototype |
 | `PluginRegistry` | `com.github.marcoral.versatia` | the running Versatia plugins by friendly name; see [From code](../lifecycle/reload.md#from-code) | VersatiaCore, exposed singleton |
 | `PluginScope` | `com.github.marcoral.versatia.task` | the plugin's own coroutines, one scope per plugin; see [Your own coroutines](../tasks.md#your-own-coroutines) | VersatiaCore, exposed prototype |
+| `Messages` | `com.github.marcoral.versatia.messages` | the plugin's bank of messages, read from its `messages/` folder; see [Messages](../messages.md) | VersatiaCore, exposed prototype |
+| `Text` | `com.github.marcoral.versatia.text` | the plugin's parser of MiniMessage with runtime arguments; see [Text without a file](../messages.md#text-without-a-file) | VersatiaCore, exposed prototype |
 
 A class that only logs takes the logger, not the plugin:
 

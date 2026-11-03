@@ -387,7 +387,7 @@ shop:
 
 **20 → 5 lines.** What you no longer write: loading and reloading the file, the default text in
 the code, one placeholder resolver per value and a method per message. The
-[Messages module](../modules/messages.md) reads every file under `messages/` and reloads with the
+[Messages](../messages.md) reads every file under `messages/` and reloads with the
 plugin; the text decides what to show of an argument, so an administrator changes `{player}` to
 `{player.name}` or `{item.amount}` without a rebuild. Where a mistyped `<plaer>` reaches the
 player as text, a mistyped `{plaer}` fails at its first use with the key, the file and what
@@ -396,8 +396,6 @@ exists:
 ```
 Plugin Shop: message "shop.bought" in messages/shop.yml cannot be shown: No argument "plaer"; the arguments are: player, item, price
 ```
-
-The plugin lists `VersatiaModule-Messages` under `depend:`; the API comes with VersatiaStarter.
 
 ## A reload command {/* #a-reload-command */}
 
@@ -501,7 +499,7 @@ depend:
 | `getScheduler().runTaskTimer(plugin, task, delay, period)`       | a [`BackgroundTask`](../tasks.md#background-tasks) with `everyTicks` or `every`, restarted by every reload; [`plugin.runTaskTimer(periodTicks, delayTicks)`](../utilities/misc.md#scheduler) for a plain Bukkit task |
 | `runTaskLater`, `runTaskAsynchronously` and back with `runTask`  | a coroutine of the injected [`PluginScope`](../tasks.md#your-own-coroutines): `delayTicks(20)`, `withContext(Dispatchers.IO) { }` |
 | `Bukkit.broadcast(...)`, `Bukkit.getPlayerExact(name)`           | [`VersatiaEngine.broadcast(...)`, `VersatiaEngine.playerOrNull(name)`](../utilities/index.md#start-with-versatiaengine) |
-| `messages.yml`, `%player%` replacements, `TagResolver`s          | the [Messages module](../modules/messages.md): `messages["key"].send(player, arg("player", player))` |
+| `messages.yml`, `%player%` replacements, `TagResolver`s          | the [Messages](../messages.md): `messages["key"].send(player, arg("player", player))` |
 | `getLogger().info(...)`                                          | `logger.info(...)` in the main class, an [injected `Logger`](../dependency-injection/index.md#beans-every-plugin-has) in a bean |
 | `paper-plugin.yml`                                               | not supported; [`plugin.yml`](installation.md#pluginyml) with `depend: [VersatiaCore]`           |
 

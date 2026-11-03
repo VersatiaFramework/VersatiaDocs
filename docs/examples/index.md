@@ -9,8 +9,8 @@ the log lines to expect and a few things to try. The catalogue with the learning
 [VersatiaExamples](https://github.com/VersatiaFramework/VersatiaExamples); the cards below follow
 the same order.
 
-Each repository builds on its own with `./gradlew build` once VersatiaAPI, VersatiaModule-Messages
-and VersatiaStarter are in your local Maven repository (see
+Each repository builds on its own with `./gradlew build` once VersatiaAPI (and, for the Database example,
+VersatiaModule-Database and VersatiaStarter) are in your local Maven repository (see
 [Building the framework](../contributing/building.md#build-order)), and runs on a server with
 VersatiaCore installed. Repositories are named
 `VersatiaExample-<Topic>-<Feature>`, so they sort by topic on GitHub.
@@ -69,8 +69,8 @@ Two plugins: a provider exposing a singleton and a prototype, and a consumer inj
 <ExampleCard repo="VersatiaExample-Enhancements-Custom" file="library/src/main/kotlin/com/github/marcoral/versatia/example/timing/Timed.kt">
 An enhancement of your own: a library plugin defines <code>@Timed</code> and its processor, another plugin uses it.
 </ExampleCard>
-<ExampleCard repo="VersatiaExample-Modules-Messages" file="src/main/resources/resources/messages" fileLabel="messages/">
-The Messages module: files under <code>messages/</code> become a bank reloaded with the plugin, sent with runtime arguments, <code>{"{offer.price}"}</code> and <code>{"{player.location}"}</code> decided by the text.
+<ExampleCard repo="VersatiaExample-Text-Messages" file="src/main/resources/resources/messages" fileLabel="messages/">
+Messages: files under <code>messages/</code> become a bank reloaded with the plugin, sent with runtime arguments, <code>{"{offer.price}"}</code> and <code>{"{player.location}"}</code> decided by the text.
 </ExampleCard>
 </ExampleGrid>
 

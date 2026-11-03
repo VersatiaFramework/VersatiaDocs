@@ -35,6 +35,7 @@ const sidebars: SidebarsConfig = {
         'tasks',
         'optional-plugins',
         'commands',
+        'messages',
       ],
     },
     {
@@ -42,7 +43,6 @@ const sidebars: SidebarsConfig = {
       label: 'Modules',
       link: {type: 'doc', id: 'modules/index'},
       items: [
-        'modules/messages',
         {
           type: 'category',
           label: 'Database',

@@ -173,7 +173,7 @@ one builds on it.
 The first `reload()` of a bean therefore does **not** run inside the bean's creation, as it
 would have to for the constructors of its dependents to see a loaded bean: it runs in step 4, once
 every bean exists and every value is set. A constructor that reads from a `Reloadable` dependency,
-such as the `Messages` instance the [Messages module](../modules/messages.md) makes for your
+such as the `Messages` instance VersatiaCore [makes](../messages.md) for your
 plugin, sees it empty:
 
 ```kotlin

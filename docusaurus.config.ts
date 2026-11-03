@@ -177,6 +177,8 @@ const config: Config = {
           {from: '/docs/best-practices', to: '/docs/reference/best-practices'},
           {from: '/docs/troubleshooting', to: '/docs/reference/troubleshooting'},
           {from: '/docs/dependency-injection/compile-time-checks', to: '/docs/reference/compile-time-checks'},
+          // Messages became part of the framework
+          {from: '/docs/modules/messages', to: '/docs/messages'},
           // The Database module left the experimental docs once finished
           {from: '/experimental/modules/database', to: '/docs/modules/database'},
           {from: '/experimental/modules/database/statements', to: '/docs/modules/database/statements'},

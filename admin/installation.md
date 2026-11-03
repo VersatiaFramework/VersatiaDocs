@@ -74,7 +74,6 @@ Paper names the missing module at start.
 
 | Module JAR                          | Plugin name               | Needs        |
 |-------------------------------------|---------------------------|--------------|
-| `VersatiaModule-Messages-0.0.1.jar` | `VersatiaModule-Messages` | VersatiaCore |
 | `VersatiaModule-Database-0.0.1.jar` | `VersatiaModule-Database` | VersatiaCore; downloads its libraries at the first start ([Database module](database/index.md)) |
 
 ## Updating {/* #updating */}

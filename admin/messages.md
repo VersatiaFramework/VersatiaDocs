@@ -1,13 +1,12 @@
 ---
-counterpart: /docs/modules/messages
+counterpart: /docs/messages
 ---
 
 # Editing messages
 
-A plugin that uses the Messages module keeps every text it shows to players in
-`plugins/<Name>/messages/`. You can reword, recolour or translate them all without touching the
-plugin. The module itself is a plugin JAR,
-`VersatiaModule-Messages`, installed next to VersatiaCore ([Modules](installation.md#modules)).
+A plugin built on Versatia keeps the texts it shows to players in `plugins/<Name>/messages/`. You
+can reword, recolour or translate them all without touching the plugin; nothing besides
+VersatiaCore has to be installed.
 
 ## The files {/* #the-files */}
 

@@ -320,7 +320,7 @@ segments written in the source; name a path relative to the data folder, such as
 
 ### `Plugin X has no message "k"; ...` {/* #plugin-x-has-no-message-k- */}
 
-`messages[key]` of the [Messages module](../modules/messages.md) found no such key; the message lists
+`messages[key]` of [Messages](../messages.md) found no such key; the message lists
 the keys that start the same way, or says the plugin has no messages at all, which usually means
 the `messages/` directory is missing from its data folder: ship the files under
 `src/main/resources/resources/messages/`. A key is dotted, `shop.bought`, and never contains the
@@ -333,13 +333,13 @@ messages. Its siblings: `is not UTF-8 encoded; save it as UTF-8`,
 `message "k" is defined twice in messages/f.yml`, `message "k" is defined in both messages/a.yml
 and messages/b.yml`, `"k" is a message in ... and a group of messages in ...; rename one of them`,
 `message "k" in messages/f.yml is not text` and `... is a list whose lines must all be text`. Fix
-the file and reload. See [The files](../modules/messages.md#the-files).
+the file and reload. See [The files](../messages.md#the-files).
 
 ### `Plugin X: message "k" in messages/f.yml cannot be shown: ...` {/* #plugin-x-message-k-in-messagesfyml-cannot-be-shown- */}
 
 The message was read, but using it failed; the rest says why, such as
 `No argument "nmae"; the arguments are: name, item`. Fix the brace in the file, or pass the
-argument in the code. See [Errors](../modules/messages.md#errors).
+argument in the code. See [Errors](../messages.md#errors).
 
 ### `Plugin X: the friendly name "n" is already used by Y` {/* #plugin-x-the-friendly-name-n-is-already-used-by-y */}
 
