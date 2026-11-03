@@ -7,8 +7,15 @@
 
 .bar {
   display: flex;
-  overflow-x: auto;
+  align-items: center;
   border-bottom: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.tabs {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
 }
 
 .tab {
@@ -43,7 +50,7 @@
   border-bottom-color: var(--versatia-experimental);
 }
 
-/* The panels share one grid cell, so the block is as tall as its tallest panel whichever is shown */
+/* The panels of a side share one grid cell, so the block is as tall as its tallest panel whichever is shown */
 .panels {
   display: grid;
 }
@@ -57,9 +64,86 @@
   visibility: hidden;
 }
 
+.hidden {
+  display: none;
+}
+
 .panel :global(.theme-code-block) {
   height: 100%;
   margin-bottom: 0;
   border-radius: 0;
   box-shadow: none;
+}
+
+/* The Versatia/Bukkit switch: a pill whose thumb slides under the side shown */
+.switch {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: none;
+  margin: 0 0.75rem;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--ifm-color-emphasis-200);
+  font-size: 0.75rem;
+  opacity: 0.85;
+  transition: opacity var(--ifm-transition-fast) ease;
+}
+
+.switch:hover,
+.switch:focus-within {
+  opacity: 1;
+}
+
+.switch::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
+  border-radius: inherit;
+  background: var(--versatia-developer);
+  transition:
+    transform var(--ifm-transition-fast) ease,
+    background-color var(--ifm-transition-fast) ease;
+}
+
+.bukkit::before {
+  background: var(--ifm-color-emphasis-600);
+  transform: translateX(100%);
+}
+
+.option {
+  position: relative;
+  padding: 0.2rem 0.65rem;
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.option[aria-checked='true'] {
+  color: #fff;
+}
+
+:global([data-theme='dark']) .option[aria-checked='true'] {
+  color: #1b1b1d;
+}
+
+.lines {
+  margin-left: 0.4em;
+  font-weight: 400;
+  opacity: 0.75;
+}
+
+.spares {
+  margin: 0;
+  padding: 0.6rem var(--ifm-pre-padding);
+  border-top: 1px solid var(--ifm-color-emphasis-300);
+  font-size: 0.8rem;
 }

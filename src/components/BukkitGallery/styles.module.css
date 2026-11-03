@@ -1,0 +1,20 @@
+.all {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding: 0.6rem 0 0.6rem var(--ifm-pre-padding);
+  border-radius: var(--ifm-code-border-radius);
+  background: var(--versatia-developer-bg);
+  font-weight: 600;
+}
+
+.pair {
+  margin: 0 0 2rem;
+}
+
+.place {
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}

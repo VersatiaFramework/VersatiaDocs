@@ -1,6 +1,7 @@
 # Reloading plugins
 
 import ExampleCard from '@site/src/components/ExampleCard';
+import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
 
 `/versatia reload` runs the reload phase of every running Versatia plugin, `/versatia reload <name>`
 that of one plugin. The command requires the permission `versatia.core.command.reload`, which
@@ -42,6 +43,9 @@ file deleted from the data folder and leaves every other file alone. Then the pl
 reload is for re-reading configuration and rebuilding whatever derives from it: the values are
 re-read for you, and the rest is rebuilt in functions such as
 
+<CodeCards spares="the reload command and its `plugin.yml` entry, re-reading the files, reporting a failure to the sender and the console">
+<CodeCard title="ShopPlugin.kt">
+
 ```kotlin
 class ShopPlugin : VersatiaPlugin() {
 
@@ -49,6 +53,53 @@ class ShopPlugin : VersatiaPlugin() {
     private fun load(prices: PriceList) = prices.rebuild()
 }
 ```
+
+</CodeCard>
+<CodeCard title="ShopPlugin.java" bukkit>
+
+```java
+public final class ShopPlugin extends JavaPlugin {
+    private PriceList prices;
+
+    @Override
+    public void onEnable() {
+        saveDefaultConfig();
+        prices = new PriceList(this);
+        prices.rebuild();
+    }
+
+    // /shopreload, declared in plugin.yml
+    @Override
+    public boolean onCommand(CommandSender sender, Command command,
+            String label, String[] args) {
+        try {
+            saveDefaultConfig();
+            reloadConfig();
+            prices.rebuild();
+            sender.sendMessage(text("Shop reloaded", GREEN));
+        } catch (RuntimeException e) {
+            sender.sendMessage(text("Reload failed: " + e.getMessage(), RED));
+            getLogger().log(Level.SEVERE, "Shop failed to reload", e);
+        }
+        return true;
+    }
+}
+```
+
+</CodeCard>
+<CodeCard title="plugin.yml" bukkit>
+
+```yaml
+commands:
+  shopreload:
+    permission: shop.reload
+permissions:
+  shop.reload:
+    default: op
+```
+
+</CodeCard>
+</CodeCards>
 
 `prices` is the same bean instance the plugin got at start; see
 [Phases and events](phases.md) for which phase runs when. A plugin whose reload fails is reported

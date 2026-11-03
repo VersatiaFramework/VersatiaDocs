@@ -4,6 +4,7 @@ counterpart: /admin/messages
 # Sending messages
 
 import ExampleCard from '@site/src/components/ExampleCard';
+import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
 
 Versatia reads
 every YAML file under `messages/` in your plugin's data folder into a bank of messages, keeps it
@@ -23,6 +24,9 @@ package of its own:
 | `Messages` | `dev.versatia.messages` | your plugin's [bank of messages](#the-files), read from its data folder |
 | `Text`     | `dev.versatia.text`     | the parser behind the messages, for [text that is not in a file](arguments.md#text-without-a-file) and for describing your types; arguments (`arg`) and presentations live here too |
 
+<CodeCards spares="loading and restoring the file, the check for a missing key, a placeholder per value, a method per message">
+<CodeCard title="Shop.kt">
+
 ```kotlin
 import dev.versatia.messages.Messages
 import dev.versatia.text.arg
@@ -33,6 +37,57 @@ class Shop(private val messages: Messages) {
         messages["shop.bought"].send(player, arg("player", player), arg("item", item), arg("price", price))
 }
 ```
+
+</CodeCard>
+<CodeCard title="messages/shop.yml">
+
+```yaml
+shop:
+  bought: "<green>{player} bought {item} for <gold>{price}</gold> coins."
+```
+
+</CodeCard>
+<CodeCard title="ShopMessages.java" bukkit>
+
+```java
+public final class ShopMessages {
+    private final JavaPlugin plugin;
+    private YamlConfiguration messages;
+
+    public ShopMessages(JavaPlugin plugin) {
+        this.plugin = plugin;
+    }
+
+    // called from onEnable and from the plugin's reload command
+    public void reload() {
+        File file = new File(plugin.getDataFolder(), "messages.yml");
+        if (!file.exists()) plugin.saveResource("messages.yml", false);
+        messages = YamlConfiguration.loadConfiguration(file);
+    }
+
+    public void sendBought(Player player, ItemStack item, int price) {
+        String raw = messages.getString("shop.bought");
+        if (raw == null)
+            throw new IllegalStateException(
+                    "shop.bought is missing from messages.yml");
+        player.sendMessage(MiniMessage.miniMessage().deserialize(raw,
+                Placeholder.component("player", player.displayName()),
+                Placeholder.component("item", item.displayName()),
+                Placeholder.unparsed("price", String.valueOf(price))));
+    }
+}
+```
+
+</CodeCard>
+<CodeCard title="messages.yml" bukkit>
+
+```yaml
+shop:
+  bought: "<green><player> bought <item> for <gold><price></gold> coins."
+```
+
+</CodeCard>
+</CodeCards>
 
 Arguments, their properties and tags of your own are on [Arguments and tags](arguments.md).
 

@@ -117,6 +117,21 @@
   margin-bottom: 0;
 }
 
+/* The Bukkit side is three times as long: it scrolls inside the block instead of stretching the hero */
+.heroCode pre {
+  max-height: 27rem;
+}
+
+.heroCode > div > div:first-child {
+  margin-bottom: 0.75rem;
+}
+
+.compare {
+  display: block;
+  text-align: right;
+  font-weight: 600;
+}
+
 .steps {
   padding: 3rem 0 1rem;
 }

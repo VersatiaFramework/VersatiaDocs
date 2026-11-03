@@ -11,6 +11,9 @@ Versatia has no command annotation: a plugin declares its commands with the
 register the command at start and remove it at stop. CommandAPI stays a soft dependency, so the
 plugin runs without it and only the command is missing.
 
+<CodeCards spares="the `plugin.yml` entries, the `getCommand` check, parsing `args`, the sender cast, the permission check and the completion; CommandAPI does the last four, while Versatia registers the command at start, removes it at stop and keeps CommandAPI optional">
+<CodeCard title="ShopCommand.kt">
+
 ```kotlin
 package com.example.shop.command
 
@@ -43,6 +46,74 @@ object ShopCommand {
     fun unregister() = CommandAPI.unregister(NAME, true)
 }
 ```
+
+</CodeCard>
+<CodeCard title="ShopCommand.java" bukkit>
+
+```java
+public final class ShopCommand implements TabExecutor {
+    private static final String PRICE_PERMISSION = "shop.command.price";
+    private final PriceList prices;
+
+    public ShopCommand(PriceList prices) {
+        this.prices = prices;
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command,
+            String label, String[] args) {
+        if (args.length != 2 || !args[0].equalsIgnoreCase("price"))
+            return false;
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(text("Only players can use /shop price", RED));
+            return true;
+        }
+        if (!player.hasPermission(PRICE_PERMISSION)) {
+            player.sendMessage(text("You may not use /shop price", RED));
+            return true;
+        }
+        player.sendMessage(prices.describe(args[1]));
+        return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command,
+            String label, String[] args) {
+        boolean allowed = sender.hasPermission(PRICE_PERMISSION);
+        return args.length == 1 && allowed ? List.of("price") : List.of();
+    }
+}
+```
+
+</CodeCard>
+<CodeCard title="ShopPlugin.java" bukkit>
+
+```java
+public final class ShopPlugin extends JavaPlugin {
+    @Override
+    public void onEnable() {
+        PluginCommand shop = getCommand("shop");
+        if (shop == null)
+            throw new IllegalStateException("shop is missing from plugin.yml");
+        shop.setExecutor(new ShopCommand(new PriceList()));
+    }
+}
+```
+
+</CodeCard>
+<CodeCard title="plugin.yml" bukkit>
+
+```yaml
+commands:
+  shop:
+    usage: /shop price <item>
+permissions:
+  shop.command.price:
+    default: true
+```
+
+</CodeCard>
+</CodeCards>
 
 ## Where a command lives {/* #where-a-command-lives */}
 

@@ -7,6 +7,7 @@ description: What Versatia is, how its two halves cooperate and what the framewo
 
 import Link from '@docusaurus/Link';
 import Audience from '@site/src/components/Audience';
+import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
 
 **Versatia** is a framework for [Paper](https://papermc.io/) **1.21.4** plugins written in Kotlin.
 Its mission is to remove the Bukkit boilerplate from plugins: wiring singletons, passing
@@ -14,11 +15,15 @@ dependencies around by hand, registering things in `onEnable` and tearing them d
 `onDisable`. A plugin declares *what* it has; Versatia takes care of *when* and *how* it is hooked
 into the server.
 
+<CodeCards spares="the reload command and its `plugin.yml` entry, the objects created in order, the map read and checked by hand">
+<CodeCard title="ShopPlugin.kt">
+
 ```kotlin
 class ShopPlugin : VersatiaPlugin() {
 
     @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
-    private fun start(prices: PriceList) = logger.info("Loaded ${prices.size} prices")
+    private fun start(prices: PriceList) =
+        logger.info("Loaded ${prices.size} prices")
 }
 
 @LocalBean
@@ -32,6 +37,117 @@ class ShopConfig {
     var prices: Map<String, Int> = emptyMap()
 }
 ```
+
+</CodeCard>
+<CodeCard title="config.yml">
+
+```yaml
+prices:
+  diamond: 120
+  bread: 2
+  iron-ingot: 15
+```
+
+</CodeCard>
+<CodeCard title="Console" output>
+
+```text
+[14:02:11 INFO]: [Shop] Enabling Shop v1.0.0
+[14:02:11 INFO]: [Shop] Loaded 3 prices
+```
+
+</CodeCard>
+<CodeCard title="ShopPlugin.java" bukkit>
+
+```java
+public final class ShopPlugin extends JavaPlugin {
+    private PriceList prices;
+
+    @Override
+    public void onEnable() {
+        saveDefaultConfig();
+        load();
+    }
+
+    // /shopreload, declared in plugin.yml
+    @Override
+    public boolean onCommand(CommandSender sender,
+            Command command, String label, String[] args) {
+        reloadConfig();
+        try {
+            load();
+        } catch (IllegalStateException e) {
+            sender.sendMessage(text(e.getMessage(), RED));
+            return true;
+        }
+        sender.sendMessage(text("Shop reloaded", GREEN));
+        return true;
+    }
+
+    private void load() {
+        var config = ShopConfig.read(getConfig());
+        prices = new PriceList(config);
+        getLogger().info(
+                "Loaded " + prices.size() + " prices");
+    }
+}
+
+record PriceList(ShopConfig config) {
+    int size() {
+        return config.prices().size();
+    }
+}
+
+record ShopConfig(Map<String, Integer> prices) {
+    static ShopConfig read(ConfigurationSection config) {
+        ConfigurationSection section =
+                config.getConfigurationSection("prices");
+        if (section == null)
+            throw new IllegalStateException("No prices");
+        Map<String, Integer> prices = new HashMap<>();
+        for (String item : section.getKeys(false)) {
+            if (!section.isInt(item))
+                throw new IllegalStateException(
+                        "Not a price: " + item);
+            prices.put(item, section.getInt(item));
+        }
+        return new ShopConfig(prices);
+    }
+}
+```
+
+</CodeCard>
+<CodeCard title="config.yml" bukkit>
+
+```yaml
+prices:
+  diamond: 120
+  bread: 2
+  iron-ingot: 15
+```
+
+</CodeCard>
+<CodeCard title="plugin.yml" bukkit>
+
+```yaml
+commands:
+  shopreload:
+    permission: shop.reload
+permissions:
+  shop.reload:
+    default: op
+```
+
+</CodeCard>
+<CodeCard title="Console" output bukkit>
+
+```text
+[14:02:11 INFO]: [Shop] Enabling Shop v1.0.0
+[14:02:11 INFO]: [Shop] Loaded 3 prices
+```
+
+</CodeCard>
+</CodeCards>
 
 Nothing is overridden, nothing is registered. The beans are created in dependency order when the
 plugin enables, `prices` is read from `config.yml`, `start` runs once all of that is done, and
@@ -172,6 +288,6 @@ both.
 | KSP       | `2.3.12` |
 
 Ready? Start with the [installation](getting-started/installation.md), or browse the
-[example plugins](examples/index.md), one feature each. Coming from a Bukkit plugin? See
-[Coming from Bukkit](getting-started/coming-from-bukkit.md) for its everyday code next to the same
-plugin with Versatia.
+[example plugins](examples/index.md), one feature each. Coming from a Bukkit plugin?
+[Coming from Bukkit](getting-started/coming-from-bukkit.md) puts every example of this
+documentation next to the same code written with plain Bukkit.

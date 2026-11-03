@@ -14,7 +14,7 @@ from a YAML file in the data folder when the plugin starts and again at every
 Values on the main class, on an object and on a bean, from two files, re-read with <code>/versatia reload values</code>.
 </ExampleCard>
 
-<CodeCards>
+<CodeCards spares="the type and range checks, the second file loaded and restored by hand, the `load()` calls at start and in the reload command, the getters">
 <CodeCard title="Shop.kt">
 
 ```kotlin
@@ -44,6 +44,78 @@ shop:
 
 </CodeCard>
 <CodeCard title="limits.yml">
+
+```yaml
+max-players: 20
+```
+
+</CodeCard>
+<CodeCard title="Shop.java" bukkit>
+
+```java
+public final class Shop {
+    private final JavaPlugin plugin;
+    private double tax;
+    private List<Integer> hours = List.of();
+    private int maxPlayers;
+
+    public Shop(JavaPlugin plugin) {
+        this.plugin = plugin;
+    }
+
+    // called from onEnable and from the plugin's reload command
+    public void load() {
+        plugin.saveDefaultConfig();
+        plugin.reloadConfig();
+        FileConfiguration config = plugin.getConfig();
+        if (!(config.get("shop.tax") instanceof Number tax)
+                || tax.doubleValue() < 0 || tax.doubleValue() > 1)
+            throw new IllegalStateException(
+                    "shop.tax in config.yml is not from 0 to 1");
+        if (!config.isList("shop.hours"))
+            throw new IllegalStateException(
+                    "shop.hours in config.yml is not a list");
+        List<Integer> hours = new ArrayList<>();
+        for (Object hour : config.getList("shop.hours")) {
+            if (!(hour instanceof Integer value))
+                throw new IllegalStateException(
+                        "shop.hours in config.yml holds " + hour);
+            hours.add(value);
+        }
+
+        File file = new File(plugin.getDataFolder(), "limits.yml");
+        if (!file.exists()) plugin.saveResource("limits.yml", false);
+        YamlConfiguration limits = YamlConfiguration.loadConfiguration(file);
+        if (!limits.isInt("max-players"))
+            throw new IllegalStateException(
+                    "max-players in limits.yml is not a number");
+
+        this.tax = tax.doubleValue();
+        this.hours = hours;
+        this.maxPlayers = limits.getInt("max-players");
+    }
+
+    public double tax() {
+        return tax;
+    }
+
+    public int maxPlayers() {
+        return maxPlayers;
+    }
+}
+```
+
+</CodeCard>
+<CodeCard title="config.yml" bukkit>
+
+```yaml
+shop:
+  tax: 0.08
+  hours: [9, 17]
+```
+
+</CodeCard>
+<CodeCard title="limits.yml" bukkit>
 
 ```yaml
 max-players: 20

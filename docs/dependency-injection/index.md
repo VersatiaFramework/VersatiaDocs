@@ -1,6 +1,7 @@
 # Beans
 
 import ExampleCard from '@site/src/components/ExampleCard';
+import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
 
 Versatia wires objects through **constructor injection** driven entirely by the generated
 descriptor. There is no container to configure, no module to write and nothing to look up at
@@ -14,6 +15,9 @@ Three local beans created in dependency order, each taking the plugin's logger, 
 
 A bean is a class annotated with a *scope*. Its constructor parameters are its dependencies, and
 they are satisfied by other beans.
+
+<CodeCards spares="the `new` calls in dependency order, the static instance through which other classes reach the banner, the clean-up in `onDisable`">
+<CodeCard title="Banner.kt">
 
 ```kotlin
 import dev.versatia.di.LocalBean
@@ -32,6 +36,73 @@ class Banner(private val greeter: Greeter) {
     fun show() = println(greeter.greeting())
 }
 ```
+
+</CodeCard>
+<CodeCard title="Greeter.java" bukkit>
+
+```java
+public interface Greeter {
+    String greeting();
+}
+```
+
+</CodeCard>
+<CodeCard title="FriendlyGreeter.java" bukkit>
+
+```java
+public final class FriendlyGreeter implements Greeter {
+    @Override
+    public String greeting() {
+        return "Welcome!";
+    }
+}
+```
+
+</CodeCard>
+<CodeCard title="Banner.java" bukkit>
+
+```java
+public final class Banner {
+    private final Greeter greeter;
+
+    public Banner(Greeter greeter) {
+        this.greeter = greeter;
+    }
+
+    public void show() {
+        System.out.println(greeter.greeting());
+    }
+}
+```
+
+</CodeCard>
+<CodeCard title="MyPlugin.java" bukkit>
+
+```java
+public final class MyPlugin extends JavaPlugin {
+    private static MyPlugin instance;
+    private Banner banner;
+
+    @Override
+    public void onEnable() {
+        instance = this;
+        banner = new Banner(new FriendlyGreeter());
+    }
+
+    @Override
+    public void onDisable() {
+        instance = null;
+    }
+
+    // how the rest of the plugin reaches the banner
+    public static Banner banner() {
+        return instance.banner;
+    }
+}
+```
+
+</CodeCard>
+</CodeCards>
 
 `Banner` asks for a `Greeter`, an interface. A bean *provides* its own type and every supertype
 except `Any`, so `FriendlyGreeter` satisfies the request.

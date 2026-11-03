@@ -1,6 +1,7 @@
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
+import comparisons from './plugins/comparisons';
 
 // GitHub Pages address of this repository; adjust when the repository is published elsewhere
 const organizationName = 'VersatiaFramework';
@@ -196,6 +197,8 @@ const config: Config = {
         ],
       },
     ],
+    // Collects the Versatia/Bukkit pairs of the developer documentation for the gallery of Coming from Bukkit
+    comparisons,
   ],
 
   themes: [
@@ -262,6 +265,13 @@ const config: Config = {
           to: '/docs/examples',
           position: 'left',
           label: 'Examples',
+        },
+        {
+          type: 'custom-audienceLink',
+          audience: 'developer',
+          to: '/docs/getting-started/coming-from-bukkit',
+          position: 'left',
+          label: 'Coming from Bukkit',
         },
         {
           type: 'custom-docsSwitch',

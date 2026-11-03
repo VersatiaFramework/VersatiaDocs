@@ -36,6 +36,71 @@ const config = `prices:
 const output = `[14:02:11 INFO]: [Shop] Enabling Shop v1.0.0
 [14:02:11 INFO]: [Shop] Loaded 3 prices`;
 
+// The same plugin with plain Bukkit, as on the Introduction page
+const bukkitSample = `public final class ShopPlugin extends JavaPlugin {
+    private PriceList prices;
+
+    @Override
+    public void onEnable() {
+        saveDefaultConfig();
+        load();
+    }
+
+    // /shopreload, declared in plugin.yml
+    @Override
+    public boolean onCommand(CommandSender sender,
+            Command command, String label, String[] args) {
+        reloadConfig();
+        try {
+            load();
+        } catch (IllegalStateException e) {
+            sender.sendMessage(text(e.getMessage(), RED));
+            return true;
+        }
+        sender.sendMessage(text("Shop reloaded", GREEN));
+        return true;
+    }
+
+    private void load() {
+        var config = ShopConfig.read(getConfig());
+        prices = new PriceList(config);
+        getLogger().info(
+                "Loaded " + prices.size() + " prices");
+    }
+}
+
+record PriceList(ShopConfig config) {
+    int size() {
+        return config.prices().size();
+    }
+}
+
+record ShopConfig(Map<String, Integer> prices) {
+    static ShopConfig read(ConfigurationSection config) {
+        ConfigurationSection section =
+                config.getConfigurationSection("prices");
+        if (section == null)
+            throw new IllegalStateException("No prices");
+        Map<String, Integer> prices = new HashMap<>();
+        for (String item : section.getKeys(false)) {
+            if (!section.isInt(item))
+                throw new IllegalStateException(
+                        "Not a price: " + item);
+            prices.put(item, section.getInt(item));
+        }
+        return new ShopConfig(prices);
+    }
+}`;
+
+const pluginYml = `commands:
+  shopreload:
+    permission: shop.reload
+permissions:
+  shop.reload:
+    default: op`;
+
+const spares = 'the reload command and its `plugin.yml` entry, the objects created in order, the map read and checked by hand';
+
 const paths: {who: Who; question: string; text: string; to: string; cta: string}[] = [
   {
     who: 'developer',
@@ -93,11 +158,20 @@ function Hero() {
             <Paths />
           </div>
           <div className={clsx('col col--6', styles.heroCode)}>
-            <CodeCards>
-              <CodeCard title="ShopPlugin.kt" language="kotlin">{sample}</CodeCard>
-              <CodeCard title="config.yml" language="yaml">{config}</CodeCard>
-              <CodeCard title="Console" output>{output}</CodeCard>
-            </CodeCards>
+            <div>
+              <CodeCards spares={spares}>
+                <CodeCard title="ShopPlugin.kt" language="kotlin">{sample}</CodeCard>
+                <CodeCard title="config.yml" language="yaml">{config}</CodeCard>
+                <CodeCard title="Console" output>{output}</CodeCard>
+                <CodeCard title="ShopPlugin.java" language="java" bukkit>{bukkitSample}</CodeCard>
+                <CodeCard title="config.yml" language="yaml" bukkit>{config}</CodeCard>
+                <CodeCard title="plugin.yml" language="yaml" bukkit>{pluginYml}</CodeCard>
+                <CodeCard title="Console" output bukkit>{output}</CodeCard>
+              </CodeCards>
+              <Link to="/docs/getting-started/coming-from-bukkit#side-by-side" className={styles.compare}>
+                Every example next to plain Bukkit →
+              </Link>
+            </div>
           </div>
         </div>
       </div>

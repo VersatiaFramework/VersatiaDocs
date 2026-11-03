@@ -2,6 +2,7 @@
 
 import ExampleCard from '@site/src/components/ExampleCard';
 import Audience from '@site/src/components/Audience';
+import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
 
 `@ConditionalOnPlugin("Vault")` keeps an element out of the runtime's work unless every named
 plugin is enabled on the server. It is how a Versatia plugin integrates with a plugin that may or
@@ -11,6 +12,9 @@ other plugin is missing.
 <ExampleCard repo="VersatiaExample-DI-OptionalPlugins" file="src/main/kotlin/dev/versatia/example/optionalplugins/VaultPayments.kt">
 A <code>Payments</code> bean backed by Vault when it is installed, <code>@ConditionalOnPlugin("Vault")</code> and <code>@Primary</code>, a fallback otherwise, and the condition written once as <code>@NeedsVault</code>.
 </ExampleCard>
+
+<CodeCards spares="the `isPluginEnabled` check, keeping Vault's types out of every other class, the `ServicesManager` lookup and its null check, `registerEvents`">
+<CodeCard title="VaultBridge.kt">
 
 ```kotlin
 import dev.versatia.ConditionalOnPlugin
@@ -30,6 +34,52 @@ class VaultBridge(private val logger: Logger) : Listener {
     fun onBuy(event: BuyEvent) = economy.withdrawPlayer(event.player, event.price)
 }
 ```
+
+</CodeCard>
+<CodeCard title="VaultBridge.java" bukkit>
+
+```java
+final class VaultBridge implements Listener {
+    private final Economy economy;
+
+    private VaultBridge(Economy economy) {
+        this.economy = economy;
+    }
+
+    static void register(JavaPlugin plugin) {
+        RegisteredServiceProvider<Economy> provider =
+                Bukkit.getServicesManager().getRegistration(Economy.class);
+        if (provider == null)
+            throw new IllegalStateException(
+                    "Vault is installed without an economy plugin");
+        var bridge = new VaultBridge(provider.getProvider());
+        plugin.getServer().getPluginManager().registerEvents(bridge, plugin);
+        plugin.getLogger().info("Vault found, prices are charged");
+    }
+
+    @EventHandler
+    public void onBuy(BuyEvent event) {
+        economy.withdrawPlayer(event.getPlayer(), event.getPrice());
+    }
+}
+```
+
+</CodeCard>
+<CodeCard title="ShopPlugin.java" bukkit>
+
+```java
+public final class ShopPlugin extends JavaPlugin {
+    @Override
+    public void onEnable() {
+        // checked first: VaultBridge and its Vault types load only with Vault
+        if (getServer().getPluginManager().isPluginEnabled("Vault"))
+            VaultBridge.register(this);
+    }
+}
+```
+
+</CodeCard>
+</CodeCards>
 
 With Vault installed, `VaultBridge` is created, its listener registered and `announce` called.
 Without it, none of that happens and the class is never loaded, so its references to Vault's

@@ -8,7 +8,7 @@ a Kotlin coroutine of the plugin. A class implementing `BackgroundTask` runs by 
 the plugin does, and is restarted with the new values by every reload; nothing is scheduled,
 remembered or cancelled by hand:
 
-<CodeCards>
+<CodeCards spares="the task handle, cancelling and rescheduling it at every reload, the period converted to ticks, the calls from `onEnable` and from the reload command">
 <CodeCard title="AutoBroadcastTask.kt">
 
 ```kotlin
@@ -49,6 +49,62 @@ auto-broadcast:
 [Broadcast] Broadcasting 2 lines every 30s
 Tip: edit config.yml and run /versatia reload broadcast
 Background tasks start by themselves, one tick after the plugin
+```
+
+</CodeCard>
+<CodeCard title="AutoBroadcast.java" bukkit>
+
+```java
+public final class AutoBroadcast {
+    private final JavaPlugin plugin;
+    private BukkitTask task;
+
+    public AutoBroadcast(JavaPlugin plugin) {
+        this.plugin = plugin;
+    }
+
+    // called from onEnable and, after reloadConfig(), from the reload command
+    public void start() {
+        if (task != null) task.cancel();
+        task = null;
+        FileConfiguration config = plugin.getConfig();
+        long seconds = config.getLong("auto-broadcast.period-seconds");
+        if (seconds <= 0)
+            throw new IllegalStateException("period-seconds is not positive");
+        List<String> lines = config.getStringList("auto-broadcast.lines");
+        if (lines.isEmpty()) {
+            plugin.getLogger().info(
+                    "No lines to broadcast; add some to config.yml and reload");
+            return;
+        }
+        plugin.getLogger().info("Broadcasting " + lines.size()
+                + " lines every " + seconds + "s");
+        Iterator<String> rotation = Iterators.cycle(lines);
+        long ticks = seconds * 20;
+        task = plugin.getServer().getScheduler().runTaskTimer(plugin,
+                () -> Bukkit.broadcast(text(rotation.next())), ticks, ticks);
+    }
+}
+```
+
+</CodeCard>
+<CodeCard title="config.yml" bukkit>
+
+```yaml
+auto-broadcast:
+  period-seconds: 30
+  lines:
+    - "Tip: edit config.yml and run /broadcastreload"
+    - "Visit the shop with /shop"
+```
+
+</CodeCard>
+<CodeCard title="Console" output bukkit>
+
+```text
+[Broadcast] Broadcasting 2 lines every 30s
+Tip: edit config.yml and run /broadcastreload
+Visit the shop with /shop
 ```
 
 </CodeCard>

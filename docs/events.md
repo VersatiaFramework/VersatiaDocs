@@ -1,9 +1,13 @@
 # Event listeners
 
 import ExampleCard from '@site/src/components/ExampleCard';
+import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
 
 Every class of a Versatia plugin that implements Bukkit's `Listener` is registered when the plugin
 starts. There is no `registerEvents` call to write and nothing to annotate:
+
+<CodeCards spares="`registerEvents` for every listener, and creating what each listener needs">
+<CodeCard title="WelcomeListener.kt">
 
 ```kotlin
 class WelcomeListener(private val greeter: Greeter) : Listener {
@@ -11,6 +15,40 @@ class WelcomeListener(private val greeter: Greeter) : Listener {
     fun onJoin(event: PlayerJoinEvent) = event.player.sendMessage(greeter.greeting())
 }
 ```
+
+</CodeCard>
+<CodeCard title="WelcomeListener.java" bukkit>
+
+```java
+public final class WelcomeListener implements Listener {
+    private final Greeter greeter;
+
+    public WelcomeListener(Greeter greeter) {
+        this.greeter = greeter;
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        event.getPlayer().sendMessage(greeter.greeting());
+    }
+}
+```
+
+</CodeCard>
+<CodeCard title="MyPlugin.java" bukkit>
+
+```java
+public final class MyPlugin extends JavaPlugin {
+    @Override
+    public void onEnable() {
+        var welcome = new WelcomeListener(new FriendlyGreeter());
+        getServer().getPluginManager().registerEvents(welcome, this);
+    }
+}
+```
+
+</CodeCard>
+</CodeCards>
 
 <ExampleCard repo="VersatiaExample-Events-Listeners" file="src/main/kotlin/dev/versatia/example/listeners/Listeners.kt">
 A plain listener with an injected bean and a listener that is itself a bean, both registered automatically.
