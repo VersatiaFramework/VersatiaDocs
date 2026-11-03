@@ -1,14 +1,11 @@
 ---
 counterpart: /admin/database/data
-title: Migrations and named queries
-description: The SQL files of a plugin JAR, engine overrides, the schema history, resuming, backups, locks and named queries.
+title: Migrations
+description: The SQL files of a plugin JAR, the schema history, resuming, backups and locks.
 ---
-
-# Migrations and named queries
+# Migrations
 
 import Audience from '@site/src/components/Audience';
-import TwinEngines from '@site/src/components/TwinEngines';
-import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
 
 SQL is code, so it ships **in the JAR**, next to the classes that use it, and is never copied to
 the data folder for admins to edit. Two directories of `src/main/resources/database/` hold it:
@@ -54,7 +51,12 @@ Plugin Shop: 2 problems in the SQL files of the JAR:
 
 Anything else under `database/` is a problem too: a file elsewhere than `migrations/` or `queries/`,
 a file that is not `.sql`, a directory deeper than one engine directory, or an unknown engine
-directory (`unknown engine directory "postgres"; did you mean "postgresql"?`); [Mistakes in the tree](#mistakes-in-the-tree) lists the messages.
+directory (`unknown engine directory "postgres"; did you mean "postgresql"?`); [Mistakes in the tree](engine-overrides.md#mistakes-in-the-tree) lists the messages.
+
+Named queries, the other kind of SQL file in the JAR, are on [Named queries](queries.md).
+
+SQL that one engine needs in another form goes into its engine directory, described on [Engine
+overrides](engine-overrides.md).
 
 ## Migration files <Audience who="developer" /> {/* #migration-files */}
 
@@ -66,7 +68,7 @@ words, with `_` as spaces, are the description the history keeps.
 A file holds any number of statements separated by `;`. A `;` inside a string, a quoted identifier,
 a comment or a `$tag$` body does not end a statement, nor does one inside the `BEGIN ... END` of a
 `CREATE TRIGGER`, `PROCEDURE`, `FUNCTION` or `EVENT`. Statements are written with
-[tokens](configuration.md#tokens), so one file serves every engine:
+[tokens](tokens.md), so one file serves every engine:
 
 ```sql title="src/main/resources/database/migrations/V2__create_payments.sql"
 CREATE TABLE {prefix}payments (
@@ -90,121 +92,6 @@ Comment lines at the very top of a file can change how it runs:
 | `-- versatia: single-statement`   | sends the whole file as one statement, for a body the splitter cannot cut |
 
 Any other `-- versatia:` line is a problem listing the two.
-
-## Engine overrides <Audience who="developer" /> {/* #engine-overrides */}
-
-When one engine needs other SQL, a file in its **engine directory** replaces the generic file on
-that engine:
-
-```sql title="src/main/resources/database/migrations/mysql/V3__index_payments_by_note.sql"
--- MySQL and MariaDB can index a LONGTEXT column only by a prefix
-CREATE INDEX {prefix}payments_note ON {prefix}payments (note(64));
-```
-
-### Engine directories {/* #engine-directories */}
-
-- They are named exactly `sqlite`, `h2`, `mysql`, `mariadb` and `postgresql`, in lower case, as
-  `engine:` writes the engines; any other name is a problem.
-- They sit directly in `database/migrations/` and `database/queries/`, one level deep:
-  `database/migrations/mysql/V3__index_payments_by_note.sql`. A directory inside an engine
-  directory, or an engine directory anywhere else, is a problem.
-- They hold `.sql` files only, like their parents.
-
-The engine in use looks for each file along a chain and takes the first it finds:
-
-| Engine in use                                        | Looks in                                  |
-|------------------------------------------------------|-------------------------------------------|
-| `sqlite`                                             | `sqlite/`, then the generic file          |
-| `h2`                                                 | `h2/`, then the generic file              |
-| `mysql` <TwinEngines />                              | `mysql/`, then the generic file           |
-| `mariadb`, also `engine: mysql` reaching a MariaDB server <TwinEngines /> | `mariadb/`, then `mysql/`, then the generic file |
-| `postgresql`                                         | `postgresql/`, then the generic file      |
-
-The engine in use is the one the module finds when it connects, so a MariaDB server configured as
-`engine: mysql` runs the MariaDB chain. Every file is still checked at start with the rules of its
-own directory's engine (its tokens, backslash escapes in MySQL strings), whichever engine the
-server uses: a broken `postgresql/` file fails the start on SQLite too.
-
-### Migration overrides {/* #migration-overrides */}
-
-- An override has **exactly the name of a generic file**, version and words alike:
-  `mysql/V3__index_payments_by_note.sql` replaces `V3__index_payments_by_note.sql`.
-- The generic file must exist: it fixes the version's place in the order and is what every other
-  engine runs.
-- When only one engine needs a step, the generic file holds **only a comment**. A file with no
-  statement (a comment, or nothing at all) is a valid migration: on the engines that run it,
-  nothing is executed and the version is recorded in the history like any other, with
-  `applied_statements` 0.
-
-<CodeCards>
-<CodeCard title="V4__tune_payments.sql">
-
-```sql
--- Only PostgreSQL needs this step: see postgresql/V4__tune_payments.sql
-```
-
-</CodeCard>
-<CodeCard title="postgresql/V4__tune_payments.sql">
-
-```sql
-ALTER TABLE {prefix}payments SET (autovacuum_vacuum_scale_factor = 0.02);
-```
-
-</CodeCard>
-</CodeCards>
-
-A complete tree, with what each engine runs:
-
-```text
-src/main/resources/database/
-  migrations/
-    V1__create_profiles.sql
-    V2__create_payments.sql
-    V3__index_payments_by_note.sql      SQLite, H2, PostgreSQL
-    V4__tune_payments.sql               a comment: SQLite, H2, MySQL, MariaDB record V4 and run nothing
-    mysql/
-      V3__index_payments_by_note.sql    MySQL and MariaDB
-    postgresql/
-      V4__tune_payments.sql             PostgreSQL
-  queries/
-    profiles.sql                        top-coins, rank-of
-    postgresql/
-      ranks.sql                         rank-of again, for PostgreSQL only
-```
-
-The history's `script` column records the file that ran, with its engine directory, and messages
-name an override with its variant:
-
-| Engine             | `script` of V3                          | `script` of V4                    |
-|--------------------|-----------------------------------------|-----------------------------------|
-| SQLite, H2         | `V3__index_payments_by_note.sql`        | `V4__tune_payments.sql`           |
-| MySQL, MariaDB     | `mysql/V3__index_payments_by_note.sql`  | `V4__tune_payments.sql`           |
-| PostgreSQL         | `V3__index_payments_by_note.sql`        | `postgresql/V4__tune_payments.sql` |
-
-```text
-[Shop] Applying V3__index_payments_by_note.sql (variant mysql)
-```
-
-The checksum the history keeps is that of the file that ran. So adding, removing or editing an
-override of a version a database has already applied changes what that version is there, and fails
-the start like any [edit of an applied migration](#an-applied-migration-never-changes); put the
-change in a new version.
-
-### Mistakes in the tree {/* #mistakes-in-the-tree */}
-
-| Mistake                                         | Message                                                  |
-|-------------------------------------------------|----------------------------------------------------------|
-| a misspelled engine directory                   | `Plugin Shop: database/migrations/postgres/V4__tune_payments.sql: unknown engine directory "postgres"; did you mean "postgresql"? Known: sqlite, h2, mysql, mariadb, postgresql` (without a close name: `unknown engine directory "pg"; known: ...`) |
-| an engine directory in upper case (`MySQL/`)    | the same: `unknown engine directory "MySQL"; did you mean "mysql"? ...` |
-| an override named differently                   | `Plugin Shop: database/migrations/mysql/V3__index_note.sql: replaces database/migrations/V3__index_payments_by_note.sql but is named differently; give it the same name` |
-| an override without a generic file              | `Plugin Shop: database/migrations/postgresql/V4__tune_payments.sql: replaces no generic migration; add a V4__<words>.sql to database/migrations/ (it may hold only a comment)` |
-| a directory inside an engine directory          | `Plugin Shop: database/migrations/mysql/old/V3__index.sql: is nested too deep; only the engine directories sqlite/, h2/, mysql/, mariadb/, postgresql/ may sit below migrations/` |
-| a file outside `migrations/` and `queries/`     | `Plugin Shop: database/sql/V1__create_profiles.sql: unknown location; SQL files go to database/migrations/ or database/queries/` |
-| a file that is not `.sql`                       | `Plugin Shop: database/migrations/notes.txt: is not an .sql file; only .sql files belong in database/migrations/` |
-| a misnamed migration                            | `Plugin Shop: database/migrations/V3_index.sql: is not named V<n>__<words>.sql, such as V1__create_profiles.sql` |
-| a query override of a name no generic file has  | `Plugin Shop: database/queries/postgresql/ranks.sql:1: query "rank-off" replaces no query of database/queries/; define it in a generic file first, or fix the name` |
-
-With several problems, the message lists them all, one per line, as at the top of this page.
 
 ## How migrations run {/* #how-migrations-run */}
 
@@ -383,90 +270,21 @@ On these engines keep to one DDL statement per migration where you can, and pref
 `IF NOT EXISTS` forms, so a half-applied file is easy to reason about. A `no-transaction` file runs
 statement by statement on every engine.
 
-## Named queries <Audience who="developer" /> {/* #named-queries */}
+## Corner cases {/* #corner-cases */}
 
-Longer queries live in `database/queries/*.sql`, each under a `-- name:` line, and run by name with
-`named(name, ...parameters)`, which returns a [statement](statements.md#running-sql) like `sql`:
-
-```sql title="src/main/resources/database/queries/profiles.sql"
--- Queries of the profiles table.
-
--- name: top-coins
-SELECT name, coins FROM {prefix}profiles ORDER BY coins DESC LIMIT :limit
-
--- name: rank-of
-SELECT COUNT(*) + 1 FROM {prefix}profiles
-WHERE coins > (SELECT coins FROM {prefix}profiles WHERE uuid = :uuid);
-```
-
-```kotlin
-val top = database.named("top-coins", "limit" to 10).list<TopEntry>()
-```
-
-### The file format {/* #query-file-format */}
-
-`-- name: <name>` is this module's own convention, and it is an ordinary SQL line comment: a query
-file stays plain SQL, which an editor highlights and a database tool opens like any script.
-
-- **The marker** is a line of its own: `--`, `name`, `:` and the name, with optional spaces or tabs
-  around each part (`--name:top-coins` works too); `name` is written in lower case. Every other
-  comment is only a comment.
-- **A query** runs from the line after its marker to the next marker or the end of the file.
-  Leading whitespace is dropped, and so are a trailing `;`, trailing comments and trailing
-  whitespace; comments inside the query stay in its text, where they do no harm.
-- **Before the first marker** only comments and blank lines may stand, such as a header comment.
-- **One statement per query**: a block holding two statements, or none, is a problem.
-- **Markers are found by the SQL reader**, so a line `-- name: x` inside a block comment or a
-  multi-line string is part of the query around it, not a marker.
-
-### Files and names {/* #query-files-and-names */}
-
-- Query files live in `src/main/resources/database/queries/`, under any `.sql` name, as many as you
-  like; the file a query sits in only organises them. Like migrations they are code: they ship in
-  the JAR, are never copied to the data folder and are not read again at a reload.
-- Names are **kebab-case**: words of lower-case letters and digits joined by single `-`, such as
-  `top-coins`, `rank-of` or `stats-v2`.
-- Names are **unique across all query files** of the plugin; `named` takes only the name.
-- A query takes [parameters](statements.md#parameters) and [tokens](configuration.md#how-tokens-expand)
-  like inline SQL, bound at the call: `named("rank-of", "uuid" to uuid)`, or `.bind(...)` and
-  `.bindProperties(...)` on the statement it returns.
-
-### Engine overrides of queries {/* #query-overrides */}
-
-A file in an [engine directory](#engine-directories) of `queries/` replaces, on that engine, the
-queries it defines, **one by one, by name**: its file name does not matter, and the queries it does
-not define keep their generic text. Each name it defines must be defined by a generic file too.
-
-```sql title="src/main/resources/database/queries/postgresql/ranks.sql"
--- name: rank-of
-SELECT rank FROM (
-    SELECT uuid, RANK() OVER (ORDER BY coins DESC) AS rank FROM {prefix}profiles
-) ranked WHERE uuid = :uuid
-```
-
-### Checked at start {/* #queries-checked-at-start */}
-
-Every query of every file, the engine directories included, is parsed when the plugin starts and
-before its database opens, so a mistake fails the start, not the first call:
-
-| Mistake                                   | Message (after `Plugin Shop: database/queries/profiles.sql:<line>: `) |
-|-------------------------------------------|-----------------------------------------------------------|
-| SQL before the first marker               | `SQL before the first "-- name:" marker; start each query with -- name: <kebab-name>` |
-| a name that is not kebab-case             | `query name "top_coins" is not kebab-case; use lowercase letters, digits and -, such as top-coins` |
-| a name used twice                         | `query "top-coins" is already defined at database/queries/ranks.sql:1; names are unique across all query files` |
-| a block with no SQL                       | `query "top-coins" is empty`                              |
-| a block with two statements               | `query "top-coins" holds more than one statement; give each its own -- name: block` |
-| an unknown token                          | `unknown placeholder {uid} in "..."; known: {prefix}, ...` |
-| `?` and `:names` mixed                    | `"..." mixes positional ? and named :parameters; use only :names` |
-
-### An unknown name {/* #unknown-query-name */}
-
-`named` with a name the JAR does not define throws an `UnknownQueryException` at the call, so a
-typo passes the build and fails only when that line runs; a constant holding the name
-(`const val TOP_COINS = "top-coins"`) makes it a compile error instead:
-
-| Situation                                           | Message                                               |
-|-----------------------------------------------------|-------------------------------------------------------|
-| close names exist (at most two edits away, or one name starts with the other) | `Plugin Shop: database/queries defines no query "top-coin"; close names: top-coins` |
-| none is close                                       | `Plugin Shop: database/queries defines no query "richest"; its queries: rank-of, top-coins` (the first ten, then `…`) |
-| the JAR has no named queries                        | `Plugin Shop: database/queries defines no query "richest"; the JAR has no named queries; add a database/queries/<file>.sql with -- name: richest blocks` |
+- **Line endings and a byte-order mark do not change the checksum**; any other edit does, a
+  comment or a trailing space included.
+- **`V01` and `V1` are the same version**, so both in one JAR are a duplicate.
+- **A file with only comments, or an empty one, is a migration with no statements**: it is
+  recorded in the history like any other, with `applied_statements` 0. This is the generic file of
+  a step [only one engine needs](engine-overrides.md#migration-overrides).
+- **Directives count only at the top** of a file, before its first statement.
+- **Only `CREATE TRIGGER`, `PROCEDURE`, `FUNCTION` and `EVENT` bodies are kept whole**; any other
+  body containing `;` needs `-- versatia: single-statement`, or a `$tag$` quote on PostgreSQL.
+- **Positional `?` pass through migrations untouched**, for PostgreSQL's operators; `:name` is a
+  problem, since migrations take no parameters.
+- **A renamed plugin** (`name:` in `plugin.yml`) no longer finds its history rows: update the
+  `plugin` column of its history table. With a prefix the message says so; without one the plugin
+  starts as new and its first migration fails on the existing tables.
+- **Backups are taken only of SQLite and H2 files that already have a history**, so the very first
+  start makes none; two in the same second get `-2`, `-3`.

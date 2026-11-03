@@ -237,7 +237,7 @@ name). For each function the processor
 
 ## Configuration values {/* #configuration-values */}
 
-`ValueEnhancementProcessor` receives the `PropertyTarget`s that [`@Value`](../configuration.md)
+`ValueEnhancementProcessor` receives the `PropertyTarget`s that [`@Value`](../configuration/index.md)
 produced and works in `process` itself, so the values are in place before any completion
 action: before the reloadable beans reload and before the functions run. The descriptor lists
 the properties after the beans, so by then every scope has declared its beans and the resources
@@ -281,7 +281,7 @@ listeners when the plugin is disabled. See [Event listeners](../events.md).
 ## Tasks {/* #tasks */}
 
 The coroutines of every plugin run on one loop driven from the server thread; the `task` package
-holds it and the two processors of `@RunBackgroundTasks`. See [Tasks and coroutines](../tasks.md)
+holds it and the two processors of `@RunBackgroundTasks`. See [Tasks and coroutines](../tasks/index.md)
 for what plugin authors see.
 
 ### The heartbeat {/* #the-heartbeat */}

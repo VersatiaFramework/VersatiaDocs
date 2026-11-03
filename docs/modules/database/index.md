@@ -1,6 +1,7 @@
 ---
 title: Database module
 sidebar_label: Overview
+pagination_label: Database module
 description: A database per plugin, injected and ready, with migrations, background work and write-behind caches of rows.
 ---
 
@@ -40,10 +41,10 @@ is the page to send them to.
 :::developer
 
 The plugin's SQL goes into its JAR, under `src/main/resources/database/`: `migrations/` for the
-tables ([Migrations](migrations.md)), `queries/` for [named queries](migrations.md#named-queries),
-both written with [`{prefix}` and the other tokens](configuration.md#tokens). The code injects
+tables ([Migrations](migrations.md)), `queries/` for [named queries](queries.md),
+both written with [`{prefix}` and the other tokens](tokens.md). The code injects
 `Database` and works through statements, [stores](stores.md) and their
-[events](stores.md#autosave-events).
+[events](player-stores.md#autosave-events).
 
 :::
 
@@ -61,12 +62,12 @@ The module gives your plugin one bean, and two packages hold what you write arou
 |------------|-------------------------------------------------|----------------------------------------------------------------|
 | `Database` | `dev.versatia.database`         | your plugin's database: [statements](statements.md), [transactions](background.md#transactions), [background work](background.md#background-work), its engine, prefix and status |
 |            | `dev.versatia.database.store`   | [stores](stores.md): `KeyedStore`, `PlayerStore`, `StoreSchema`, made by `database.store(...)` and `database.playerStore(...)` |
-|            | `dev.versatia.database.mapping` | `Column` and `ColumnCodec`, for [columns whose name or type needs help](statements.md#your-own-types) |
+|            | `dev.versatia.database.mapping` | `Column` and `ColumnCodec`, for [columns whose name or type needs help](rows.md#your-own-types) |
 
 ## A first plugin {/* #a-first-plugin */}
 
 The table comes from a migration in the JAR. `{prefix}` and `{uuid}` are
-[tokens](configuration.md#tokens): the table prefix of your plugin and the UUID column type of
+[tokens](tokens.md): the table prefix of your plugin and the UUID column type of
 whatever engine the admin picks.
 
 ```sql title="src/main/resources/database/migrations/V1__create_profiles.sql"
@@ -79,7 +80,7 @@ CREATE TABLE {prefix}profiles (
 ```
 
 A row is an immutable data class, mapped by its constructor parameter names (`lastSeen` is the
-column `last_seen`). A [player store](stores.md#player-stores) keeps one row per player: loaded
+column `last_seen`). A [player store](player-stores.md) keeps one row per player: loaded
 before the player joins, changed in memory, saved on quit, by autosave and when the plugin stops.
 
 ```kotlin
@@ -148,15 +149,19 @@ only the changed columns, the final save, the pool, the thread rules and the sta
 
 | Page                                             | What it covers                                                     | Mostly for |
 |--------------------------------------------------|--------------------------------------------------------------------|------------|
-| [Statements and mapping](statements.md)          | `database.sql`, parameters, reading rows into classes, `insert` and `upsert`, types and codecs, batches | <Audience who="developer" /> |
+| [Statements](statements.md)                      | `database.sql`, parameters, tokens in SQL, batches, timeouts, raw JDBC | <Audience who="developer" /> |
+| [Rows and types](rows.md)                        | reading rows into classes, `insert` and `upsert`, types and codecs | <Audience who="developer" /> |
 | [Threads, background work and transactions](background.md) | what blocks, the server-thread guard, `database.async` and its futures, failures, transactions | <Audience who="developer" /> |
-| [Stores and player stores](stores.md)            | write-behind caches of rows, the login of a player, saving, store transactions | <Audience who="developer" /> |
-| [Migrations and named queries](migrations.md)    | the SQL files of the JAR, engine overrides, history, resuming, backups, `named(...)` | <Audience who="developer" /> |
-| [Engines and tokens](configuration.md)           | the engines, the tokens, [MySQL and MariaDB](configuration.md#mysql-and-mariadb), the `database.yml` a plugin ships | <Audience who="developer" /> |
+| [Stores](stores.md)                              | write-behind caches of rows, keyed stores, what a save writes, store transactions | <Audience who="developer" /> |
+| [Player stores](player-stores.md)                | the login of a player, saving, failed saves, values kept at a stop | <Audience who="developer" /> |
+| [Migrations](migrations.md)                      | the SQL files of the JAR, history, resuming, backups               | <Audience who="developer" /> |
+| [Engine overrides](engine-overrides.md)          | SQL one engine needs in another form, engine directories           | <Audience who="developer" /> |
+| [Named queries](queries.md)                      | `named(...)`, query files and their overrides                      | <Audience who="developer" /> |
+| [Engines](configuration.md)                      | the engines, [MySQL and MariaDB](configuration.md#mysql-and-mariadb), the `database.yml` a plugin ships | <Audience who="developer" /> |
+| [Tokens](tokens.md)                              | `{prefix}` and the other tokens, how and where they expand         | <Audience who="developer" /> |
 | [Opening, shutdown and errors](operations.md)    | when the database opens, the shutdown, `database.status`, the exceptions | <Audience who="developer" /> |
 | [Server admin guide: Database](/admin/database) | `database.yml`, `connections.yml`, `config.yml`, moving data, backups, `/versatiadb status`, logs, troubleshooting | <Audience who="admin" /> |
 | [Best practices](best-practices.md)              | `{prefix}` everywhere, extension tables pointing to their row, memory-only state in beans | <Audience who="developer" /> |
-| [Corner cases](corner-cases.md)                  | the edge rules of every part                                       | both       |
 
 ## One instance per plugin {/* #one-instance-per-plugin */}
 

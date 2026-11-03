@@ -238,7 +238,7 @@ a base class leaves the enhancement out of the descriptor. What every plugin inh
 | `@PluginBean`        | makes the main class the bean `plugin`                      | none                |
 | `@ExtractResources`  | [extracts the plugin's resources](../resources.md)          | `extractResources`  |
 | `@RegisterListeners` | [registers every `Listener`](../events.md)                  | `registerListeners` |
-| `@RunBackgroundTasks` | [runs every `BackgroundTask`](../tasks.md#background-tasks) and cancels the plugin's coroutines before its stop functions | `runBackgroundTasks` |
+| `@RunBackgroundTasks` | [runs every `BackgroundTask`](../tasks/index.md#background-tasks) and cancels the plugin's coroutines before its stop functions | `runBackgroundTasks` |
 
 The mapping from a parameter to the enhancement it switches off is
 `@VersatiaDisabler(Enhancement::class)` on that parameter, so a library may define a switch for its
@@ -344,7 +344,7 @@ The compile-time step records every function carrying `@Timed` as a `FunctionTar
 plugin's class loader; injected parameters come from the plugin's `BeanResolver`, the same contract
 `@AutoInvoke` uses. Nothing in VersatiaCore changes. The compile-time step still enforces the general
 rules on enhanced functions (no extension, suspend, abstract or generic functions, a suspend one
-pointing to [`BackgroundTask` and `PluginScope`](../tasks.md); injectable
+pointing to [`BackgroundTask` and `PluginScope`](../tasks/index.md); injectable
 parameters), on enhanced properties (a `var` of the main class, an object or a bean) and on
 enhanced classes.
 

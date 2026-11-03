@@ -171,8 +171,8 @@ shop:
 
 **26 → 9 lines.** What you no longer write: the getters, the defaults repeated in the code, the
 lookup of the enum, the warning and the fallback, the `load()` call in `onEnable` and in the reload
-command. A [`@Value` property](../configuration.md) is a `var` (or a `val` holding a
-[`PreviousValueTracking`](../configuration.md#reacting-to-a-change)); its initializer is only a
+command. A [`@Value` property](../configuration/index.md) is a `var` (or a `val` holding a
+[`PreviousValueTracking`](../configuration/changes.md#reacting-to-a-change)); its initializer is only a
 placeholder, the default is the shipped file. Where `getInt` silently returns the default for `ten`, a
 wrong value stops the start, or a reload, with the key and the file:
 
@@ -355,10 +355,10 @@ announce:
 
 **18 → 9 lines.** What you no longer write: the task handle, the remembered previous interval, the
 default in the code, the conversion to ticks, the calls from `onEnable` and from the reload
-command. A [`BackgroundTask`](../tasks.md#background-tasks) runs by itself from the tick after the
+command. A [`BackgroundTask`](../tasks/index.md#background-tasks) runs by itself from the tick after the
 start; every reload cancels it once the values are set and calls `run()` again, so the new interval
 applies, and the plugin's stop cancels it. `every` counts real time and `interval` is a
-[`Duration`](../configuration.md#durations), written `5m` in the file; `everyTicks` counts game
+[`Duration`](../configuration/types.md#durations), written `5m` in the file; `everyTicks` counts game
 ticks. The [scheduler helpers](../utilities/misc.md#scheduler) remain for plain Bukkit tasks, with
 the period first, `runTaskTimer(periodTicks, delayTicks = 0)`, the reverse of `BukkitScheduler`.
 
@@ -416,7 +416,7 @@ shop:
 
 **20 → 5 lines.** What you no longer write: loading and reloading the file, the default text in
 the code, one placeholder resolver per value and a method per message. The
-[Messages](../messages.md) reads every file under `messages/` and reloads with the
+[Messages](../messages/index.md) reads every file under `messages/` and reloads with the
 plugin; the text decides what to show of an argument, so an administrator changes `{player}` to
 `{player.name}` or `{item.amount}` without a rebuild. Where a mistyped `<plaer>` reaches the
 player as text, a mistyped `{plaer}` fails at its first use with the key, the file and what
@@ -516,8 +516,8 @@ depend:
 | `onEnable()`                                                     | [`@AutoInvoke(Phase.PLUGIN_START_ONLY)`](../lifecycle/auto-invoke.md), or `PLUGIN_RELOAD_OR_START` for what a reload repeats |
 | `onDisable()`                                                    | `@AutoInvoke(Phase.PLUGIN_STOP)`                                                                 |
 | `saveDefaultConfig()`, `saveResource(...)`                       | files under `src/main/resources/resources/`, [extracted](../resources.md) at start and reload    |
-| `getConfig().getInt("key", 10)`                                  | [`@Value("key") var key = 0`](../configuration.md), the default in the shipped file              |
-| a type check with a fallback                                     | the [supported types](../configuration.md#supported-types) and [mappers](../configuration.md#mappers); a wrong value is an error naming the key |
+| `getConfig().getInt("key", 10)`                                  | [`@Value("key") var key = 0`](../configuration/index.md), the default in the shipped file              |
+| a type check with a fallback                                     | the [supported types](../configuration/types.md#supported-types) and [mappers](../configuration/types.md#mappers); a wrong value is an error naming the key |
 | `reloadConfig()` and a reload command                            | [`/versatia reload <name>`](../lifecycle/reload.md), `versatiaReload()`, `VersatiaEngine.reload(name)` |
 | `registerEvents(new MyListener(...), this)`                      | any class implementing `Listener`, [registered](../events.md) at start                           |
 | `getCommand("shop").setExecutor(...)`                            | the [CommandAPI Kotlin DSL](../commands.md) in an `object`                                       |
@@ -525,10 +525,10 @@ depend:
 | `isPluginEnabled("Vault")` with class-loading guards             | [`@ConditionalOnPlugin("Vault")`](../optional-plugins.md) and `softdepend:`                      |
 | `getServicesManager().getRegistration(Economy.class)`            | [`VersatiaEngine.loadService<Economy>()`](../utilities/index.md#start-with-versatiaengine)        |
 | a service shared with other plugins through the `ServicesManager` | [`@ExposeSingleton`, `@ExposePrototype`](../dependency-injection/cross-plugin.md)               |
-| `getScheduler().runTaskTimer(plugin, task, delay, period)`       | a [`BackgroundTask`](../tasks.md#background-tasks) with `everyTicks` or `every`, restarted by every reload; [`plugin.runTaskTimer(periodTicks, delayTicks)`](../utilities/misc.md#scheduler) for a plain Bukkit task |
-| `runTaskLater`, `runTaskAsynchronously` and back with `runTask`  | a coroutine of the injected [`PluginScope`](../tasks.md#your-own-coroutines): `delayTicks(20)`, `withContext(Dispatchers.IO) { }` |
+| `getScheduler().runTaskTimer(plugin, task, delay, period)`       | a [`BackgroundTask`](../tasks/index.md#background-tasks) with `everyTicks` or `every`, restarted by every reload; [`plugin.runTaskTimer(periodTicks, delayTicks)`](../utilities/misc.md#scheduler) for a plain Bukkit task |
+| `runTaskLater`, `runTaskAsynchronously` and back with `runTask`  | a coroutine of the injected [`PluginScope`](../tasks/coroutines.md): `delayTicks(20)`, `withContext(Dispatchers.IO) { }` |
 | `Bukkit.broadcast(...)`, `Bukkit.getPlayerExact(name)`           | [`VersatiaEngine.broadcast(...)`, `VersatiaEngine.playerOrNull(name)`](../utilities/index.md#start-with-versatiaengine) |
-| `messages.yml`, `%player%` replacements, `TagResolver`s          | the [Messages](../messages.md): `messages["key"].send(player, arg("player", player))` |
+| `messages.yml`, `%player%` replacements, `TagResolver`s          | the [Messages](../messages/index.md): `messages["key"].send(player, arg("player", player))` |
 | `getLogger().info(...)`                                          | `logger.info(...)` in the main class, an [injected `Logger`](../dependency-injection/index.md#beans-every-plugin-has) in a bean |
 | `paper-plugin.yml`                                               | not supported; [`plugin.yml`](installation.md#pluginyml) with `depend: [VersatiaCore]`           |
 

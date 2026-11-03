@@ -1,9 +1,8 @@
 ---
-title: Statements and mapping
-description: Running SQL with named parameters, reading rows into classes, inserting and upserting rows, types and codecs.
+title: Statements
+description: Running SQL with named parameters, tokens, batches, timeouts and raw JDBC.
 ---
-
-# Statements and mapping
+# Statements
 
 import Audience from '@site/src/components/Audience';
 import TwinEngines from '@site/src/components/TwinEngines';
@@ -11,10 +10,13 @@ import TwinEngines from '@site/src/components/TwinEngines';
 <Audience who="developer" below />
 
 The module is SQL-first: you write the SQL, with `:named` parameters and portable
-[`{tokens}`](configuration.md#tokens), and Kotlin types come in and out. Every call on this page
+[`{tokens}`](tokens.md), and Kotlin types come in and out. Every call on this page
 that reaches the database **blocks** the calling thread; on the server thread that is allowed only
 while the plugin starts, reloads or stops, and anywhere else the call belongs in
 [`database.async { }`](background.md#background-work). Building a statement and binding it never block.
+
+Reading rows into classes, writing classes as rows and the types a column may hold are on [Rows and
+types](rows.md).
 
 ## Running SQL {/* #running-sql */}
 
@@ -33,7 +35,7 @@ sql("UPDATE {prefix}profiles SET name = :name WHERE uuid = :uuid", "name" to nam
 
 | Terminal                       | Returns                                                            |
 |--------------------------------|--------------------------------------------------------------------|
-| `list<T>()`, `list { row -> }` | every row, [mapped](#reading-rows) to `T` or through your function |
+| `list<T>()`, `list { row -> }` | every row, [mapped](rows.md#reading-rows) to `T` or through your function |
 | `single<T>()`, `single { }`    | the one row; none or several is a `MappingException`               |
 | `singleOrNull<T>()`, `singleOrNull { }` | the only row or null; several is a `MappingException`     |
 | `forEach { row -> }`           | nothing; streams the rows without collecting them                  |
@@ -44,7 +46,7 @@ sql("UPDATE {prefix}profiles SET name = :name WHERE uuid = :uuid", "name" to nam
 | `batch(items) { }`             | the affected counts of one JDBC [batch](#batches)                  |
 
 A statement is not thread-safe and is meant to be run once: make a new one for every use. `named(name, ...)`
-does the same for a query kept in the JAR, see [Named queries](migrations.md#named-queries).
+does the same for a query kept in the JAR, see [Named queries](queries.md).
 
 ## Parameters {/* #parameters */}
 
@@ -68,13 +70,13 @@ sql("SELECT coins FROM {prefix}profiles WHERE name = :name", "name" to name).sin
 The statement text and the values travel to the database **separately**. For the right snippet
 above the module:
 
-1. expands the [tokens](configuration.md#how-tokens-expand) and turns every `:name` into a JDBC
+1. expands the [tokens](tokens.md#how-tokens-expand) and turns every `:name` into a JDBC
    `?` placeholder, giving `SELECT coins FROM profiles WHERE name = ?`. This text depends only on
    your code and the settings, never on a value;
 2. hands that text to `Connection.prepareStatement`, so it is parsed, and what is a keyword, a
    table, a column or a value is decided, before any value is known;
 3. binds each value to its `?` with `PreparedStatement.setString`, `setLong`, `setObject` and the
-   like, chosen from the value's Kotlin [type](#types).
+   like, chosen from the value's Kotlin [type](rows.md#types).
 
 A bound value fills the place of one literal and nothing else. A chat message, a sign line or a
 command argument reading `'; DROP TABLE profiles; --` is compared with the names, character by
@@ -122,7 +124,7 @@ val ranking = Ranking.entries.firstOrNull { it.name.equals(choice, ignoreCase = 
 sql("SELECT name, coins FROM {prefix}profiles ORDER BY ${ranking.orderBy} LIMIT :limit", "limit" to 10).list<TopEntry>()
 ```
 
-The same holds for the table names of the [builders](#writing-rows) and stores and for the keys of
+The same holds for the table names of the [builders](rows.md#writing-rows) and stores and for the keys of
 a `Map` row: they are column and table names written into the SQL, so they come from your code,
 never from a player, and must be plain names (letters, digits and `_`, not starting with a digit),
 or the call fails with a `SqlTemplateException` before any SQL runs.
@@ -132,7 +134,7 @@ or the call fails with a `SqlTemplateException` before any SQL runs.
 | `sql(text, "a" to 1, "b" to x)`      | binds every pair by the value's runtime type                       |
 | `.bind("owner", owner)`              | binds with the static type of the expression, so a null `UUID?` is still bound as a UUID |
 | `.bindAll(map)`                      | binds every entry by its runtime type                              |
-| `.bindProperties(profile)`           | binds each property of a data class to the parameter named after it, in camelCase, snake_case or its [`@Column`](#column-names) name; properties without a parameter are skipped, and a `Map` works like `bindAll` |
+| `.bindProperties(profile)`           | binds each property of a data class to the parameter named after it, in camelCase, snake_case or its [`@Column`](rows.md#column-names) name; properties without a parameter are skipped, and a `Map` works like `bindAll` |
 
 A `Collection` or an array (but `ByteArray`, which is one value) expands to one placeholder per
 element, which is what `IN` takes:
@@ -170,7 +172,7 @@ and a statement mixing `?` and `:names` fails with `mixes positional ? and named
 ## Tokens {/* #tokens */}
 
 `{prefix}` expands to your plugin's [table prefix](/admin/database/configuration#the-table-prefix), and
-`{uuid}`, `{timestamp}`, `{json}` and the other [tokens](configuration.md#tokens) to what the
+`{uuid}`, `{timestamp}`, `{json}` and the other [tokens](tokens.md) to what the
 engine in use needs, in inline SQL, migrations and named queries alike, but never in the table
 names of builders and stores, which get the prefix by themselves. A statement with an unknown
 token fails when it is made, by `sql(...)`:
@@ -179,162 +181,8 @@ token fails when it is made, by `sql(...)`:
 Plugin Shop: unknown placeholder {uid} in "SELECT {uid} FROM {prefix}profiles"; known: {prefix}, {uuid}, {bool}, {text}, {json}, {bytes}, {timestamp}, {now}, {identity}, {table_options}, {for-update}
 ```
 
-[How tokens expand](configuration.md#how-tokens-expand) gives the exact rules: where they expand
+[How tokens expand](tokens.md#how-tokens-expand) gives the exact rules: where they expand
 and where not, literal braces, JDBC escapes, and where tokens may be written.
-
-## Reading rows {/* #reading-rows */}
-
-`list<T>()`, `single<T>()` and `singleOrNull<T>()` map each row to `T`:
-
-- a **column type** (`Long`, `String`, `UUID`, `Instant`, an enum, a [type with a codec](#your-own-types)...)
-  is read from the only column; a result with more columns is an error
-  (`the result has 2 columns (name, coins), but Long takes one; select one column or map to a class`);
-- **any other class** is built through its primary constructor: each parameter takes the column
-  named like it in snake_case (`lastSeen` → `last_seen`), its [`@Column`](#column-names) name, or
-  its own name, ignoring case. A column missing from the result leaves a parameter with a default
-  value at its default; without a default it is an error naming the property and the column looked for.
-
-Nullability comes from the type: a NULL read into a non-null type fails with
-`Plugin Shop: column last_seen is NULL, but Profile.lastSeen (Instant) is not nullable`, so a
-nullable column is a nullable property, or `singleOrNull<Long>()` and `list<Long?>()` where a value
-may be missing.
-
-For anything else, read the row yourself. A `Row` is the current row of the result, valid only
-inside the function it was passed to:
-
-```kotlin
-import dev.versatia.database.get
-
-val balances = sql("SELECT uuid, coins, last_seen FROM {prefix}profiles").list { row ->
-    val coins: Long = row["coins"]                     // the type, nullability included, comes from the target
-    val lastSeen: Instant? = row["last_seen"]
-    row.uuid("uuid") to coins
-}
-```
-
-| On a `Row`                              | Gives                                                       |
-|-----------------------------------------|-------------------------------------------------------------|
-| `row["column"]`                         | the column as the type it is assigned to                    |
-| `string`, `int`, `long`, `double`, `boolean`, `uuid`, `instant`, `bytes` | the column as that type; each has an `...OrNull` twin |
-| `row.get("column", codec)`              | the column decoded by a [codec](#your-own-types), null for NULL |
-| `row.into<Profile>()`                   | the whole row, mapped as `list<Profile>()` would            |
-| `columns`, `"coins" in row`             | the column labels in select order; whether one is there     |
-
-Columns are matched by their label, ignoring case; an unknown one is
-`the result has no column coin; its columns: uuid, coins, last_seen`. `uuid()` and `instant()` read
-`{uuid}` and `{timestamp}` columns whatever the engine stores (text, a native UUID, epoch
-milliseconds or a `DATETIME`).
-
-## Writing rows {/* #writing-rows */}
-
-The builders write a data class, or a `Map` of column names to values, into a table **under your
-prefix**: you name the table without it.
-
-```kotlin
-data class Payment(val id: Long = 0, val payer: UUID, val payee: UUID, val coins: Long, val note: String)
-
-insert("payments", Payment(payer = a, payee = b, coins = 5, note = "tip"))           // INSERT INTO {prefix}payments ...
-val id = insertAndGetKey("payments", Payment(payer = a, payee = b, coins = 5, note = "tip"))
-val paid = insertReturning("payments", Payment(payer = a, payee = b, coins = 5, note = "tip")) // paid.id is the generated key
-upsert("profiles", profile, "uuid")                                                   // insert, or update the other columns
-```
-
-```kotlin title="Wrong: copying the key into the row by hand"
-// error-next-line
-val payment = Payment(payer = a, payee = b, coins = 5, note = "tip").let { it.copy(id = insertAndGetKey("payments", it)) }
-```
-
-```kotlin title="Right"
-// fix-next-line
-val payment = insertReturning("payments", Payment(payer = a, payee = b, coins = 5, note = "tip"))
-```
-
-```kotlin title="Wrong: the builder adds the prefix itself"
-// error-next-line
-insert("{prefix}payments", payment)
-```
-
-```kotlin title="Right"
-// fix-next-line
-insert("payments", payment)
-```
-
-| Builder                                 | Does                                                           |
-|-----------------------------------------|----------------------------------------------------------------|
-| `insert(table, row)`                    | inserts every primary-constructor property (defaults included, so the table needs a column for each); returns the rows inserted |
-| `insertAndGetKey(table, row, "id")`     | inserts and returns the generated key; a key property holding `0` or null is left out of the insert, so the database generates it |
-| `insertReturning(table, row, "id")`     | inserts like `insertAndGetKey` and returns a copy of the row with the generated key in its key property (a `Long`, an `Int`, or a type stored as one); a `Map` comes back with the key added |
-| `upsert(table, row, "uuid", ...more)`   | inserts, or updates the other columns of the row with the same key columns; always returns 1, whatever the engine counts |
-
-The upsert is written the engine's way (`ON CONFLICT` on SQLite and PostgreSQL, `ON DUPLICATE KEY`
-on MySQL and MariaDB, `MERGE` on H2); its key columns need a primary key or a unique index.
-
-## Types {/* #types */}
-
-These Kotlin types map to a column without help:
-
-| Kotlin                                  | Stored as                                                  |
-|-----------------------------------------|------------------------------------------------------------|
-| `String`, `Int`, `Long`, `Double`, `Boolean`, `BigDecimal`, `ByteArray` | the matching SQL type                   |
-| `Short`, `Byte`, `Float`                | an integer or a double                                     |
-| `UUID`                                  | a `{uuid}` column: text or a native UUID, per engine       |
-| `Instant`                               | a `{timestamp}` column, in UTC, truncated to milliseconds   |
-| `LocalDate`, `LocalDateTime`            | a date and a date-time, as given (no time zone)            |
-| `java.time.Duration`, `kotlin.time.Duration` | milliseconds, as a `Long`                             |
-| `Json`                                  | a `{json}` column: the text, bound so that PostgreSQL's `JSONB` takes it |
-| an enum                                 | its name, as text; reading an unknown name fails, listing the known ones |
-| a `@JvmInline` value class              | its underlying value; its `init` checks run when it is read |
-
-Collections, `ItemStack`, `Location`, `Component` and your own classes are not columns: store them
-as `Json` with the serializer of your choice, or give them a codec.
-
-## Your own types {/* #your-own-types */}
-
-A `ColumnCodec` stores a type as one the module binds itself: `String`, `Int`, `Long`, `Double`,
-`Boolean`, `ByteArray`, `UUID`, `Instant` or `Json`. It is an `object` or a class with a no-arg
-constructor:
-
-```kotlin
-import dev.versatia.database.mapping.ColumnCodec
-
-object BlockPosText : ColumnCodec<BlockPos, String> {
-    override val storedAs = String::class
-    override fun encode(value: BlockPos) = "${value.x},${value.y},${value.z}"
-    override fun decode(stored: String) = stored.split(',').map(String::toInt).let { (x, y, z) -> BlockPos(x, y, z) }
-}
-```
-
-Use it for one property with `@Column(codec = ...)`, or for every statement, row and store of your
-plugin with `database.registerType`, called in a bean constructor so that it applies before the first use:
-
-```kotlin
-import dev.versatia.database.mapping.Column
-import dev.versatia.database.registerType
-
-data class Home(val owner: UUID, @Column(codec = BlockPosText::class) val position: BlockPos)
-
-@LocalBean
-class Homes(database: Database) {
-    init {
-        database.registerType(BlockPosText)
-    }
-}
-```
-
-The order is `@Column(codec)`, then a registered type (the exact class first, then the nearest
-registered supertype; two equally near are an error naming both), then the built-in types, then
-enums and value classes. A property of a type with none
-of these fails with
-`Plugin Shop: Home.position is a BlockPos, which the module cannot store; add @Column(codec = ...) or register a codec with database.registerType`.
-
-### Column names {/* #column-names */}
-
-`@Column(name = "...")` maps a constructor parameter to a column that is not its name in
-snake_case, for reading, for the builders, for `bindProperties` and for stores:
-
-```kotlin
-data class Account(@Column(name = "player_uuid") val owner: UUID, val balance: Long)
-```
 
 ## Batches {/* #batches */}
 
@@ -369,3 +217,21 @@ fails with a `QueryException` of [kind](operations.md#failure-kinds) `TIMEOUT`.
 connection of the current [transaction](background.md#transactions), or one borrowed for the block.
 Do not close it and do not change its auto-commit; the module returns it to the pool. Calls through
 `database` inside the block join the same connection.
+
+## Corner cases {/* #corner-cases */}
+
+- **`ORDER BY :column` does not sort**: it binds a constant, the same for every row. Choose the
+  column from texts you wrote ([Dynamic identifiers](#dynamic-identifiers)).
+- **Every `?` outside literals and comments is a positional parameter.** A statement using
+  PostgreSQL's JSONB operators `?`, `?|` and `?&` therefore cannot also have `:named` parameters;
+  use the functions `jsonb_exists`, `jsonb_exists_any` and `jsonb_exists_all` there.
+- **A null bound through a pair has no type**: `"owner" to null` is bound as an untyped NULL.
+  `bind("owner", owner)` keeps the declared type of `owner`, which engines that check parameter types
+  (PostgreSQL) may need.
+- **A `ByteArray` is one value**, never a collection to expand.
+- **`0` means the driver's limit, not no limit**: on MySQL, MariaDB and PostgreSQL a connection
+  that waits longer than twice `query-timeout` (at least 2 minutes) for the server is broken, so
+  with `timeout(Duration.ZERO)` or `query-timeout: 0` a statement running longer than 120 s still
+  fails, as a broken connection. Raise `query-timeout` for long work.
+- **`connection { }` ends in auto-commit**: if the block turned auto-commit off, what it left
+  uncommitted is rolled back.

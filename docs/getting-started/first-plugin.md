@@ -50,7 +50,7 @@ records it in the descriptor.
 
 ## Configuration {/* #configuration */}
 
-`currency` is a [`@Value` property](../configuration.md): the runtime sets it from `config.yml` in
+`currency` is a [`@Value` property](../configuration/index.md): the runtime sets it from `config.yml` in
 the plugin's data folder. Ship the file with its default under `src/main/resources/resources/`:
 
 ```yaml title="src/main/resources/resources/config.yml"

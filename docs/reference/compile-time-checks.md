@@ -60,14 +60,14 @@ A function marked `@AutoInvoke` is rejected when it
   a bean scope such as @LocalBean to enhance its other members`);
 - is an extension, `suspend`, abstract or generic function
   (`Main.start must not be suspend to be enhanced; implement BackgroundTask for work that runs with
-  the plugin, or launch from an injected PluginScope`; see [Tasks and coroutines](../tasks.md));
+  the plugin, or launch from an injected PluginScope`; see [Tasks and coroutines](../tasks/index.md));
 - overrides a function that is enhanced too (`Main.start overrides BasePlugin.start, which is
   enhanced too, so the override would run for both; keep the enhancement on one of them`);
 - has a parameter the bean rules above would reject, or an ambiguous one.
 
 ## Configuration values {/* #configuration-values */}
 
-A property marked [`@Value`](../configuration.md) is rejected when it
+A property marked [`@Value`](../configuration/index.md) is rejected when it
 
 - is a `val` (`Shop.tax must be a var to be enhanced`) that holds no `PreviousValueTracking`, a
   nullable `PreviousValueTracking` (`a PreviousValueTracking must not be nullable; the runtime

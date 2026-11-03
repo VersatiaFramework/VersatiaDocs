@@ -1,7 +1,7 @@
 # Configuration
 
 Package `dev.versatia.util.config`. A value a plugin only has to hold needs none
-of this: mark the property [`@Value`](../configuration.md) and the runtime reads it with these
+of this: mark the property [`@Value`](../configuration/index.md) and the runtime reads it with these
 getters.
 
 ## Strict getters {/* #strict-getters */}
@@ -66,7 +66,7 @@ those types. Write `getIntOrNull("size") ?: 5` and `getIntListOrThrow("hours")` 
 - String getters accept only text: an unquoted number, boolean or date (`01234`, `1.10`, `yes`) is
   read by YAML as another type, so Bukkit's `getString` returns `"668"`, `"1.1"`, `"true"`. The
   strict getters reject it and ask for quotes: `Value at "code" is read as a number (668), not text; quote it, ...`.
-- `getSecret*` reads a [`Secret`](../configuration.md#secrets): text, with every `${env:NAME}`
+- `getSecret*` reads a [`Secret`](../configuration/types.md#secrets): text, with every `${env:NAME}`
   replaced by the environment variable and every `${file:PATH}` by the file's content (a relative
   path starts at the server folder, an absolute one is taken as it is). `${pluginfile:PATH}` starts
   at the plugin's data folder, so it works in a file loaded with `loadYamlOrThrow(file, plugin)`

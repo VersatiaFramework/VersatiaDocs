@@ -45,7 +45,7 @@ or restart the plugin.
 ## When it happens {/* #when-it-happens */}
 
 Extraction runs at `PLUGIN_RELOAD_OR_START`, first: at start before any bean is created, any
-[`@Value` property](configuration.md) is read or any auto-invoked function runs, and again at
+[`@Value` property](configuration/index.md) is read or any auto-invoked function runs, and again at
 every reload before the values are read. So a value always finds its file, and a file the
 administrator deleted comes back with its default at the next reload.
 
@@ -60,7 +60,7 @@ class Shop {
 }
 ```
 
-Texts shown to players belong to [Messages](messages.md), which reads
+Texts shown to players belong to [Messages](messages/index.md), which reads
 `messages/`. A file of your own format is read in a `PLUGIN_RELOAD_OR_START` function, so a reload
 picks up its changes, with `loadYamlOrThrow` and the strict getters of the
 [configuration utilities](utilities/configuration.md); never in a constructor, which runs once.

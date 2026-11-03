@@ -94,7 +94,7 @@ database.async { named("top-coins", "limit" to 10).list<TopEntry>() }
 | `await()`                    | suspends a coroutine until the result is there, without blocking its thread |
 | `isDone`                     | whether the result, or the failure, is there                        |
 
-In a coroutine of your [plugin scope or a background task](/docs/tasks#your-own-coroutines),
+In a coroutine of your [plugin scope or a background task](/docs/tasks/coroutines),
 `await()` reads like sequential code and continues on the thread the coroutine runs on:
 
 ```kotlin
@@ -185,7 +185,7 @@ database.transaction(retries = 2) {
 }
 ```
 
-(Coins of a [player store](stores.md#player-stores) change through the store, never through raw SQL:
+(Coins of a [player store](player-stores.md) change through the store, never through raw SQL:
 see [Raw SQL and cached rows](stores.md#raw-sql-and-cached-rows).)
 
 ### One connection per thread {/* #one-connection-per-thread */}
@@ -204,3 +204,17 @@ A store operation that reaches the database is refused inside your own `transact
 stores take their key locks before a connection and this order keeps them deadlock-free:
 `Plugin Shop: profiles.save cannot run inside transaction { }; use profiles.transaction(...)`. A
 [store transaction](stores.md#store-transactions) is the transaction that holds store entries.
+
+## Corner cases {/* #corner-cases */}
+
+- **`join()` of a future that is done returns at once anywhere**, the server thread included; one
+  that is not done is guarded like any blocking call. Continue with `thenSync` instead of joining.
+- **`database.async { }` on a database thread runs inline**, on that thread, not in parallel.
+- **`onFailureSync` leaves the future failed**, so a `thenSync` after it never runs; put the
+  failure branch last.
+- **Only the outermost transaction retries**: the `retries` of a nested `transaction { }` are ignored.
+- **`setRollbackOnly()` in a nested transaction** rolls back the outermost one, all of it.
+- **An exception from an `afterCommit` action** is thrown out of `transaction { }` after the commit:
+  the data is written, and the transaction is not retried.
+- **A broken connection is never retried**: a write whose acknowledgement was lost may have been
+  committed.

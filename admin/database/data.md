@@ -81,7 +81,7 @@ import-from:
 
 A failed import fails the start of the plugin and leaves the new tables empty, so the next start
 tries again. A finished import is recorded in the target's
-[`{prefix}schema_history`](data.md#importing-again), as a row of this plugin with version `0`,
+[`{prefix}schema_history`](#importing-again), as a row of this plugin with version `0`,
 `script` `IMPORT`, the source as `description` (`SQLITE database.db`), the number of tables copied
 as `applied_statements`, and when and how long. That row is what makes every later start skip the
 import, so `import-from` may stay in the file afterwards. To import again, empty the plugin's
@@ -141,3 +141,13 @@ An updated plugin may bring new migrations; they run at its next start. Three me
 A migration that fails on MySQL, MariaDB or H2 may leave part of its statements applied; the next
 start, after the plugin's author fixed it, resumes where it stopped. On SQLite and PostgreSQL a
 failed migration leaves nothing behind.
+
+## Corner cases {/* #corner-cases */}
+
+- **`import-from` copies what the migrations create**: the tables of `CREATE TABLE` statements,
+  followed through `ALTER TABLE ... RENAME TO`, `RENAME TABLE` and `DROP TABLE`. A table made by a
+  procedure or by other SQL is not copied; other tables of the source database never are.
+- **`import-from.table-prefix` renames on the way**: the source's tables under that prefix fill
+  this plugin's tables under its own; without it the source is read under this plugin's prefix.
+- **The import runs once per target**: the `IMPORT` row of version 0 in the target's history skips
+  it from then on; delete that row, with the copied rows, to import again.

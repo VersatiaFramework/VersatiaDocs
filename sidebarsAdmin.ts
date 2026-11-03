@@ -16,8 +16,7 @@ const sidebars: SidebarsConfig = {
         {
           type: 'category',
           label: 'Database',
-          link: {type: 'doc', id: 'database/index'},
-          items: ['database/configuration', 'database/data', 'database/operations'],
+          items: ['database/index', 'database/configuration', 'database/connections', 'database/data', 'database/operations'],
         },
       ],
     },

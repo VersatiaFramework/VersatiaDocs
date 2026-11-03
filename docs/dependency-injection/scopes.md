@@ -49,17 +49,17 @@ the owner's concrete class is a compile error. The owner's own instance is never
 A parameter satisfied by another prototype, the owner's own or one exposed by a third plugin, is
 resolved for the consumer as well: the instance is the one the consumer's own beans share. A
 `Messages` prototype taking a `Text` prototype therefore gives each consumer a chain of instances
-made for it; this is how [`Messages`](../messages.md) is built, and how
+made for it; this is how [`Messages`](../messages/index.md) is built, and how
 [modules](../modules/index.md) build on each other. The `Logger`, `ComponentLogger`
 and `PluginScope` every plugin has are such prototypes, so a prototype taking one logs and
 launches coroutines as its consumer; see
 [Beans every plugin has](index.md#beans-every-plugin-has).
 
-A [`@Value` property](../configuration.md) of a prototype is read from the owner's files and set
+A [`@Value` property](../configuration/index.md) of a prototype is read from the owner's files and set
 on every instance, so `@ExposePrototype class PriceList { @Value("tax") var tax = 0.0 }` gives
 each consumer its own `PriceList` holding the owner's current `tax`. A reload of the owner sets the
 new values on all of them and then reloads each consumer, whose reload functions see them; see
-[`@Value` on a prototype](../lifecycle/reload.md#value-on-a-prototype).
+[`@Value` on a prototype](../lifecycle/event-order.md#value-on-a-prototype).
 
 
 ## Processors {/* #processors */}

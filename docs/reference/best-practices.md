@@ -18,10 +18,10 @@ rather than around it. Each links to the page with the details.
 
 ### Configuration and reload {/* #reloadable-plugins */}
 
-- **Configuration is [`@Value` properties](../configuration.md)**; the default is in the shipped
+- **Configuration is [`@Value` properties](../configuration/index.md)**; the default is in the shipped
   file, not in the code.
 - **What derives from a value is never computed in a constructor**: read it in a getter, rebuild it
-  in a `PLUGIN_RELOAD_OR_START` function, or react with [`PreviousValueTracking`](../configuration.md#reacting-to-a-change).
+  in a `PLUGIN_RELOAD_OR_START` function, or react with [`PreviousValueTracking`](../configuration/changes.md#reacting-to-a-change).
   The same holds for what derives from another plugin's beans. See
   [Designing for reload](../lifecycle/reload.md#designing-for-reload).
 - **Listeners and coroutines read the beans' current state** instead of copying values when they
@@ -30,7 +30,7 @@ rather than around it. Each links to the page with the details.
 
 ### Secrets {/* #secrets */}
 
-A password, a token or an API key is a [`Secret`](../configuration.md#secrets), never a `String`;
+A password, a token or an API key is a [`Secret`](../configuration/types.md#secrets), never a `String`;
 `reveal()` only in the call that hands it over. The shipped file holds `''`, which switches the
 feature off.
 
@@ -54,15 +54,15 @@ fun connect() {
 
 ### Tasks and threads {/* #tasks-and-threads */}
 
-- **Work as long as the plugin runs is a [`BackgroundTask`](../tasks.md#background-tasks)**, never
+- **Work as long as the plugin runs is a [`BackgroundTask`](../tasks/index.md#background-tasks)**, never
   a timer started in a start or reload function.
 - **Work something starts is launched from the injected `scope`**; one job per player goes into
   `scope.keyedJobs<K>()`. Cancel your jobs, never the scope.
-- **Waiting for a state is a [`Condition`](../tasks.md#conditions)**, never a polling loop. One made
+- **Waiting for a state is a [`Condition`](../tasks/conditions.md)**, never a polling loop. One made
   for a single task is `condition(...)` inside its coroutine; a `scope.condition(...)` made for a
   player or a request is closed with `close()` when that ends.
 - **The server thread is never blocked**: blocking I/O goes into `withContext(Dispatchers.IO) { }`.
-  See [Threads](../tasks.md#threads).
+  See [Threads](../tasks/coroutines.md#threads).
 - **Periods from configuration are `Duration`s** (`30s`, `5m`), not numbers of ticks.
 
 ```kotlin title="Wrong: one plugin-long listener more per /home"

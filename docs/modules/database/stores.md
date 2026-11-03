@@ -1,9 +1,8 @@
 ---
-title: Stores and player stores
-description: Write-behind caches of rows, the login and quit of a player, what a save writes, and store transactions.
+title: Stores
+description: Write-behind caches of rows, keyed stores, what a save writes, references, store transactions and the table.
 ---
-
-# Stores and player stores
+# Stores
 
 import Audience from '@site/src/components/Audience';
 
@@ -19,205 +18,8 @@ the players: loaded before a player joins, saved when they quit.
 | `get`, `getValue`, `set`, `update`, `tryUpdate`, `contains`, `keys` | memory only; safe from any thread, the server thread included |
 | `load`, `save`, `saveAll`, `evict`, `delete`, `transaction` | the database, on your plugin's database threads; they return a [`DatabaseFuture`](background.md#background-work) |
 
-## Player stores {/* #player-stores */}
-
-Declare the store as a bean that delegates to it, so your own helpers sit next to the store's
-operations:
-
-```kotlin
-@LocalBean
-class Profiles(database: Database) : PlayerStore<Profile> by database.playerStore(
-    "profiles", Profile::uuid,
-    onJoin = { player, profile -> profile.copy(name = player.name) },
-    onLeave = { _, profile -> profile.copy(lastSeen = Instant.now()) },
-    create = { Profile(it) },
-) {
-    fun give(player: Player, coins: Long) = update(player) { it.copy(coins = it.coins + coins) }
-
-    /** False, and nothing changes, when the player has fewer coins. */
-    fun trySpend(player: Player, coins: Long) = tryUpdate(player) { if (it.coins < coins) null else it.copy(coins = it.coins - coins) } != null
-}
-```
-
-| Argument        | What it is                                                              |
-|-----------------|-------------------------------------------------------------------------|
-| `"profiles"`    | the table, without the prefix: the store reads and writes `{prefix}profiles` (`profiles` with no prefix, `shop_profiles` with `shop_`); also the store's name in logs |
-| `Profile::uuid` | the key: a constructor property holding the player's UUID, the table's primary key |
-| `onJoin`        | applied to the player's value when they join, with the `Player` at hand; it only brings the value up to date (see [Players already online](#players-already-online)) |
-| `onLeave`       | applied when they quit, and to everyone online when the plugin stops, with the `Player` at hand too |
-| `create`        | the value of a player with no row yet                                   |
-
-`profiles[player]` is the value of an online player, never null. A player the store did not see
-log in, an NPC for one, has none:
-`Plugin Shop: profiles has no entry for Steve (069a79f4-...); a player store loads players when they log in, so an NPC or a player who logged in before the store existed has none`.
-
-### The login {/* #the-login */}
-
-A player never plays on default data: the value is loaded while the server is still deciding
-whether to let them in, and a login whose data cannot be loaded is refused.
-
-| Event                       | Priority | The store                                                      |
-|-----------------------------|----------|----------------------------------------------------------------|
-| `AsyncPlayerPreLoginEvent`  | `HIGH`, if still allowed | loads the value (or uses the one still cached from a recent session), waiting at most `stores.login-timeout`; when that fails, refuses the login with `messages.load-failed` and logs `Refused the login of Steve (069a79f4-...): profiles could not be loaded (...)`; while the plugin stops, refuses it with `messages.closing` |
-| `AsyncPlayerPreLoginEvent`  | `MONITOR` | when a later handler refused the login, lets go of the value; a value with no unsaved change, or one just created for a new player, is dropped |
-| `PlayerLoginEvent`          | `MONITOR` | the same, for a refusal there: a ban, the whitelist, a full server |
-| `PlayerJoinEvent`           | `LOWEST` | applies `onJoin`, so your own join handlers see its result       |
-| `PlayerQuitEvent`           | `MONITOR` | after your own quit handlers: applies `onLeave`, then saves the value in the background and forgets it, unless the player is back by then |
-
-A player who logs in again before the save of their last session finished gets the cached value
-back, and a duplicate login ("logged in from another location") shares the value of the old
-session, so no change is lost between two sessions. A connection that drops between the login and
-the join is noticed within two minutes, and its value saved and forgotten.
-
-### Players already online {/* #players-already-online */}
-
-A plugin enabled on a running server (a plugin manager, say) finds players who are already in.
-Their values are loaded and claimed when the store starts, so `profiles[player]` works for them
-at once, but `onJoin` is **not** applied: they did not join now. Keep `onJoin` to bringing the
-value up to date, never rewards or messages, which would otherwise come twice or never:
-
-```kotlin title="Wrong: onJoin with a side effect"
-// error-next-line
-onJoin = { player, profile -> player.sendMessage(text("Welcome back!")); profile.copy(coins = profile.coins + 10) },
-```
-
-```kotlin title="Right: onJoin updates the value; rewards and greetings go to your own join handler"
-// fix-next-line
-onJoin = { player, profile -> profile.copy(name = player.name) },
-```
-
-What `onJoin` would have done for the players already online belongs in a `PLUGIN_START_ONLY`
-function, which runs once the store has loaded them:
-
-```kotlin
-@AutoInvoke(Phase.PLUGIN_START_ONLY)
-fun catchUp(profiles: Profiles) = VersatiaEngine.onlinePlayers.forEach { player -> profiles.update(player) { it.copy(name = player.name) } }
-```
-
-### Saving {/* #saving */}
-
-| When                    | What is written                                                       |
-|-------------------------|-----------------------------------------------------------------------|
-| a player quits          | their values in every player store, in one transaction, then they are forgotten |
-| every `stores.autosave` (5 minutes) | every changed value of every store, in one transaction; `0` turns it off |
-| every minute            | values nobody holds any more (players gone, and values of keyed stores or offline players untouched for `stores.idle-expiry`, 10 minutes) are saved and forgotten |
-| the plugin stops        | `onLeave` is applied to everyone online, then every changed value is written, in one transaction |
-
-:::admin
-
-The server admin sets these timings, for one plugin or all of them; see
-[Player data](/admin/database/operations#player-data) in the server admin guide.
-
-
-:::
-
-A new player's value is written at the next save, so a leaderboard query sees new players too.
-To have the database up to date right now, before a query that reads it, call `saveAll()` and
-continue in `then`:
-
-```kotlin
-profiles.saveAll().then { named("top-coins", "limit" to 10).list<TopEntry>() }.thenSync { top -> show(sender, top) }
-```
-
-### When a save fails {/* #when-a-save-fails */}
-
-A value the database refuses to save stays changed in memory, so nothing is lost, and is written
-again every 15 seconds until it is saved. The failure is logged at most once a minute per store:
-`Saving profiles failed; 3 entries stay changed and are retried every 15 s; a player whose data stays unsaved for 1m is kicked: Connection refused`.
-
-Once a value has failed for `stores.save-failure.after` (1 minute), `stores.save-failure.action` decides:
-
-| `stores.save-failure.action` | What happens                                                                 |
-|--------------------------|------------------------------------------------------------------------------|
-| `kick` (default)         | the player whose value it is gets kicked with `messages.save-failed`, and a login of theirs is refused with it until the value is saved; the server keeps running and retrying, and once the database answers again the players come back to their data. A value of a keyed store is logged only |
-| `warn`                   | logged only, as for data whose loss does not hurt                            |
-| `shutdown`               | the server is stopped; what the final save cannot write is [kept in a file](#unsaved-values-at-a-stop) |
-
-Nobody keeps playing on progress the database does not have, and nothing that is in memory is
-thrown away: during an outage of the whole database every player with changes is kicked after the
-after `stores.save-failure.after`, while their values wait in memory. A value that only one player's data breaks (a row the
-database refuses) kicks that player alone.
-
-```
-[Shop] Kicked Steve (069a79f4-...): their profiles could not be saved for 1m; they may log in again once it is (stores.save-failure.action: kick)
-```
-
-:::admin
-
-Which action suits a server is explained to the server admin in
-[Player data](/admin/database/operations#player-data).
-
-
-:::
-
-### Unsaved values at a stop {/* #unsaved-values-at-a-stop */}
-
-When the server stops while the database does not take a value, `/stop` during an outage or a
-`shutdown` above, the final save fails too. The values it could not write are then kept in a file
-of the plugin's folder, `plugins/Shop/unsaved/2026-10-30_12-01-00.yml`, and written to the database
-at the next start, before any player can join:
-
-```yaml title="plugins/Shop/unsaved/2026-10-30_12-01-00.yml"
-plugin: Shop
-database: MYSQL db.example.net:3306/survival, table prefix shop_
-stopped: '2026-10-30T12:01:00Z'
-stores:
-  profiles:
-  - value:
-      uuid: 069a79f4-44e9-4726-a5be-fca90e38aaf5
-      coins: '150'
-    previous:              # the row as this server last read or wrote it; null for a new player
-      uuid: 069a79f4-44e9-4726-a5be-fca90e38aaf5
-      coins: '100'
-```
-
-A value is written back only where the database still has, in each column the value changes, what
-`previous` says. Where another server or a tool changed one of those columns meanwhile (Steve played
-on another server of the network, which saved `coins: 120`), the newer data stays and the value goes
-to `unsaved/conflicts/` with the reason, for you to settle by hand:
-
-```
-[Shop] profiles {uuid=069a79f4-..., coins=150}: not written, the database changed coins since the stop; kept in plugins/Shop/unsaved/conflicts/2026-10-30_12-01-00.yml
-```
-
-A file is written back only to the database it was kept for (the `database` line: engine, location
-and table prefix), so changing `database.yml` meanwhile leaves it waiting; remove a file to drop
-its values.
-
-| `stores.save-failure.keep-in-file` | Use it when                                                         |
-|-------------------------------------|----------------------------------------------------------------------|
-| `true` (default)                    | one server owns a player's data at a time: a single server, or a network where each server has its own database or a player's data never changes on two servers at once |
-| `false`                             | several servers or tools change the same rows while this one is stopped, and an old value must never land in a row the database has not marked as changed: a value kept here is written over a row another server still holds unsaved in its memory, and that server's next save then overwrites only the columns it changed |
-
-Only stores of a table keep their values this way; a store over your own `StoreSchema` logs them
-at SEVERE, as before.
-
-### Autosave events {/* #autosave-events */}
-
-An autosave that has changed entries to write is announced by two Bukkit events of the package
-`dev.versatia.database.store`, both called on the server thread:
-
-| Event                     | When                         | Properties |
-|---------------------------|------------------------------|------------|
-| `StoreAutosaveStartEvent` | before the run starts        | `plugin` whose stores save, `stores` (the names of those with changes), `dirty` (changed entries) |
-| `StoreAutosaveEndEvent`   | after it ended               | `plugin`, `saved` (entries written), `failed` (entries kept changed for the next one), `duration`, `failure` (the first error, or null) |
-
-An autosave with nothing to write fires neither, and none fires once the plugin is disabled (the
-final save at stop is no autosave). Every plugin's stores fire them, so a listener checks `plugin`:
-
-```kotlin
-class AutosaveNotices(private val plugin: MarketPlugin) : Listener {
-    @EventHandler
-    fun onStart(event: StoreAutosaveStartEvent) {
-        if (event.plugin == plugin) VersatiaEngine.broadcast(text("Saving coins...", NamedTextColor.GRAY))
-    }
-
-    @EventHandler
-    fun onEnd(event: StoreAutosaveEndEvent) {
-        if (event.plugin == plugin) VersatiaEngine.broadcast(text("Saved ${event.saved} profiles in ${event.duration.inWholeMilliseconds} ms", NamedTextColor.GRAY))
-    }
-}
-```
+How a player store is declared, loaded at the login and saved, and what happens when a save fails,
+is on [Player stores](player-stores.md).
 
 ## Keyed stores {/* #keyed-stores */}
 
@@ -301,7 +103,7 @@ whatever order your beans make the stores in:
 A delete takes along only the rows that extend a row one to one: those of stores whose key column
 references the deleted store's key column, as `statistics.uuid` does. Rows that point to a row
 from another column (`members.guild REFERENCES guilds (id)`) are left to the database: without
-`ON DELETE` it refuses the delete while they exist ([Corner cases](corner-cases.md#stores)).
+`ON DELETE` it refuses the delete while they exist ([Corner cases](#corner-cases)).
 
 A table that extends another store's row this way is a [best practice](best-practices.md#extension-references-key):
 the stores then write and delete the two together.
@@ -385,8 +187,8 @@ values.
 
 A store of a class keeps it in the table named by its first argument, under your prefix. The class
 needs a primary constructor whose parameters are all properties (`val`), the key among them; each
-property is a column, named as in [mapping](statements.md#reading-rows) and stored as its
-[type](statements.md#types) says. The store checks this, and the table itself, when the database
+property is a column, named as in [mapping](rows.md#reading-rows) and stored as its
+[type](rows.md#types) says. The store checks this, and the table itself, when the database
 opens, so a missing migration fails the start instead of the first save:
 
 | Problem                                    | Message                                                    |
@@ -446,3 +248,37 @@ Operations on the same key take turns. A save, a load or a store transaction tha
 `Plugin Shop: profiles could not lock 069a79f4-... within 30s; a store transaction or save holds it (stores.lock-timeout in database.yml)`.
 A login waits at most `stores.login-timeout` (10 s), since the player is waiting, and is refused
 after it. Autosave and the minute's cleanup never wait: they skip a busy key until their next run.
+
+## Corner cases {/* #corner-cases */}
+
+- **`store[key] = value` for a key that is not loaded** writes the whole value as an upsert at the
+  next save, over a row that may exist. To change a stored row, `load` it first and `update` it.
+- **A keyed store does not insert what `create` made** until it is changed; a player store writes new
+  players at the next save.
+- **Values are immutable.** A table store refuses at activation a class with a `var` property or a
+  mutable collection type (`MutableList`, `MutableMap`, `ArrayList`, ...); a [`StoreSchema`](#your-own-layout)
+  store is not checked, and a property changed inside its cached instance is neither seen nor
+  saved. Replace the value with `copy`.
+- **`tryUpdate` returns null while a store transaction holds the key**, even when the change itself
+  would succeed.
+- **Two timeouts bound the waits for a key**: `stores.login-timeout` a login's, and
+  `stores.lock-timeout` every other (saves, loads, store transactions); the final save at stop
+  waits only as long as `shutdown-timeout` leaves.
+- **Offline players loaded by a store transaction** stay cached until `stores.idle-expiry`; with
+  `idle-expiry: 0` nothing a keyed store loaded is ever forgotten.
+- **Stores follow the foreign keys between their tables** ([Stores that reference each other](#stores-that-reference-each-other)).
+  Tables that reference each other in a cycle are written in the order the stores were made, with
+  one warning at start:
+  `the tables of stores eggs, hens reference each other through foreign keys, so no order writes them safely; they are written in the order they were made, and a new row the database refuses is retried at the next save`.
+- **`delete` takes along only the rows that extend the row**: those of stores whose key column
+  references the store's key column, with a key of the same class. A reference from another column
+  (`members.guild REFERENCES guilds (id)`) is the database's: without `ON DELETE` the delete fails
+  with `FOREIGN_KEY`; with `ON DELETE CASCADE` the database deletes rows that the referencing store
+  may still cache, and its next save of them fails. Change or evict the referencing values first.
+- **A table that is no store's and references a store's table** (`payments.payer REFERENCES
+  profiles (uuid)`) sees a new player's row only once a save wrote it. Insert into it in a
+  transaction of that store after changing the player's value, which writes the row first, or after
+  `profiles.save(player)`.
+- **`evict` keeps a key that changed again** while it was being saved: the new change stays cached
+  for the next save.
+- **`delete` of a store over your own `StoreSchema`** fails unless the schema overrides `delete`.

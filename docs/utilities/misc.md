@@ -23,7 +23,7 @@ Inside the plugin class itself, `logger.info(...)` is just as short; the helpers
 
 :::tip[Start with tasks]
 
-Repeating work and waits are [coroutines](../tasks.md): a `BackgroundTask` runs as long as the
+Repeating work and waits are [coroutines](../tasks/index.md): a `BackgroundTask` runs as long as the
 plugin and is restarted by every reload, `scope.launch { delayTicks(20) }` waits without a
 callback. The helpers below are for plain Bukkit tasks, such as a one-off `runTaskLater` or an API
 that wants a `BukkitTask`.
@@ -147,5 +147,5 @@ form. The configuration getters parse the `"12.5%"` notation.
 `Secret` is an inline value class around a `String` that prints as `****` (`''` when empty), for
 passwords, tokens and keys; `reveal()` returns the text, `Secret.EMPTY` is the empty one and
 `isEmpty()` tells it, which by convention switches the feature off. The
-configuration getters and [`@Value`](../configuration.md#secrets) read it from text,
+configuration getters and [`@Value`](../configuration/types.md#secrets) read it from text,
 `${env:NAME}`, `${file:PATH}` or `${pluginfile:PATH}`.

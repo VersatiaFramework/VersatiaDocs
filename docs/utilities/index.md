@@ -1,3 +1,7 @@
+---
+sidebar_label: Overview
+pagination_label: Utilities
+---
 # Utilities
 
 Besides the framework itself, VersatiaAPI ships a set of independent helpers over the Paper API.
@@ -36,14 +40,14 @@ Work on something you already hold is a call on that object, not on `VersatiaEng
 
 | Task                                | Where                                                                  |
 |-------------------------------------|------------------------------------------------------------------------|
-| run work over time                  | a [`BackgroundTask`](../tasks.md#background-tasks) or `scope.launch { }`, see [Tasks and coroutines](../tasks.md) |
+| run work over time                  | a [`BackgroundTask`](../tasks/index.md#background-tasks) or `scope.launch { }`, see [Tasks and coroutines](../tasks/index.md) |
 | schedule a plain Bukkit task        | `plugin.runTaskLater(20) { }`, see [Scheduler](misc.md#scheduler)      |
 | log                                 | `logger` or `componentLogger` in the plugin, [`plugin.log`](misc.md#logging) elsewhere |
 | reload your own plugin              | `versatiaReload()`, see [Reloading plugins](../lifecycle/reload.md#from-code) |
 | message one player                  | `player.sendMessage(...)`                                              |
 | run a command as a player           | `player.performCommand(...)`                                           |
 | fire an event                       | `event.callEvent()`                                                    |
-| read configuration                  | [`@Value`](../configuration.md) and the [strict getters](configuration.md) |
+| read configuration                  | [`@Value`](../configuration/index.md) and the [strict getters](configuration.md) |
 | provide a service                   | `server.servicesManager.register(...)` in the providing plugin          |
 | check for an optional plugin        | [`@ConditionalOnPlugin`](../optional-plugins.md)                        |
 | inventories, boss bars, block data  | the `Bukkit` factories                                                 |
@@ -60,7 +64,7 @@ companion of `VersatiaEngine`; from Java, use `VersatiaEngine.getInstance()` and
 | `config`       | strict typed getters for `ConfigurationSection`, `Duration` and `Secret` included, YAML file traversal | [Configuration](configuration.md) |
 | `collection`   | `addOrThrow`/`putAllOrThrow`-style helpers, `DeepMergeMap`, `List.cycle`                  | [Collections](collections.md) |
 | `plugin`       | `Plugin.log`, `logWarning`, `logSevere`                                                   | [Scheduler, logging and more](misc.md#logging) |
-| `scheduler`    | `Plugin.runTask*` wrappers over `BukkitScheduler`, for plain Bukkit tasks; [tasks](../tasks.md) come first | [Scheduler, logging and more](misc.md#scheduler) |
+| `scheduler`    | `Plugin.runTask*` wrappers over `BukkitScheduler`, for plain Bukkit tasks; [tasks](../tasks/index.md) come first | [Scheduler, logging and more](misc.md#scheduler) |
 | `validation`   | `validateAtLeast`-style guards that return the receiver                                   | [Scheduler, logging and more](misc.md#validation) |
 | `reflect`      | access to private members through `kotlin-reflect`                                        | [Scheduler, logging and more](misc.md#reflection) |
 | `inventory`    | `ItemStack` and `Inventory` helpers, raw player-inventory slot indices                    | [Scheduler, logging and more](misc.md#inventory) |

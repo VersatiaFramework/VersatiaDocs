@@ -2,10 +2,8 @@
 title: Database configuration
 counterpart: /docs/modules/database/configuration
 ---
-
 # Database configuration
 
-import TwinEngines from '@site/src/components/TwinEngines';
 
 Three files decide where the data of plugins using the Database module lives and how it is reached:
 
@@ -18,14 +16,17 @@ Three files decide where the data of plugins using the Database module lives and
 None of them is required: without them every plugin keeps its data in an SQLite file in its own
 folder. The SQL of a plugin is in its JAR and is never edited on the server.
 
+`connections.yml`, `config.yml`, SSL and the connection pool are on [Connections and
+defaults](connections.md).
+
 ## database.yml {/* #database-yml */}
 
 `plugins/<Plugin>/database.yml` says where one plugin's data lives. It is optional: without it the
-plugin uses the [`default-connection`](configuration.md#connectionsyml) of the module, or else SQLite. At the first
+plugin uses the [`default-connection`](connections.md#connectionsyml) of the module, or else SQLite. At the first
 open the module writes the file with the keys that decide where the data is and the prefix it used,
 and nothing else: a later change of `default-connection` or of the plugin's friendly name never
 moves a plugin that already has data, while every other setting keeps following the module's
-[`defaults`](configuration.md#configyml), the connection and the engine. For a plugin named `Shop` on SQLite it reads:
+[`defaults`](connections.md#configyml), the connection and the engine. For a plugin named `Shop` on SQLite it reads:
 
 ```yaml title="plugins/Shop/database.yml"
 # database.yml - where Shop keeps its data; written at the first start, read at every start.
@@ -44,7 +45,7 @@ in place of `engine` and `file`.
 
 Edit these keys to move the plugin; they apply after a restart, and the data stays behind unless
 `import-from` copies it ([Changing the database](data.md#changing-the-database)). Add any key of
-[Every key](configuration.md#every-key) to give this plugin alone its own value, `main-thread: warn` for one; what
+[Every key](#every-key) to give this plugin alone its own value, `main-thread: warn` for one; what
 the file leaves out keeps following `defaults:`, the connection and the engine, also when they
 change. Leave `table-prefix` as written once the plugin has data: it names the tables the data is
 in.
@@ -57,26 +58,26 @@ start of the server, with a warning at each reload until then.
 
 | Key                       | Type                 | Default                                 | What it does                                          | Applies |
 |---------------------------|----------------------|-----------------------------------------|-------------------------------------------------------|---------|
-| `connection`              | name                 | none                                    | uses a [shared connection](configuration.md#connectionsyml) of `connections.yml`; the keys from `engine` to `pool` then belong to it and are an error here | restart |
+| `connection`              | name                 | none                                    | uses a [shared connection](connections.md#connectionsyml) of `connections.yml`; the keys from `engine` to `pool` then belong to it and are an error here | restart |
 | `engine`                  | `sqlite`, `h2`, `mysql`, `mariadb`, `postgresql`, any case | `sqlite`          | one of the [engines](/docs/modules/database/configuration#engines)                        | restart |
 | `file`                    | path                 | `database.db`                           | `sqlite` and `h2` only: the file, relative to the plugin's folder; H2 drops a `.db` or `.mv.db` ending and stores `<name>.mv.db` | restart |
-| `host`                    | text, [references](configuration.md#secrets-in-the-file) | `localhost`         | server engines only: the host name or address (an IPv6 address without brackets) | restart |
+| `host`                    | text, [references](#secrets-in-the-file) | `localhost`         | server engines only: the host name or address (an IPv6 address without brackets) | restart |
 | `port`                    | 1 to 65535           | 3306 (`mysql`, `mariadb`), 5432 (`postgresql`) | server engines only                            | restart |
-| `database`                | text, [references](configuration.md#secrets-in-the-file) | `minecraft`         | server engines only: the database on the server, which must exist | restart |
+| `database`                | text, [references](#secrets-in-the-file) | `minecraft`         | server engines only: the database on the server, which must exist | restart |
 | `schema`                  | text                 | `''`, the user's search path            | `postgresql` only, ignored elsewhere: the schema the tables live in | restart |
-| `username`                | text, [references](configuration.md#secrets-in-the-file) | `minecraft`         | server engines only; never shown in logs, errors or the status | reload |
-| `password`                | text, [references](configuration.md#secrets-in-the-file) | `''`                | server engines only; never shown                      | reload |
-| `ssl`                     | `disabled`, `preferred`, `required`, `verify` | `preferred`    | TLS to the server, [mapped per driver](configuration.md#ssl)          | reload |
-| `properties`              | map of text, [references](configuration.md#secrets-in-the-file) in text values | `{}` | extra driver properties, applied after the module's tuning and winning over it | reload |
-| `table-prefix`            | `a-z`, `0-9` and `_` | see [The table prefix](configuration.md#the-table-prefix) | what `{prefix}` expands to and builders and stores add | restart |
-| `pool.size`               | 1 or more            | [per engine](configuration.md#defaults-per-engine)      | the most connections the plugin's pool opens; SQLite is always 1, with a warning for more | reload |
+| `username`                | text, [references](#secrets-in-the-file) | `minecraft`         | server engines only; never shown in logs, errors or the status | reload |
+| `password`                | text, [references](#secrets-in-the-file) | `''`                | server engines only; never shown                      | reload |
+| `ssl`                     | `disabled`, `preferred`, `required`, `verify` | `preferred`    | TLS to the server, [mapped per driver](connections.md#ssl)          | reload |
+| `properties`              | map of text, [references](#secrets-in-the-file) in text values | `{}` | extra driver properties, applied after the module's tuning and winning over it | reload |
+| `table-prefix`            | `a-z`, `0-9` and `_` | see [The table prefix](#the-table-prefix) | what `{prefix}` expands to and builders and stores add | restart |
+| `pool.size`               | 1 or more            | [per engine](#defaults-per-engine)      | the most connections the plugin's pool opens; SQLite is always 1, with a warning for more | reload |
 | `pool.min-idle`           | 0 or more            | 1                                       | the connections kept open while the plugin is idle, at most `pool.size`; more open when calls wait for one, up to `pool.size`, and close after 10 idle minutes | reload |
-| `pool.connection-timeout` | duration, at least 250ms (less, `0` included, is 250ms) | [per engine](configuration.md#defaults-per-engine) | how long a call waits for a free connection, and a connect for the server | reload |
-| `pool.max-lifetime`       | duration, `0` = unlimited | [per engine](configuration.md#defaults-per-engine) | when a connection is replaced; [lowered](configuration.md#pool-and-timeouts) below the server's idle timeout | reload |
+| `pool.connection-timeout` | duration, at least 250ms (less, `0` included, is 250ms) | [per engine](#defaults-per-engine) | how long a call waits for a free connection, and a connect for the server | reload |
+| `pool.max-lifetime`       | duration, `0` = unlimited | [per engine](#defaults-per-engine) | when a connection is replaced; [lowered](connections.md#pool-and-timeouts) below the server's idle timeout | reload |
 | `pool.leak-warning`       | duration, `0` = off  | `0`                                     | from 2 s up, logs the stack of whoever held a connection that long | reload |
-| `threads`                 | 1 or more            | [per engine](configuration.md#defaults-per-engine); on a shared connection its `threads-per-plugin` | the plugin's [database threads](/docs/modules/database/background#background-work); more than `pool.size` is lowered to it, with a warning | reload |
+| `threads`                 | 1 or more            | [per engine](#defaults-per-engine); on a shared connection its `threads-per-plugin` | the plugin's [database threads](/docs/modules/database/background#background-work); more than `pool.size` is lowered to it, with a warning | reload |
 | `queue-limit`             | 1 or more            | 5000                                    | the [background tasks](/docs/modules/database/background#limits) that may wait for a thread; past it new ones fail at once | reload |
-| `query-timeout`           | duration, `0` = the driver's limit | 30s                       | the time limit of each statement; on server engines a silent connection is broken after twice this, at least 2 minutes ([Pool and timeouts](configuration.md#pool-and-timeouts)) | reload |
+| `query-timeout`           | duration, `0` = the driver's limit | 30s                       | the time limit of each statement; on server engines a silent connection is broken after twice this, at least 2 minutes ([Pool and timeouts](connections.md#pool-and-timeouts)) | reload |
 | `slow-query`              | duration, `0` = off  | 250ms                                   | statements slower than this are logged                | reload |
 | `main-thread`             | `throw`, `warn`, `allow` | `throw`                             | a blocking call on the [server thread](/docs/modules/database/background#the-server-thread) outside start, reload and stop | reload |
 | `log-statements`          | `true`, `false`      | `false`                                 | logs every statement with its values and time         | reload |
@@ -84,20 +85,20 @@ start of the server, with a warning at each reload until then.
 | `migrations.backups`      | 0 or more            | 3                                       | the [backups](data.md#backups) of an SQLite or H2 file kept; `0` takes none | reload |
 | `migrations.lock-timeout` | duration             | 60s                                     | the wait for [another server migrating](data.md#the-migration-lock) | reload |
 | `migrations.future-versions` | `warn`, `fail`    | `warn`                                  | applied versions newer than the JAR: [log and start, or refuse](data.md#plugin-updates) | reload |
-| `stores.autosave`         | duration, `0` = off  | 5m                                      | how often [stores](/docs/modules/database/stores#saving) write their changes; `0` writes only on quit, evict and stop | reload |
+| `stores.autosave`         | duration, `0` = off  | 5m                                      | how often [stores](/docs/modules/database/player-stores#saving) write their changes; `0` writes only on quit, evict and stop | reload |
 | `stores.idle-expiry`      | duration, `0` = never | 10m                                    | when values nobody holds (keyed stores, offline players) are saved and forgotten | reload |
 | `stores.login-timeout`    | duration             | 10s                                     | how long a login waits for its data before it is refused | reload |
 | `stores.lock-timeout`     | duration             | 30s                                     | how long a save, load or store transaction [waits for a key](/docs/modules/database/stores#lock-waits) another one holds | reload |
 | `stores.save-failure.action` | `kick`, `warn`, `shutdown` | `kick`                         | what follows a value that has failed to save for `stores.save-failure.after`: [kick its player, log, or stop the server](operations.md#player-data) | reload |
 | `stores.save-failure.after` | duration           | 1m                                      | how long a value may fail to save before `stores.save-failure.action` applies; failed values are retried every 15 s | reload |
-| `stores.save-failure.keep-in-file` | `true`, `false` | `true`                                | values the final save at a stop cannot write are [kept in a file](/docs/modules/database/stores#unsaved-values-at-a-stop) and written at the next start | reload |
+| `stores.save-failure.keep-in-file` | `true`, `false` | `true`                                | values the final save at a stop cannot write are [kept in a file](/docs/modules/database/player-stores#unsaved-values-at-a-stop) and written at the next start | reload |
 | `messages.load-failed`    | MiniMessage          | `<red>Your data could not be loaded. Please try again in a moment.` | the text of a login refused because its data could not be loaded | reload |
 | `messages.closing`        | MiniMessage          | `<red>The server is restarting. Please try again in a moment.` | the text of a login refused while the database closes | reload |
 | `messages.save-failed`    | MiniMessage          | `<red>Your data could not be saved, so you cannot play right now. Please try again in a few minutes.` | the text of a player kicked, or a login refused, under `stores.save-failure.action: kick` | reload |
 | `import-from`             | section              | none                                    | a database to [copy the tables from](data.md#changing-the-database) at the next start: `connection`, or the keys `engine` (required) to `properties` without `pool`; plus `table-prefix`, the tables' prefix there when it differs | restart |
 
 Each of the keys from `queue-limit` to `messages.save-failed` (all soft keys but `threads`) comes from
-the plugin's `database.yml` when it is there, else from the module's [`defaults`](configuration.md#configyml), else
+the plugin's `database.yml` when it is there, else from the module's [`defaults`](connections.md#configyml), else
 from the default above. The file the module writes at the first open sets only the target and the
 prefix, so `pool` and `threads` follow the engine, or a shared connection's `pool` and
 `threads-per-plugin`, until the plugin's `database.yml` sets them.
@@ -248,122 +249,24 @@ connection: main
 table-prefix: bank_
 ```
 
-## connections.yml {/* #connectionsyml */}
+## Corner cases {/* #corner-cases */}
 
-`plugins/VersatiaModule-Database/connections.yml` defines connections that several plugins share:
-**one pool per connection**, while each plugin keeps its own tables, prefix and threads.
-
-```yaml title="plugins/VersatiaModule-Database/connections.yml"
-# Plugins opening their database for the first time without a database.yml use this connection;
-# '' leaves each of them on its own SQLite file.
-default-connection: main
-
-connections:
-  main:                                     # the name plugins write as connection: main
-    engine: mysql                           # required in this file
-    host: db.example.net
-    port: 3306
-    database: survival
-    username: survival
-    password: ${env:SURVIVAL_DB_PASSWORD}
-    ssl: required
-    properties: {}
-    pool:                                   # ONE pool, shared by every plugin naming main
-      size: 8
-      min-idle: 1
-      connection-timeout: 5s
-      max-lifetime: 30m
-      leak-warning: 0s
-    threads-per-plugin: 2                   # the default threads of each plugin on main
-  local:
-    engine: h2
-    file: shared.db                         # in plugins/VersatiaModule-Database/, as shared.mv.db
-```
-
-A plugin uses a connection with `connection: main` in its `database.yml`. The module ships the
-file with `connections: {}` and the example above commented out, so nothing is shared until an
-admin defines a connection.
-
-| Key                               | Type     | Default            | What it does                                          | Applies |
-|-----------------------------------|----------|--------------------|-------------------------------------------------------|---------|
-| `default-connection`              | name     | `''`               | the connection of plugins that open their database for the first time (no `database.yml`, no `database.db`); `''` is SQLite per plugin | `/versatia reload database`, for plugins opening later |
-| `connections.<name>`              | section  | none               | one shared connection; the name is any YAML key       | added: `/versatia reload database`; removed: a warning, the plugins using it keep it until a restart |
-| `connections.<name>.engine`       | engine   | none, required     | as in [database.yml](configuration.md#every-key)                      | restart |
-| `connections.<name>.file`         | path     | `database.db`      | relative to the module's folder, not a plugin's       | restart |
-| `connections.<name>.host`, `port`, `database`, `schema` | as in [database.yml](configuration.md#every-key) | the same | as in `database.yml` | restart |
-| `connections.<name>.username`, `password`, `ssl`, `properties` | as in [database.yml](configuration.md#every-key) | the same | as in `database.yml`, for every plugin of the pool | `/versatia reload database` |
-| `connections.<name>.pool.*`       | as in [database.yml](configuration.md#every-key) | [per engine](configuration.md#defaults-per-engine) | the one pool of the connection | `/versatia reload database` |
-| `connections.<name>.threads-per-plugin` | 1 or more | the plugin's own default | the `threads` of each plugin on this connection whose `database.yml` sets none | `/versatia reload database` |
-
-The connection keys are read as strictly as `database.yml`'s, with the same messages, naming the
-full path (`connections.yml has no connections.main.engine; set one of sqlite, h2, mysql, mariadb, postgresql`).
-A broken `connections.yml` fails the start of the module, and at `/versatia reload database` the
-reload, keeping what runs.
-
-`default-connection` never moves a plugin that has data: one that already has a `database.db` stays
-on it, with a warning naming both files; one that has a `database.yml` keeps what it says.
-
-`/versatia reload database` re-reads the file. Pool sizes, timeouts, credentials, `ssl` and
-`properties` of the connections in use apply at once, and open connections are replaced as they
-come back; a connection that now points to another server, or was removed, keeps working until a
-restart, with a warning naming the plugins using it.
-
-## config.yml {/* #configyml */}
-
-`plugins/VersatiaModule-Database/config.yml` holds what applies to every plugin's database: the
-`defaults` section, the server's policy for every plugin whose `database.yml` leaves a key out.
-
-```yaml title="plugins/VersatiaModule-Database/config.yml"
-defaults:
-  main-thread: warn
-  stores:
-    autosave: 2m
-```
-
-For each key a plugin's `database.yml` wins, then `defaults`, then the module's own default (the
-[Every key](configuration.md#every-key) table). `defaults` takes the soft keys of `database.yml`: `queue-limit`,
-`query-timeout`, `slow-query`, `main-thread`, `log-statements`, `shutdown-timeout`, `migrations.*`,
-`stores.*` and `messages.*`. Where a plugin's data lives (`connection`, `engine`, `file`, `host`,
-`port`, `database`, `schema`, `username`, `password`, `ssl`, `properties`, `table-prefix`,
-`import-from`) is never a server-wide default, and neither are `pool` and `threads`, which each
-engine and connection bounds differently.
-
-`defaults` is read as strictly as `database.yml`, and `defaults: {}` (as shipped) sets nothing:
-
-| In the file                    | Result |
-|--------------------------------|--------|
-| an unknown key                 | `config.yml has unknown key "defaults.stores.autosav"; did you mean "defaults.stores.autosave"?` |
-| a key that is not a default    | `config.yml sets defaults.host, which only a plugin's database.yml (or a connection) sets; defaults takes queue-limit, query-timeout, slow-query, main-thread, log-statements, shutdown-timeout, migrations, stores, messages` |
-| a value out of range           | `config.yml sets defaults.queue-limit: 0; use 1 or more` |
-
-`/versatia reload database` re-reads it, and every open database then reads its settings again as
-its own reload would: a changed default applies at once wherever no `database.yml` sets that key.
-A plugin whose `database.yml` fails at that moment keeps its running settings, with a warning.
-
-## SSL {/* #ssl */}
-
-| `ssl:`      | MySQL <TwinEngines /> | MariaDB <TwinEngines /> | PostgreSQL    |
-|-------------|-------------------|----------------|---------------|
-| `disabled`  | `DISABLED`        | `disable`      | `disable`     |
-| `preferred` | `PREFERRED`       | `trust`        | `prefer`      |
-| `required`  | `REQUIRED`        | `trust`        | `require`     |
-| `verify`    | `VERIFY_IDENTITY` | `verify-full`  | `verify-full` |
-
-The MariaDB driver has no "TLS if available", so `preferred` asks for TLS there: a MariaDB server
-without TLS needs `ssl: disabled`, which the connect error suggests. On MySQL, `ssl: disabled`
-also allows the public key retrieval that password logins without TLS need.
-
-## Pool and timeouts {/* #pool-and-timeouts */}
-
-The pool is HikariCP, built after the module has looked at the server:
-
-- `pool.max-lifetime` is lowered to 30 s below the server's idle timeout (MySQL and MariaDB
-  `wait_timeout`, PostgreSQL 14+ `idle_session_timeout`), never under 30 s, so the server never
-  drops a connection the pool still hands out; idle connections are pinged every half of that
-  timeout (between 30 s and 2 minutes) when that comes before their replacement.
-- On MySQL, MariaDB and PostgreSQL a connection that stops answering is broken after twice
-  `query-timeout`, and at least after 2 minutes, so no thread waits on a dead socket forever. That
-  holds with `query-timeout: 0` and `timeout(Duration.ZERO)` too: `0` means the driver's limit,
-  120 s, not no limit at all.
-- `properties` go to the driver after the module's own tuning and win over it.
-
+- **A non-empty prefix belongs to one plugin**: a second plugin under the same prefix (two plugins
+  with one friendly name) fails the start. Plugins with `table-prefix: ''` share `schema_history`,
+  each with its own rows, and a migration creating a table another of them owns fails before it
+  runs, naming the owner. Tables recorded before the module kept that list, or created outside
+  migrations, are not known to belong to anyone: the `CREATE TABLE` itself fails then.
+- **`${env:NAME}`, `${file:PATH}` and `${pluginfile:PATH}` work in `host`, `database`, `username`, `password` and the
+  text values of `properties` only**; anywhere else they are plain text. In those keys any other
+  `${...}` is an error, so a password that really contains `${` goes into a file or a variable,
+  whose content is taken as written. A number or a boolean in `properties` (`connectTimeout: 5000`)
+  stays as written.
+- **Text keys refuse what YAML did not read as text**: an unquoted `0123`, `yes` or `2024-01-01` in
+  `password`, `database` or any other text key is something else to YAML, so it is refused (for
+  `password` without the value in the message) instead of being used changed; quote it. Driver
+  `properties` are the exception: their numbers and booleans pass as written by YAML.
+- **A key the engine does not use is ignored**: `schema` outside PostgreSQL, `file` on a server
+  engine, `host` and the rest on SQLite and H2; none is an error.
+- **`threads` and `pool` follow the engine and the connection** unless a plugin's `database.yml`
+  sets them: the file the module writes at the first open sets neither, so a changed
+  `threads-per-plugin` or connection pool reaches every plugin on it at `/versatia reload database`.

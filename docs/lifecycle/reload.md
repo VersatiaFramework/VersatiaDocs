@@ -26,16 +26,19 @@ What a reload changes on the server, and what needs a restart, is explained to t
 Values re-read by <code>/versatia reload announcer</code>, a derived value rebuilt in a <code>PLUGIN_RELOAD_OR_START</code> function, a task rescheduled only when <code>PreviousValueTracking</code> says its interval changed, and a reload from code.
 </ExampleCard>
 
+The exact order of the steps within a start or a reload is on [The order within an
+event](event-order.md).
+
 ## What a reload does {/* #what-a-reload-does */}
 
 The runtime walks the plugin's descriptor at the `RELOAD` event: the elements whose phase is
 `PLUGIN_RELOAD_ONLY` or `PLUGIN_RELOAD_OR_START` run, nothing else. Beans are not re-created,
-listeners stay registered and the coroutines launched from a [`PluginScope`](../tasks.md#your-own-coroutines)
-go on; every [`BackgroundTask`](../tasks.md#background-tasks) is restarted with the new values. The [resources](../resources.md) are extracted again, which restores a
+listeners stay registered and the coroutines launched from a [`PluginScope`](../tasks/coroutines.md)
+go on; every [`BackgroundTask`](../tasks/index.md#background-tasks) is restarted with the new values. The [resources](../resources.md) are extracted again, which restores a
 file deleted from the data folder and leaves every other file alone. Then the plugin's
-[`@Value` properties](../configuration.md) are set again from the files, then its
+[`@Value` properties](../configuration/index.md) are set again from the files, then its
 [`Reloadable` beans](#reloadable-beans) are reloaded, then the reload-phase functions run; the
-[order within an event](#the-order-within-an-event) explains why. A
+[order within an event](event-order.md) explains why. A
 reload is for re-reading configuration and rebuilding whatever derives from it: the values are
 re-read for you, and the rest is rebuilt in functions such as
 
@@ -63,7 +66,7 @@ an error with the stack trace.
 ### Plugins that use the reloaded one's values {/* #plugins-that-use-the-reloaded-ones-values */}
 
 A plugin holding a bean another plugin exposes, a [prototype](../dependency-injection/scopes.md#exposeprototype)
-instance made for it or an injected singleton, whose class has [`@Value` properties](../configuration.md)
+instance made for it or an injected singleton, whose class has [`@Value` properties](../configuration/index.md)
 or takes, through its constructor, another bean of that plugin that has them (a `Ledger(val prices:
 PriceList)` counts), depends on that plugin's configuration. After a successful reload the runtime therefore reloads
 every such plugin too, right after, without anything to declare; a plugin holding only beans
@@ -75,7 +78,7 @@ Reloaded economy; then shop, auction, which use beans of economy.
 ```
 
 Each of them runs its reload event, so its `PLUGIN_RELOAD_OR_START` functions see the
-[values Economy just read](#value-on-a-prototype) and rebuild what derives from them. The cascade
+[values Economy just read](event-order.md#value-on-a-prototype) and rebuild what derives from them. The cascade
 goes on transitively (a plugin using Shop's beans follows Shop), in start order, so an owner always
 reloads before the plugins using it, and each plugin reloads once per reload, cycles included; a
 full `/versatia reload` reloads every plugin once. A consumer whose reload fails is reported on its
@@ -124,117 +127,18 @@ internal class MessagesImpl(private val plugin: Plugin, private val text: Text) 
 }
 ```
 
-The runtime calls `reload()` once your plugin's beans exist and its [`@Value` properties](../configuration.md)
+The runtime calls `reload()` once your plugin's beans exist and its [`@Value` properties](../configuration/index.md)
 are set, and again at every reload of your plugin, in creation order, so a dependency is fresh
 before its dependents, and before any `@AutoInvoke` function of the event runs. An instance
 obtained later, by a reload-phase function say, is reloaded as soon as it is obtained. Nothing is
 needed in your plugin: the instance made for it is reloaded with it without a line of your code.
 A local bean implementing `Reloadable` is treated the same way, and an exposed singleton is
 reloaded with its owner only, but neither is the hook's purpose: a plugin's own configuration is
-`@Value` properties, as explained under [Common mistakes](../configuration.md#common-mistakes).
+`@Value` properties, as explained under [Common mistakes](../configuration/index.md#common-mistakes).
 
 A `reload()` that throws fails the event with `Plugin X: com.example.MessagesImpl failed to reload`,
 with the original exception as cause: at start the plugin does not enable, at a reload the
 message reaches the command sender and the console.
-
-## The order within an event {/* #the-order-within-an-event */}
-
-At `START` and at `RELOAD` the runtime works through a plugin in a fixed order, and the order
-decides what each piece of code can see:
-
-| Step | At `START`                                                     | At `RELOAD`                               |
-|------|----------------------------------------------------------------|-------------------------------------------|
-| 1    | the files under `resources/` are extracted                     | the same, for files missing from the data folder |
-| 2    | the [`@Value` properties](../configuration.md) of the main class and of `object`s are set from the files | every `@Value` property is set again |
-| 3    | the beans are created in dependency order; constructors run, receiving their [constructor values](../configuration.md#in-a-constructor), and each bean's body values are set right after its constructor |                |
-| 4    | the [`Reloadable` beans](#reloadable-beans) are reloaded, in creation order | the same                      |
-| 5    | the [listeners](../events.md) are registered and the [background tasks](../tasks.md#background-tasks) launched | the running calls of the background tasks are cancelled, their `finally` blocks run, and new calls are launched |
-| 6    | the [`@AutoInvoke` functions](auto-invoke.md) of the event run, in descriptor order | the same             |
-| 7    |                                                                | the [plugins holding this plugin's beans with values](#plugins-that-use-the-reloaded-ones-values) reload, each through steps 1 to 6 |
-| 8    | at the next tick, the background tasks' `run()` begins         | the same, once the cancelled calls have finished |
-
-Every value is read from the files before step 2, so a broken file stops the event before anything
-is set or created. The body values of a bean are set right after its own constructor, before it is
-injected anywhere, so a constructor sees the values of the main class and of `object`s, its own
-constructor values and every value of the beans it takes, but the placeholders of its own body.
-
-### Why the values come before the reloads {/* #why-the-values-come-before-the-reloads */}
-
-A `reload()` may depend on a value; a value never depends on a `reload()`, because it comes from a
-file and nothing else. Were the reloads to run first, a `reload()` reading a value would see what
-the property held *before* the event: at start the placeholder, at a reload the previous
-configuration. The administrator edits the file, runs `/versatia reload`, and the change would
-show only at the next reload. With the values set first, `reload()` sees the current file at both
-events. Setting a property is the smaller operation of the two, so it goes first and the bigger
-one builds on it.
-
-### What follows at start {/* #what-follows-at-start */}
-
-The first `reload()` of a bean therefore does **not** run inside the bean's creation, as it
-would have to for the constructors of its dependents to see a loaded bean: it runs in step 4, once
-every bean exists and every value is set. A constructor that reads from a `Reloadable` dependency,
-such as the `Messages` instance VersatiaCore [makes](../messages.md) for your
-plugin, sees it empty:
-
-```kotlin
-@LocalBean
-class Shop(messages: Messages) {
-    val greeting = messages["shop.open"].get()   // throws: the messages have not been read yet
-}
-```
-
-This is the rule that constructors only wire dependencies, applied to one more case. Read the
-dependency when it is needed, or in a function of the event, which runs after the reloads:
-
-```kotlin
-@LocalBean
-class Shop(private val messages: Messages) {
-    val greeting get() = messages["shop.open"].get()   // read on use
-
-    @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
-    fun announce() = messages["shop.open"].broadcast()   // step 6, after the reload
-}
-```
-
-### What follows later {/* #what-follows-later */}
-
-An instance obtained after step 4 is reloaded as soon as it is obtained, so nothing is ever
-handed out unloaded. A reload-phase function that is the first to ask for a module's prototype
-receives a loaded instance:
-
-```kotlin
-@AutoInvoke(Phase.PLUGIN_RELOAD_ONLY)
-fun announce(messages: Messages) = messages["reloaded"].broadcast()   // created now, reloaded now, then called
-```
-
-### `@Value` on a prototype {/* #value-on-a-prototype */}
-
-A `@Value` property belongs to the plugin that declares the class, and its file is that plugin's.
-On an `@ExposePrototype` it is set on every instance, the owner's own and each one made for another
-plugin, and every reload of the owner reaches them all:
-
-```kotlin
-// Economy, values from Economy's config.yml
-@ExposePrototype
-class PriceList(@Value("base-price") var basePrice: Double) {
-    @Value("tax")
-    var tax = 0.0
-}
-
-// Shop, which gets its own PriceList
-@LocalBean
-class Checkout(private val logger: Logger, private val prices: PriceList) {
-    @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
-    fun rebuild() = logger.info("Tax is now ${prices.tax}")   // runs again after every reload of Economy
-}
-```
-
-An instance made later, for a plugin enabled after a reload of Economy, starts with the values of
-that reload, constructor values included. A `PreviousValueTracking` in the constructor is a cell of
-each instance's own, so `changed` says what changed for that instance since it was made. The
-owner's files say nothing about the consumer: a module that needs a setting per consumer reads it
-in `reload()` from the consumer's data folder, which is what the prototype receives the consuming
-plugin for.
 
 ## Designing for reload {/* #designing-for-reload */}
 
@@ -249,9 +153,9 @@ start-only phase for what is genuinely once per life:
 | `Reloadable.reload()`      | a module prototype's state read from the consuming plugin's files, such as its messages; called once the consumer's values are set and at every reload, dependencies first |
 | a consumer's `PLUGIN_RELOAD_OR_START` | what derives from another plugin's beans, such as prices built from Economy's `PriceList`; the consumer reloads [right after that plugin](#plugins-that-use-the-reloaded-ones-values), so nothing has to watch for the change |
 | `PLUGIN_RELOAD_OR_START`   | reading configuration and resource files, (re)building what derives from them: prices, messages, caches, recipes |
-| `PLUGIN_RELOAD_ONLY`       | what a reload adds on top of a start: telling online players, logging what changed; a [`PreviousValueTracking`](../configuration.md#reacting-to-a-change) says what did |
+| `PLUGIN_RELOAD_ONLY`       | what a reload adds on top of a start: telling online players, logging what changed; a [`PreviousValueTracking`](../configuration/changes.md#reacting-to-a-change) says what did |
 | `PLUGIN_START_ONLY`        | what the server allows once: registering with other plugins, [registering commands](../commands.md), hooking services, one-off migrations |
-| a `BackgroundTask`         | work that runs as long as the plugin, a broadcast, particles, an autosave: its `run()` is cancelled and called again by every reload, after the values are set, so it reads them when it begins; see [Background tasks](../tasks.md#background-tasks) |
+| a `BackgroundTask`         | work that runs as long as the plugin, a broadcast, particles, an autosave: its `run()` is cancelled and called again by every reload, after the values are set, so it reads them when it begins; see [Background tasks](../tasks/index.md#background-tasks) |
 | a `PluginScope` coroutine  | work an event or a command starts, a countdown, a combat tag: a reload leaves it alone, so it keeps the values it began with; never launch repeating work from `PLUGIN_RELOAD_OR_START`, which would start a copy at every reload |
 | `PLUGIN_STOP`              | flushing and closing; the plugin's coroutines are cancelled before, see [What happens at stop](phases.md#what-happens-at-stop) |
 
@@ -292,11 +196,11 @@ class Rewards {
 }
 ```
 
-A plugin's configuration is therefore [`@Value` properties](../configuration.md), with a mapper
+A plugin's configuration is therefore [`@Value` properties](../configuration/index.md), with a mapper
 for anything structured, never a file read in a constructor; what derives from them is rebuilt
 in a `PLUGIN_RELOAD_OR_START` function, the way the
 [first plugin](../getting-started/first-plugin.md) does. `Reloadable` is for the prototypes of
-modules, not for a plugin's own beans; see [Common mistakes](../configuration.md#common-mistakes). Listeners, [commands](../commands.md#registration-and-reload), Bukkit
+modules, not for a plugin's own beans; see [Common mistakes](../configuration/index.md#common-mistakes). Listeners, [commands](../commands.md#registration-and-reload), Bukkit
 tasks and the coroutines of a `PluginScope` are not re-registered or restarted by a reload, so
 anything they use should look at the beans' current state rather than copy it when they are
 created; a `BackgroundTask` is restarted, so it may read its values once, when `run()` begins. Test it: change a value in the data folder, run
@@ -384,6 +288,6 @@ can meet them.
 - **A reload restarts background tasks, never the scope's coroutines.** A task's cancelled call
   finishes, `finally` blocks included, before the reload functions run, and the new call begins at
   a later tick; a coroutine launched from a `PluginScope` runs on with what it had. See
-  [Reload and stop](../tasks.md#reload-and-stop).
+  [Reload and stop](../tasks/index.md#reload-and-stop).
 - **A disabled consumer is forgotten.** Its instances no longer receive the owner's values and it
   is no longer reloaded with the owner.

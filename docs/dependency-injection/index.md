@@ -1,4 +1,4 @@
-# Dependency injection
+# Beans
 
 import ExampleCard from '@site/src/components/ExampleCard';
 
@@ -58,7 +58,7 @@ covered in [Scopes and lifetime](scopes.md); sharing beans between plugins in
   primary one are a compile error. The parameters must be non-nullable, non-generic class types;
   no `vararg`, no type parameters. A type alias stands for the class it names.
 - A constructor parameter with a **default value** is an [optional dependency](#optional-dependencies),
-  and one marked `@Value` is a [configuration value](../configuration.md#in-a-constructor).
+  and one marked `@Value` is a [configuration value](../configuration/index.md#in-a-constructor).
 
 Not allowed: abstract classes, interfaces, `object`s, inner classes and generic classes. Each of
 these is a compile error; see [Compile-time checks](../reference/compile-time-checks.md).
@@ -99,9 +99,9 @@ Every plugin may inject these without declaring anything:
 | `Logger` | `java.util.logging` | `plugin.logger`: logs exactly as the plugin does, with its name | VersatiaCore, exposed prototype |
 | `ComponentLogger` | `net.kyori.adventure.text.logger.slf4j` | `plugin.componentLogger`, for logging components; also injectable as `org.slf4j.Logger` | VersatiaCore, exposed prototype |
 | `PluginRegistry` | `dev.versatia` | the running Versatia plugins by friendly name; see [From code](../lifecycle/reload.md#from-code) | VersatiaCore, exposed singleton |
-| `PluginScope` | `dev.versatia.task` | the plugin's own coroutines, one scope per plugin; see [Your own coroutines](../tasks.md#your-own-coroutines) | VersatiaCore, exposed prototype |
-| `Messages` | `dev.versatia.messages` | the plugin's bank of messages, read from its `messages/` folder; see [Messages](../messages.md) | VersatiaCore, exposed prototype |
-| `Text` | `dev.versatia.text` | the plugin's parser of MiniMessage with runtime arguments; see [Text without a file](../messages.md#text-without-a-file) | VersatiaCore, exposed prototype |
+| `PluginScope` | `dev.versatia.task` | the plugin's own coroutines, one scope per plugin; see [Your own coroutines](../tasks/coroutines.md) | VersatiaCore, exposed prototype |
+| `Messages` | `dev.versatia.messages` | the plugin's bank of messages, read from its `messages/` folder; see [Messages](../messages/index.md) | VersatiaCore, exposed prototype |
+| `Text` | `dev.versatia.text` | the plugin's parser of MiniMessage with runtime arguments; see [Text without a file](../messages/arguments.md#text-without-a-file) | VersatiaCore, exposed prototype |
 
 A class that only logs takes the logger, not the plugin:
 
@@ -261,7 +261,7 @@ The plugin instance is available at all three places as well.
   in the body, is read from the owner's files and set on every instance: an instance made for a
   consumer receives the values the owner read last, a new `PreviousValueTracking` cell of its own
   for a tracked one, and every reload of the owner updates it and then reloads the consumer; see
-  [`@Value` on a prototype](../lifecycle/reload.md#value-on-a-prototype).
+  [`@Value` on a prototype](../lifecycle/event-order.md#value-on-a-prototype).
 
 - **A prototype's optional dependencies.** An instance made for a consumer reuses what the owner
   resolved, its default included; it never looks among the consumer's beans for that parameter.

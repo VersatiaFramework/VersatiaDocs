@@ -78,7 +78,7 @@ as `@LocalBean`.
 The full message is `X.f must not be suspend to be enhanced; implement BackgroundTask for work that
 runs with the plugin, or launch from an injected PluginScope`. The runtime calls an `@AutoInvoke`
 function inside the event and does not wait for a coroutine. Work that runs as long as the plugin
-is a [`BackgroundTask`](../tasks.md#background-tasks); anything else takes a `PluginScope` and
+is a [`BackgroundTask`](../tasks/index.md#background-tasks); anything else takes a `PluginScope` and
 launches from it, in a plain function:
 
 ```kotlin
@@ -102,10 +102,10 @@ cannot be optional. See [Optional plugins](../optional-plugins.md).
 ### `X.y must be a var to be enhanced` {/* #xy-must-be-a-var-to-be-enhanced */}
 
 `@Value` sits on a `val`. The runtime sets the property, so it must be a `var`, or a `val`
-holding a [`PreviousValueTracking`](../configuration.md#reacting-to-a-change). In a constructor the
+holding a [`PreviousValueTracking`](../configuration/changes.md#reacting-to-a-change). In a constructor the
 message ends with `declare the constructor parameter as a property`: write `var` (or a `val` of a
 `PreviousValueTracking`) before the parameter; see
-[In a constructor](../configuration.md#in-a-constructor). The same family of messages rejects a
+[In a constructor](../configuration/index.md#in-a-constructor). The same family of messages rejects a
 top-level property (`move it into the plugin's main class, an object or a bean`), a property of a
 plain class and a function parameter (`only properties can, constructor properties included`).
 
@@ -113,7 +113,7 @@ plain class and a function parameter (`only properties can, constructor properti
 
 The property's type is not one the runtime can read: the message lists what is
 (scalars, enums, the Bukkit types, `List`, `Set` and `Map<String, T>` of scalars and enums, any of
-them nullable). Name a [mapper](../configuration.md#mappers) in `@Value(mapper = ...)` for a
+them nullable). Name a [mapper](../configuration/types.md#mappers) in `@Value(mapper = ...)` for a
 structured value, or change the type; `MutableList` is not `List`.
 
 ### `@Value on X.y: mapper M maps to T, which U cannot hold` {/* #value-on-xy-mapper-m-maps-to-t-which-u-cannot-hold */}
@@ -295,7 +295,7 @@ A `@Value` property could not be set: the rest of the message says why, with the
 `No value present at "k"` means the key is missing and the property is not nullable; `Value at
 "k" is not an int` and friends mean the wrong shape, including a single value where a list
 belongs. Nothing was set, so at start the plugin stays disabled and at a reload it keeps its
-previous values. See [Configuration values](../configuration.md#missing-and-invalid-values).
+previous values. See [Configuration values](../configuration/index.md#missing-and-invalid-values).
 
 ### `Plugin X: f.yml could not be read` {/* #plugin-x-fyml-could-not-be-read */}
 
@@ -320,7 +320,7 @@ segments written in the source; name a path relative to the data folder, such as
 
 ### `Plugin X has no message "k"; ...` {/* #plugin-x-has-no-message-k- */}
 
-`messages[key]` of [Messages](../messages.md) found no such key; the message lists
+`messages[key]` of [Messages](../messages/index.md) found no such key; the message lists
 the keys that start the same way, or says the plugin has no messages at all, which usually means
 the `messages/` directory is missing from its data folder: ship the files under
 `src/main/resources/resources/messages/`. A key is dotted, `shop.bought`, and never contains the
@@ -333,13 +333,13 @@ messages. Its siblings: `is not UTF-8 encoded; save it as UTF-8`,
 `message "k" is defined twice in messages/f.yml`, `message "k" is defined in both messages/a.yml
 and messages/b.yml`, `"k" is a message in ... and a group of messages in ...; rename one of them`,
 `message "k" in messages/f.yml is not text` and `... is a list whose lines must all be text`. Fix
-the file and reload. See [The files](../messages.md#the-files).
+the file and reload. See [The files](../messages/index.md#the-files).
 
 ### `Plugin X: message "k" in messages/f.yml cannot be shown: ...` {/* #plugin-x-message-k-in-messagesfyml-cannot-be-shown- */}
 
 The message was read, but using it failed; the rest says why, such as
 `No argument "nmae"; the arguments are: name, item`. Fix the brace in the file, or pass the
-argument in the code. See [Errors](../messages.md#errors).
+argument in the code. See [Errors](../messages/index.md#errors).
 
 ### `Plugin X: the friendly name "n" is already used by Y` {/* #plugin-x-the-friendly-name-n-is-already-used-by-y */}
 
@@ -360,7 +360,7 @@ supplied after the beans had been created` means it called too late: supply in `
 
 A background task, a coroutine of a `PluginScope`, a repeated run or a condition check threw; the
 runtime logged it on the plugin's logger and the server goes on. The lines, what each means and
-what follows are listed under [Failures](../tasks.md#failures). The usual causes:
+what follows are listed under [Failures](../tasks/coroutines.md#failures). The usual causes:
 
 - `Background task X failed; it starts again at the next reload`: `run()` threw; fix it and
   reload the plugin to start the task again.
@@ -375,14 +375,14 @@ what follows are listed under [Failures](../tasks.md#failures). The usual causes
 
 A coroutine launched from a `PluginScope` in a `PLUGIN_RELOAD_OR_START` function: the scope
 survives the reload, so every reload starts one more copy. Make the work a
-[`BackgroundTask`](../tasks.md#background-tasks), which the reload cancels and starts again, or
+[`BackgroundTask`](../tasks/index.md#background-tasks), which the reload cancels and starts again, or
 launch it from a `PLUGIN_START_ONLY` function.
 
 ### `Module with the Main dispatcher is missing` {/* #module-with-the-main-dispatcher-is-missing */}
 
 The code uses `Dispatchers.Main`, which exists on Android and in desktop UIs, never on a server.
 Launch from the injected `PluginScope`, whose coroutines run on the server thread, or switch with
-`withContext(scope.serverThread) { }`; see [Threads](../tasks.md#threads).
+`withContext(scope.serverThread) { }`; see [Threads](../tasks/coroutines.md#threads).
 
 ### `No server clock in this coroutine: ...` {/* #no-server-clock-in-this-coroutine- */}
 

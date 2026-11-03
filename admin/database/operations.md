@@ -20,8 +20,8 @@ files are part of the plugin's JAR and are not read again.
 | `queue-limit`, `query-timeout`, `slow-query`, `main-thread`, `log-statements`, `shutdown-timeout`, `migrations.*`, `stores.*`, `messages.*` | applied at once; the autosave is rescheduled |
 
 A broken file fails the reload and the running settings stay. The shared connections are
-`connections.yml`'s, applied by [`/versatia reload database`](configuration.md#connectionsyml),
-which also re-reads the module's [`defaults`](configuration.md#configyml) and has every open
+`connections.yml`'s, applied by [`/versatia reload database`](connections.md#connectionsyml),
+which also re-reads the module's [`defaults`](connections.md#configyml) and has every open
 database read its settings again as above, so a changed default applies at once wherever no
 `database.yml` sets that key.
 
@@ -105,7 +105,7 @@ author, `allow` stays silent.
 | `another server has held the migration lock for the shop_ tables for 60 s` | another server is migrating the same tables, or a stuck session holds the lock |
 | `Refused the login of Steve (...): profiles could not be loaded (...)`, and players see *Your data could not be loaded* | the database is unreachable or slower than `stores.login-timeout`; the cause in brackets says which |
 | `profiles could not lock 069a79f4-... within 30s; a store transaction or save holds it (stores.lock-timeout in database.yml)` | a store transaction held the key that long; shorten it, or raise `stores.lock-timeout` |
-| `Kicked Steve (069a79f4-...): their profiles could not be saved for 1m; ...` | the database refused or did not answer the saves of that player for `stores.save-failure.after`; the `Saving profiles failed` line before names why. Once it saves, the player may log in again ([When a save fails](operations.md#player-data)) |
+| `Kicked Steve (069a79f4-...): their profiles could not be saved for 1m; ...` | the database refused or did not answer the saves of that player for `stores.save-failure.after`; the `Saving profiles failed` line before names why. Once it saves, the player may log in again ([When a save fails](#player-data)) |
 
 The module's libraries are downloaded by Paper at the module's first start; a server without
 access to Maven Central at that moment cannot load the module.

@@ -75,8 +75,8 @@ object Metrics {
 ## Rules {/* #rules */}
 
 - Extension, `suspend`, abstract and generic functions are rejected. Return values are ignored.
-  Work that suspends is a [`BackgroundTask`](../tasks.md#background-tasks) or a coroutine launched
-  from an injected [`PluginScope`](../tasks.md#your-own-coroutines), which a function may take as a
+  Work that suspends is a [`BackgroundTask`](../tasks/index.md#background-tasks) or a coroutine launched
+  from an injected [`PluginScope`](../tasks/coroutines.md), which a function may take as a
   parameter.
 - An override of an enhanced function carries no enhancement of its own: the call made for the
   base function already reaches the override, so a second annotation would run it twice. Annotate

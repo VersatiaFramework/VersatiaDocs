@@ -1,3 +1,7 @@
+---
+sidebar_label: Overview
+pagination_label: Modules
+---
 # Modules
 
 import Tabs from '@theme/Tabs';
@@ -5,7 +9,7 @@ import TabItem from '@theme/TabItem';
 
 VersatiaCore is a runtime, not a toolkit: it reads descriptors and runs processors, and the features
 it knows are beans, lifecycle phases, configuration values, resources, listeners, tasks and
-[messages](../messages.md). What not every server needs comes as a **module**: a plugin of its own, written against VersatiaAPI like any
+[messages](../messages/index.md). What not every server needs comes as a **module**: a plugin of its own, written against VersatiaAPI like any
 other, that exposes a bean. A server installs the modules it needs next to VersatiaCore; a plugin
 lists the ones it uses.
 
@@ -110,7 +114,7 @@ and the module fits the ecosystem.
   implementation can change without touching them.
 - **Run coroutines in the consumer's scope.** A prototype that launches coroutines takes a
   `PluginScope` in its constructor and receives the consuming plugin's, so the consumer's stop
-  cancels them and its logger reports their failures; see [Your own coroutines](../tasks.md#your-own-coroutines).
+  cancels them and its logger reports their failures; see [Your own coroutines](../tasks/coroutines.md).
 - **Report misuse with exceptions declared in `api`**, named after what went wrong and saying what
   was available, as the framework's own errors do.
 

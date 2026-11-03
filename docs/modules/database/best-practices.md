@@ -12,7 +12,7 @@ The conventions of the Database module, on top of the framework's [Best practice
 ## Always write `{prefix}` <Audience who="developer" /> {/* #always-write-prefix */}
 
 Every table name in SQL the plugin writes, in migrations, query files and inline statements alike,
-starts with [`{prefix}`](configuration.md#the-prefix-token), and so does every other name the
+starts with [`{prefix}`](tokens.md#the-prefix-token), and so does every other name the
 plugin creates (indexes, triggers, functions):
 
 ```sql title="Wrong: src/main/resources/database/migrations/V1__create_profiles.sql"
@@ -55,7 +55,7 @@ empty. With the default prefix the stores and builders, which add the prefix the
 `shop_profiles` while the bare SQL reads and writes a table `profiles` that the migrations never
 created, or that belongs to another plugin in a shared database. Written with `{prefix}`, the same
 SQL is right under every prefix, `''` included. Only the table names of
-[builders and stores](configuration.md#where-tokens-work) go without it, since they add it
+[builders and stores](tokens.md#where-tokens-work) go without it, since they add it
 themselves.
 
 ## A table that extends a row points to its key <Audience who="developer" /> {/* #extension-references-key */}
@@ -146,7 +146,7 @@ class Combat(scope: PluginScope) {
   Profile.combatUntil (looked for combat_until); add a migration`.
 - **It lives differently.** A store keeps a value until the save after the player quits, so state
   tied to it would vanish or survive a quit depending on when that save runs. A
-  [`scope.perPlayer`](/docs/tasks#per-player-state) lives exactly as long as the code says: until the
+  [`scope.perPlayer`](/docs/tasks/coroutines#per-player-state) lives exactly as long as the code says: until the
   quit here, or `keepAfterQuit` past it when a combat log-out should be punished.
 - **Saves stay quiet.** Changing a store value marks it for the next save, which would write and
   report a row in which nothing stored changed.

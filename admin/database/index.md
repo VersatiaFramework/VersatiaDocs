@@ -1,6 +1,7 @@
 ---
 title: Database module
 sidebar_label: Overview
+pagination_label: Database module
 counterpart: /docs/modules/database
 ---
 
@@ -33,15 +34,15 @@ PostgreSQL the schema) before the first start.
 | File                                              | What it sets                                     |
 |---------------------------------------------------|--------------------------------------------------|
 | `plugins/<Plugin>/database.yml`                   | where one plugin's data lives, its pool, timings and table prefix; written by the module at the first open ([database.yml](configuration.md#database-yml)) |
-| `plugins/VersatiaModule-Database/connections.yml` | connections several plugins share, and the connection of plugins installed later ([connections.yml](configuration.md#connectionsyml)) |
-| `plugins/VersatiaModule-Database/config.yml`      | `defaults:` for every plugin whose `database.yml` leaves a key out ([config.yml](configuration.md#configyml)) |
+| `plugins/VersatiaModule-Database/connections.yml` | connections several plugins share, and the connection of plugins installed later ([connections.yml](connections.md#connectionsyml)) |
+| `plugins/VersatiaModule-Database/config.yml`      | `defaults:` for every plugin whose `database.yml` leaves a key out ([config.yml](connections.md#configyml)) |
 
 ## Common tasks {/* #common-tasks */}
 
 | You want to                                        | Read                                                     |
 |----------------------------------------------------|----------------------------------------------------------|
 | move a plugin from SQLite to MySQL, with its data  | [Changing the database](data.md#changing-the-database)   |
-| put several plugins on one MySQL database          | [connections.yml](configuration.md#connectionsyml)       |
+| put several plugins on one MySQL database          | [connections.yml](connections.md#connectionsyml)       |
 | keep the password out of the file                  | [Secrets in the file](configuration.md#secrets-in-the-file) |
 | see what every database is doing                   | [Status](operations.md#status)                           |
 | apply an edited file                               | [Reloading](operations.md#reloading)                     |

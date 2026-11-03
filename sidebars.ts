@@ -17,8 +17,8 @@ const sidebars: SidebarsConfig = {
         {
           type: 'category',
           label: 'Dependency injection',
-          link: {type: 'doc', id: 'dependency-injection/index'},
           items: [
+            'dependency-injection/index',
             'dependency-injection/scopes',
             'dependency-injection/qualifiers',
             'dependency-injection/cross-plugin',
@@ -27,35 +27,51 @@ const sidebars: SidebarsConfig = {
         {
           type: 'category',
           label: 'Lifecycle and reload',
-          items: ['lifecycle/auto-invoke', 'lifecycle/phases', 'lifecycle/reload'],
+          items: ['lifecycle/auto-invoke', 'lifecycle/phases', 'lifecycle/reload', 'lifecycle/event-order'],
         },
-        'configuration',
+        {
+          type: 'category',
+          label: 'Configuration values',
+          items: ['configuration/index', 'configuration/types', 'configuration/changes'],
+        },
         'resources',
         'events',
-        'tasks',
+        {
+          type: 'category',
+          label: 'Tasks and coroutines',
+          items: ['tasks/index', 'tasks/coroutines', 'tasks/conditions'],
+        },
         'optional-plugins',
         'commands',
-        'messages',
+        {
+          type: 'category',
+          label: 'Messages',
+          items: ['messages/index', 'messages/arguments'],
+        },
       ],
     },
     {
       type: 'category',
       label: 'Modules',
-      link: {type: 'doc', id: 'modules/index'},
       items: [
+        'modules/index',
         {
           type: 'category',
           label: 'Database',
-          link: {type: 'doc', id: 'modules/database/index'},
           items: [
+            'modules/database/index',
             'modules/database/statements',
+            'modules/database/rows',
             'modules/database/background',
             'modules/database/stores',
+            'modules/database/player-stores',
             'modules/database/migrations',
+            'modules/database/engine-overrides',
+            'modules/database/queries',
             'modules/database/configuration',
+            'modules/database/tokens',
             'modules/database/operations',
             'modules/database/best-practices',
-            'modules/database/corner-cases',
           ],
         },
       ],
@@ -63,8 +79,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'Utilities',
-      link: {type: 'doc', id: 'utilities/index'},
-      items: ['utilities/configuration', 'utilities/collections', 'utilities/misc'],
+      items: ['utilities/index', 'utilities/configuration', 'utilities/collections', 'utilities/misc'],
     },
     {
       type: 'category',

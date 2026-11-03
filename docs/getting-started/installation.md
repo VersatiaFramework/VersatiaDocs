@@ -236,7 +236,7 @@ Two rules:
 
 - **No copy of `kotlinx.coroutines` at all**, neither under `libraries:` nor shaded, nor through a
   coroutine library for Bukkit such as MCCoroutine. VersatiaCore loads it, VersatiaAPI exports it to
-  your build at that same version, and a [`PluginScope`](../tasks.md) or a `Condition` is a
+  your build at that same version, and a [`PluginScope`](../tasks/index.md) or a `Condition` is a
   `kotlinx.coroutines` type crossing between your plugin and VersatiaCore, so a second copy fails
   with a `LinkageError` or a `ClassCastException`.
 

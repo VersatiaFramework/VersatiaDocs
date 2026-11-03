@@ -121,3 +121,10 @@ database.async { insert("profiles", profile) }
     .onFailureSync { error -> if ((error as? QueryException)?.kind == FailureKind.DUPLICATE_KEY) sender.sendMessage("That profile exists already") }
 ```
 
+## Corner cases {/* #corner-cases */}
+
+- **A failed open is remembered for 5 seconds**: calls in that time fail with the same exception
+  without trying again.
+- **`/versatiadb status` lists a plugin under its friendly name**; messages and log lines use the
+  `name:` of its `plugin.yml`.
+- **`thenSync` and `onFailureSync` steps are dropped once the plugin is disabled**; their futures fail.

@@ -84,7 +84,7 @@ A mutable property the runtime may set.
 | `classAnnotations` | the attributes written on the declaring class                               |
 | `constructorParameter` | for a property declared in the primary constructor of a bean or of a `SUBCLASS_INSTANCE` class, the index of that parameter: its value is passed to the constructor |
 
-[`@Value`](../configuration.md) produces these.
+[`@Value`](../configuration/index.md) produces these.
 
 ### `PluginTarget` {/* #plugintarget */}
 
