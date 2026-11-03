@@ -4,6 +4,8 @@ description: The everyday code of a Bukkit plugin next to the same plugin writte
 
 # Coming from Bukkit
 
+import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
+
 You know `JavaPlugin`, `onEnable` and `getConfig()`. This page shows the code a Bukkit or Paper
 plugin usually carries, in **Java**, next to the same behaviour **with Versatia**, in Kotlin. The
 plugin is a small shop throughout; each scenario ends with the line count of the code shown
@@ -137,7 +139,10 @@ public final class ShopSettings {
 }
 ```
 
-```kotlin title="Versatia: ShopSettings.kt"
+<CodeCards>
+<CodeCard title="Versatia: ShopSettings.kt">
+
+```kotlin
 @LocalBean
 class ShopSettings {
     @Value("shop.max-offers")
@@ -151,12 +156,18 @@ class ShopSettings {
 }
 ```
 
-```yaml title="src/main/resources/resources/config.yml"
+</CodeCard>
+<CodeCard title="config.yml">
+
+```yaml
 shop:
   max-offers: 10
   tax: 5%
   currency: emerald
 ```
+
+</CodeCard>
+</CodeCards>
 
 **26 → 9 lines.** What you no longer write: the getters, the defaults repeated in the code, the
 lookup of the enum, the warning and the fallback, the `load()` call in `onEnable` and in the reload
@@ -316,7 +327,10 @@ public final class Announcer {
 }
 ```
 
-```kotlin title="Versatia: AnnouncerTask.kt"
+<CodeCards>
+<CodeCard title="Versatia: AnnouncerTask.kt">
+
+```kotlin
 @LocalBean
 class AnnouncerTask : BackgroundTask {
     @Value("announce.interval")
@@ -328,10 +342,16 @@ class AnnouncerTask : BackgroundTask {
 }
 ```
 
-```yaml title="config.yml"
+</CodeCard>
+<CodeCard title="config.yml">
+
+```yaml
 announce:
   interval: 5m
 ```
+
+</CodeCard>
+</CodeCards>
 
 **18 → 9 lines.** What you no longer write: the task handle, the remembered previous interval, the
 default in the code, the conversion to ticks, the calls from `onEnable` and from the reload
@@ -372,7 +392,10 @@ public final class ShopMessages {
 }
 ```
 
-```kotlin title="Versatia: Shop.kt"
+<CodeCards>
+<CodeCard title="Versatia: Shop.kt">
+
+```kotlin
 @LocalBean
 class Shop(private val messages: Messages) {
     fun sell(player: Player, item: ItemStack, price: Int) =
@@ -380,10 +403,16 @@ class Shop(private val messages: Messages) {
 }
 ```
 
-```yaml title="src/main/resources/resources/messages/shop.yml"
+</CodeCard>
+<CodeCard title="messages/shop.yml">
+
+```yaml
 shop:
   bought: "<green>{player} bought {item} for <gold>{price}</gold> coins."
 ```
+
+</CodeCard>
+</CodeCards>
 
 **20 → 5 lines.** What you no longer write: loading and reloading the file, the default text in
 the code, one placeholder resolver per value and a method per message. The

@@ -109,6 +109,7 @@
 .heroCode {
   display: flex;
   align-items: center;
+  padding-left: 3rem;
 }
 
 .heroCode > div {
@@ -148,5 +149,6 @@
 
   .heroCode {
     margin-top: 1.5rem;
+    padding-left: var(--ifm-spacing-horizontal);
   }
 }

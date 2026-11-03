@@ -1,5 +1,7 @@
 # Your first plugin
 
+import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
+
 This page walks through a minimal plugin: a main class, two beans, a configuration value and two
 lifecycle functions. The [installation](installation.md) is assumed to be done.
 
@@ -114,7 +116,7 @@ Shortened, it reads:
 
 object VersatiaDescriptor : VersatiaPluginDescriptor {
   override val formatMajor: Int = 1
-  override val formatMinor: Int = 5
+  override val formatMinor: Int = 0
 
   override val elements: List<EnhancedElement>
     get() = listOf(
@@ -176,11 +178,65 @@ derives that from the constructor parameters.
 ## Run it {/* #run-it */}
 
 Copy the JAR to the server's `plugins/` directory next to VersatiaCore and start the server. The
-log shows
+whole plugin, and what its log shows:
 
+<CodeCards>
+<CodeCard title="MyPlugin.kt">
+
+```kotlin
+package com.example.myplugin
+
+import dev.versatia.Phase
+import dev.versatia.VersatiaPlugin
+import dev.versatia.lifecycle.AutoInvoke
+
+class MyPlugin : VersatiaPlugin() {
+
+    @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
+    private fun start(prices: PriceList) = logger.info(prices.describe("Diamond"))
+
+    @AutoInvoke(Phase.PLUGIN_STOP)
+    private fun stop() = logger.info("Bye")
+}
 ```
+
+</CodeCard>
+<CodeCard title="Shop.kt">
+
+```kotlin
+package com.example.myplugin
+
+import dev.versatia.config.Value
+import dev.versatia.di.LocalBean
+
+@LocalBean
+class ShopConfig {
+    @Value("currency")
+    lateinit var currency: String
+}
+
+@LocalBean
+class PriceList(private val config: ShopConfig) {
+    fun describe(item: String) = "$item costs 10 ${config.currency}"
+}
+```
+
+</CodeCard>
+<CodeCard title="config.yml">
+
+```yaml
+currency: coins
+```
+
+</CodeCard>
+<CodeCard title="Console" output default>
+
+```text
 [MyPlugin] Diamond costs 10 coins
 ```
+
+</CodeCard>
+</CodeCards>
 
 and, on shutdown, `Bye`.
 

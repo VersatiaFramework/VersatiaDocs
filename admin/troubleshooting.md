@@ -4,6 +4,8 @@ counterpart: /docs/reference/troubleshooting
 
 # Troubleshooting
 
+import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
+
 Messages a server log or `/versatia` may show, what they mean and what to do. A message about one
 plugin affects only that plugin; the others keep running. When the fix is in the plugin's code,
 the entry says so: send the full message to the plugin's author.
@@ -103,14 +105,19 @@ starting, or is in the middle of a reload. Wait, or fix the start error and rest
 
 ## Debug mode {/* #debug-mode */}
 
-When a plugin does not do what its documentation says, switch on VersatiaCore's debug log:
+When a plugin does not do what its documentation says, switch on VersatiaCore's debug log, run
+`/versatia reload VersatiaCore`, then reload or restart the plugin. Every step of each plugin's
+start, reload and stop is logged:
 
-```yaml title="plugins/VersatiaCore/config.yml"
+<CodeCards>
+<CodeCard title="plugins/VersatiaCore/config.yml">
+
+```yaml
 debug: true
 ```
 
-Run `/versatia reload VersatiaCore`, then reload or restart the plugin. Every step of each
-plugin's start, reload and stop is logged:
+</CodeCard>
+<CodeCard title="Console" output>
 
 ```text
 [debug] Shop START: descriptor format 1.0, 11 elements, 9 for this event
@@ -119,6 +126,9 @@ plugin's start, reload and stop is logged:
 [debug] Economy RELOAD: set 3 values, config.yml: base, rate, tax
 [debug] Economy RELOAD: goes on to Shop, holding beans that follow its reloads
 ```
+
+</CodeCard>
+</CodeCards>
 
 Values are logged by key, never with what the file holds, so the log is safe to share with a
 plugin's author. Switch it off again the same way. [`/versatia info <plugin>`](commands.md#versatia-info)

@@ -157,7 +157,7 @@ the processor emits (shortened):
 
 object VersatiaDescriptor : VersatiaPluginDescriptor {
   override val formatMajor: Int = 1
-  override val formatMinor: Int = 5
+  override val formatMinor: Int = 0
 
   override val elements: List<EnhancedElement>
     get() = listOf(

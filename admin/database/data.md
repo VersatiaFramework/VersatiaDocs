@@ -6,6 +6,7 @@ counterpart: /docs/modules/database/migrations
 # Moving and backing up data
 
 import TwinEngines from '@site/src/components/TwinEngines';
+import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
 
 A plugin creates and updates its tables itself, with migrations shipped in its JAR: at every start it
 applies the ones the database has not seen yet and logs each one:
@@ -24,7 +25,10 @@ A different target (`connection`, `engine`, `file`, `host`, `port`, `database`, 
 take the data along, add `import-from` with the old target, inline or as `connection: <name>`, and
 restart:
 
-```yaml title="plugins/Shop/database.yml"
+<CodeCards>
+<CodeCard title="plugins/Shop/database.yml">
+
+```yaml
 engine: mysql
 host: db.example.net
 database: survival
@@ -34,12 +38,18 @@ import-from:
   engine: sqlite                 # file defaults to database.db
 ```
 
+</CodeCard>
+<CodeCard title="Console" output>
+
 ```text
 [Shop] Applying V1__create_profiles.sql
 [Shop] Applying V2__create_payments.sql
 [Shop] MYSQL db.example.net:3306/survival, prefix shop_, schema V2 (applied V1, V2 in 210 ms)
 [Shop] Imported from SQLITE database.db: shop_payments 5 870 rows, shop_profiles 1 204 (1.9 s)
 ```
+
+</CodeCard>
+</CodeCards>
 
 The new tables are created by the migrations first; then the tables those migrations create (and
 no other table of the source database) are copied in one transaction, in the order its foreign keys need, converting the values on the way (epoch

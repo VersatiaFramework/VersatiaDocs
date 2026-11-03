@@ -8,6 +8,7 @@ description: The SQL files of a plugin JAR, engine overrides, the schema history
 
 import Audience from '@site/src/components/Audience';
 import TwinEngines from '@site/src/components/TwinEngines';
+import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
 
 SQL is code, so it ships **in the JAR**, next to the classes that use it, and is never copied to
 the data folder for admins to edit. Two directories of `src/main/resources/database/` hold it:
@@ -135,13 +136,22 @@ server uses: a broken `postgresql/` file fails the start on SQLite too.
   nothing is executed and the version is recorded in the history like any other, with
   `applied_statements` 0.
 
-```sql title="src/main/resources/database/migrations/V4__tune_payments.sql"
+<CodeCards>
+<CodeCard title="V4__tune_payments.sql">
+
+```sql
 -- Only PostgreSQL needs this step: see postgresql/V4__tune_payments.sql
 ```
 
-```sql title="src/main/resources/database/migrations/postgresql/V4__tune_payments.sql"
+</CodeCard>
+<CodeCard title="postgresql/V4__tune_payments.sql">
+
+```sql
 ALTER TABLE {prefix}payments SET (autovacuum_vacuum_scale_factor = 0.02);
 ```
+
+</CodeCard>
+</CodeCards>
 
 A complete tree, with what each engine runs:
 

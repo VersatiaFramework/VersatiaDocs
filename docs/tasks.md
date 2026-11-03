@@ -1,11 +1,15 @@
 # Tasks and coroutines
 
 import ExampleCard from '@site/src/components/ExampleCard';
+import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
 
 Work that goes on over time, such as a broadcast every few minutes, a countdown or a combat tag, is
 a Kotlin coroutine of the plugin. A class implementing `BackgroundTask` runs by itself as long as
 the plugin does, and is restarted with the new values by every reload; nothing is scheduled,
 remembered or cancelled by hand:
+
+<CodeCards>
+<CodeCard title="AutoBroadcastTask.kt">
 
 ```kotlin
 class AutoBroadcastTask(private val logger: Logger) : BackgroundTask {
@@ -27,13 +31,28 @@ class AutoBroadcastTask(private val logger: Logger) : BackgroundTask {
 }
 ```
 
-```yaml title="config.yml"
+</CodeCard>
+<CodeCard title="config.yml">
+
+```yaml
 auto-broadcast:
   period: 30s
   lines:
     - "Tip: edit config.yml and run /versatia reload broadcast"
     - "Background tasks start by themselves, one tick after the plugin"
 ```
+
+</CodeCard>
+<CodeCard title="Console" output>
+
+```text
+[Broadcast] Broadcasting 2 lines every 30s
+Tip: edit config.yml and run /versatia reload broadcast
+Background tasks start by themselves, one tick after the plugin
+```
+
+</CodeCard>
+</CodeCards>
 
 No bean scope is needed: the runtime creates the task with its constructor injected, here with the
 plugin's [`Logger`](dependency-injection/index.md#beans-every-plugin-has), and sets its `@Value`

@@ -157,3 +157,23 @@ html.plugin-id-admin .navbar {
 .navbar__title {
   font-weight: 700;
 }
+
+/* On narrow screens long code lines wrap instead of scrolling sideways; a wrapped line continues one indent further */
+@media screen and (max-width: 996px) {
+  pre code {
+    display: block;
+    float: none;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  pre code .token-line {
+    padding-left: 4ch;
+    text-indent: -4ch;
+  }
+
+  pre code .token-line.code-block-error-line,
+  pre code .token-line.code-block-fix-line {
+    padding-left: calc(var(--ifm-pre-padding) + 4ch);
+  }
+}

@@ -5,6 +5,7 @@ counterpart: /admin/configuration-files
 # Configuration values
 
 import ExampleCard from '@site/src/components/ExampleCard';
+import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
 
 A value a plugin reads from its configuration is a property marked `@Value`: the runtime sets it
 from a YAML file in the data folder when the plugin starts and again at every
@@ -13,6 +14,9 @@ from a YAML file in the data folder when the plugin starts and again at every
 <ExampleCard repo="VersatiaExample-Config-Values" file="src/main/kotlin/dev/versatia/example/values/Shop.kt">
 Values on the main class, on an object and on a bean, from two files, re-read with <code>/versatia reload values</code>.
 </ExampleCard>
+
+<CodeCards>
+<CodeCard title="Shop.kt">
 
 ```kotlin
 import dev.versatia.config.Value
@@ -29,6 +33,25 @@ class Shop {
     var maxPlayers = 0
 }
 ```
+
+</CodeCard>
+<CodeCard title="config.yml">
+
+```yaml
+shop:
+  tax: 8%
+  hours: [9, 17]
+```
+
+</CodeCard>
+<CodeCard title="limits.yml">
+
+```yaml
+max-players: 20
+```
+
+</CodeCard>
+</CodeCards>
 
 `key` is the dotted path inside the file, `file` the path relative to the data folder,
 `config.yml` unless given (`Value.DEFAULT_FILE`). The file is one the plugin ships under
@@ -91,6 +114,9 @@ at compile time with the list of what is supported, unless a [mapper](#mappers) 
 A `kotlin.time.Duration` is written with its unit, in Kotlin's notation or in ISO-8601, so the file
 says what it means and the code needs no conversion:
 
+<CodeCards>
+<CodeCard title="Shop.kt">
+
 ```kotlin
 @Value("auto-broadcast.period")
 var period = 30.seconds
@@ -99,11 +125,17 @@ var period = 30.seconds
 var cooldowns: List<Duration> = emptyList()
 ```
 
+</CodeCard>
+<CodeCard title="config.yml">
+
 ```yaml
 auto-broadcast:
   period: 5m          # also 30s, 1h 30m, 500ms, 2d or PT5M
 cooldowns: [10s, 1m]
 ```
+
+</CodeCard>
+</CodeCards>
 
 A bare number is not a duration: `period: 300` fails with `Value at "auto-broadcast.period" is
 not a duration such as "30s", "5m" or "1h 30m" (units d, h, m, s, ms; must not be negative): "300"`. The value goes
@@ -115,6 +147,9 @@ duration such as `-5s` and `Infinity` are rejected the same way.
 A password, a token or an API key is a `Secret` (`dev.versatia.util.type`). It
 prints as `****`, so a log line, a message or an exception never shows it, and the file may name
 where the secret is instead of holding it:
+
+<CodeCards>
+<CodeCard title="DiscordBridge.kt">
 
 ```kotlin
 import dev.versatia.util.type.Secret
@@ -132,13 +167,26 @@ class DiscordBridge(private val logger: Logger) {
 }
 ```
 
-```yaml title="config.yml"
+</CodeCard>
+<CodeCard title="config.yml">
+
+```yaml
 discord:
   token: ${env:SHOP_DISCORD_TOKEN}                     # an environment variable of the server process
   # token: ${file:/run/secrets/shop_discord_token}     # or a file holding only the secret
   # token: ${pluginfile:discord-token.txt}             # or a file in the plugin's folder, plugins/Shop/discord-token.txt
   # token: 'mfa.3kX9...'                               # or the secret itself
 ```
+
+</CodeCard>
+<CodeCard title="Console" output>
+
+```text
+[Shop] Connecting with token ****
+```
+
+</CodeCard>
+</CodeCards>
 
 | Written                  | Becomes                                                                 |
 |--------------------------|-------------------------------------------------------------------------|
@@ -171,6 +219,9 @@ explained in [Secrets](/admin/configuration-files#secrets) of the server admin g
 
 A type of your own, or a value that is not what the file says, is read by a `ValueMapper` named
 in the annotation:
+
+<CodeCards>
+<CodeCard title="Shop.kt">
 
 ```kotlin
 import dev.versatia.config.SectionMapper
@@ -208,7 +259,10 @@ class Shop {
 }
 ```
 
-```yaml title="config.yml"
+</CodeCard>
+<CodeCard title="config.yml">
+
+```yaml
 shop:
   restock-seconds: 30
   price-range:
@@ -220,6 +274,9 @@ ores:
   gold:
     veins: 3
 ```
+
+</CodeCard>
+</CodeCards>
 
 The mapper receives the section holding the key and the key, so it reads with the
 [strict getters](utilities/configuration.md), reports with their messages (the full key path

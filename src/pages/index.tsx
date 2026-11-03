@@ -4,7 +4,7 @@ import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import Heading from '@theme/Heading';
-import CodeBlock from '@theme/CodeBlock';
+import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
 import HomepageFeatures from '@site/src/components/HomepageFeatures';
 import {AudienceIcon, type Who} from '@site/src/components/Audience/icons';
 
@@ -13,7 +13,8 @@ import styles from './index.module.css';
 const sample = `class ShopPlugin : VersatiaPlugin() {
 
     @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
-    private fun start(prices: PriceList) = logger.info("Loaded \${prices.size} prices")
+    private fun start(prices: PriceList) =
+        logger.info("Loaded \${prices.size} prices")
 }
 
 @LocalBean
@@ -26,6 +27,14 @@ class ShopConfig {
     @Value("prices")
     var prices: Map<String, Int> = emptyMap()
 }`;
+
+const config = `prices:
+  diamond: 120
+  bread: 2
+  iron-ingot: 15`;
+
+const output = `[14:02:11 INFO]: [Shop] Enabling Shop v1.0.0
+[14:02:11 INFO]: [Shop] Loaded 3 prices`;
 
 const paths: {who: Who; question: string; text: string; to: string; cta: string}[] = [
   {
@@ -84,9 +93,11 @@ function Hero() {
             <Paths />
           </div>
           <div className={clsx('col col--6', styles.heroCode)}>
-            <CodeBlock language="kotlin" title="ShopPlugin.kt">
-              {sample}
-            </CodeBlock>
+            <CodeCards>
+              <CodeCard title="ShopPlugin.kt" language="kotlin">{sample}</CodeCard>
+              <CodeCard title="config.yml" language="yaml">{config}</CodeCard>
+              <CodeCard title="Console" output>{output}</CodeCard>
+            </CodeCards>
           </div>
         </div>
       </div>

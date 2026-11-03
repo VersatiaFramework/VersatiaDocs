@@ -4,6 +4,8 @@ counterpart: /admin/commands
 
 # Commands
 
+import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
+
 Versatia has no command annotation: a plugin declares its commands with the
 [CommandAPI](https://commandapi.dev/) Kotlin DSL, inside an `object` whose auto-invoked functions
 register the command at start and remove it at stop. CommandAPI stays a soft dependency, so the
@@ -57,7 +59,10 @@ object ShopCommand {
 
 CommandAPI itself is a plugin on the server; its Kotlin DSL is a library the plugin ships:
 
-```kotlin title="build.gradle.kts"
+<CodeCards>
+<CodeCard title="build.gradle.kts">
+
+```kotlin
 val commandApiVersion = "12.1.0"
 
 dependencies {
@@ -74,7 +79,10 @@ tasks.jar {
 }
 ```
 
-```yaml title="plugin.yml"
+</CodeCard>
+<CodeCard title="plugin.yml">
+
+```yaml
 depend:
   - VersatiaCore
 softdepend:
@@ -84,6 +92,9 @@ permissions:
     description: Shows the price of an item with /shop price.
     default: true
 ```
+
+</CodeCard>
+</CodeCards>
 
 `softdepend:` makes CommandAPI start first when it is installed. Every permission is declared with
 a description and a `default` (`op`, `true`, `false` or `not op`), so permission plugins list it

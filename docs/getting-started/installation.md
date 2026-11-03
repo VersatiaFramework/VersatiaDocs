@@ -7,6 +7,7 @@ counterpart: /admin/installation
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import Audience from '@site/src/components/Audience';
+import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
 
 Versatia has two halves. The server needs **VersatiaCore**; your build needs **VersatiaAPI**,
 which comes with **VersatiaStarter**.
@@ -122,13 +123,20 @@ may depend on `dev.versatia:VersatiaAPI` instead of the starter.
 Instead of writing the Kotlin, KSP and Versatia versions yourself, you can import the Gradle
 version catalog the framework is built with, `dev.versatia:VersatiaCatalog`
 (published by VersatiaAPI). The examples and the template do this. The Versatia version moves to
-`gradle.properties`, the one place both scripts read it from:
+`gradle.properties`, the one place both scripts read it from; `settings.gradle.kts` imports the
+catalog inside `dependencyResolutionManagement`:
 
-```properties title="gradle.properties"
+<CodeCards>
+<CodeCard title="gradle.properties">
+
+```properties
 versatiaVersion=0.0.1
 ```
 
-```kotlin title="settings.gradle.kts (added inside dependencyResolutionManagement)"
+</CodeCard>
+<CodeCard title="settings.gradle.kts">
+
+```kotlin
 versionCatalogs {
     create("libs") {
         from("dev.versatia:VersatiaCatalog:${providers.gradleProperty("versatiaVersion").get()}")
@@ -136,7 +144,10 @@ versionCatalogs {
 }
 ```
 
-```kotlin title="build.gradle.kts"
+</CodeCard>
+<CodeCard title="build.gradle.kts">
+
+```kotlin
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ksp)
@@ -147,6 +158,9 @@ dependencies {
     ksp(libs.versatia.ksp)
 }
 ```
+
+</CodeCard>
+</CodeCards>
 
 The catalog matches the framework release: Kotlin and KSP at the versions Versatia is compiled
 with, plus `libs.paper.api` (for `testImplementation`), `libs.versatia.api`,
