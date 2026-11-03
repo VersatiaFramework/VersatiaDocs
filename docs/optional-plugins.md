@@ -17,11 +17,6 @@ A <code>Payments</code> bean backed by Vault when it is installed, <code>@Condit
 <CodeCard title="VaultBridge.kt">
 
 ```kotlin
-import dev.versatia.ConditionalOnPlugin
-import dev.versatia.VersatiaEngine
-import dev.versatia.loadService
-import java.util.logging.Logger
-
 @ConditionalOnPlugin("Vault")
 @LocalBean
 class VaultBridge(private val logger: Logger) : Listener {

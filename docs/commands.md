@@ -15,32 +15,22 @@ plugin runs without it and only the command is missing.
 <CodeCard title="ShopCommand.kt">
 
 ```kotlin
-package com.example.shop.command
-
-import com.example.shop.PriceList
-import com.example.shop.ShopPlugin
-import dev.versatia.ConditionalOnPlugin
-import dev.versatia.Phase
-import dev.versatia.lifecycle.AutoInvoke
-import dev.jorel.commandapi.CommandAPI
-import dev.jorel.commandapi.kotlindsl.commandAPICommand
-import dev.jorel.commandapi.kotlindsl.playerExecutor
-import dev.jorel.commandapi.kotlindsl.stringArgument
-import dev.jorel.commandapi.kotlindsl.subcommand
-
 @ConditionalOnPlugin("CommandAPI")
 object ShopCommand {
     const val NAME = "shop"
     const val PRICE_PERMISSION = "versatia.shop.command.price"
 
     @AutoInvoke(Phase.PLUGIN_START_ONLY)
-    fun register(plugin: ShopPlugin, prices: PriceList) = commandAPICommand(NAME, plugin) {
-        subcommand("price") {
-            withPermission(PRICE_PERMISSION)
-            stringArgument("item")
-            playerExecutor { player, args -> player.sendMessage(prices.describe(args["item"] as String)) }
+    fun register(plugin: ShopPlugin, prices: PriceList) =
+        commandAPICommand(NAME, plugin) {
+            subcommand("price") {
+                withPermission(PRICE_PERMISSION)
+                stringArgument("item")
+                playerExecutor { player, args ->
+                    player.sendMessage(prices.describe(args["item"] as String))
+                }
+            }
         }
-    }
 
     @AutoInvoke(Phase.PLUGIN_STOP)
     fun unregister() = CommandAPI.unregister(NAME, true)
@@ -145,7 +135,8 @@ dependencies {
 val archives = serviceOf<ArchiveOperations>()
 tasks.jar {
     from(configurations.runtimeClasspath.map { classpath ->
-        classpath.filter { it.name.startsWith("commandapi-kotlin-") }.map { archives.zipTree(it) }
+        classpath.filter { it.name.startsWith("commandapi-kotlin-") }
+            .map { archives.zipTree(it) }
     })
 }
 ```

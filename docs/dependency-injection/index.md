@@ -20,8 +20,6 @@ they are satisfied by other beans.
 <CodeCard title="Banner.kt">
 
 ```kotlin
-import dev.versatia.di.LocalBean
-
 interface Greeter {
     fun greeting(): String
 }
@@ -186,8 +184,6 @@ class Shop(private val plugin: JavaPlugin) {
 ```
 
 ```kotlin title="Right"
-import java.util.logging.Logger
-
 @LocalBean
 // fix-next-line
 class Shop(private val logger: Logger) {

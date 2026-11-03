@@ -62,8 +62,6 @@ where the secret is instead of holding it:
 <CodeCard title="DiscordBridge.kt">
 
 ```kotlin
-import dev.versatia.util.type.Secret
-
 @LocalBean
 class DiscordBridge(private val logger: Logger) {
     @Value("discord.token")
@@ -134,9 +132,6 @@ in the annotation:
 <CodeCard title="Shop.kt">
 
 ```kotlin
-import dev.versatia.config.SectionMapper
-import dev.versatia.config.ValueMapper
-
 object TicksFromSeconds : ValueMapper<Long> {
     override fun map(section: ConfigurationSection, key: String) = section.getLongOrThrow(key) * 20
 }

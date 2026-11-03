@@ -3,15 +3,13 @@
 import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
 
 This page walks through a minimal plugin: a main class, two beans, a configuration value and two
-lifecycle functions. The [installation](installation.md) is assumed to be done.
+lifecycle functions. The [installation](installation.md) is assumed to be done. Its files live in
+the package `com.example.myplugin`, which `main:` in `plugin.yml` names; like every example of this
+documentation, they leave out the `package` line and the imports, which IntelliJ adds.
 
 ## The main class {/* #the-main-class */}
 
 ```kotlin
-package com.example.myplugin
-
-import dev.versatia.VersatiaPlugin
-
 class MyPlugin : VersatiaPlugin()
 ```
 
@@ -24,11 +22,6 @@ up. Start-up code goes into auto-invoked functions instead.
 A bean is a class annotated with a *scope*. Its constructor parameters are its dependencies.
 
 ```kotlin
-package com.example.myplugin
-
-import dev.versatia.config.Value
-import dev.versatia.di.LocalBean
-
 @LocalBean
 class ShopConfig {
     @Value("currency")
@@ -64,12 +57,6 @@ reads `config.currency` when it describes an item, so it always shows the curren
 ## Lifecycle functions {/* #lifecycle-functions */}
 
 ```kotlin
-package com.example.myplugin
-
-import dev.versatia.Phase
-import dev.versatia.VersatiaPlugin
-import dev.versatia.lifecycle.AutoInvoke
-
 class MyPlugin : VersatiaPlugin() {
 
     @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
@@ -184,12 +171,6 @@ whole plugin, and what its log shows:
 <CodeCard title="MyPlugin.kt">
 
 ```kotlin
-package com.example.myplugin
-
-import dev.versatia.Phase
-import dev.versatia.VersatiaPlugin
-import dev.versatia.lifecycle.AutoInvoke
-
 class MyPlugin : VersatiaPlugin() {
 
     @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
@@ -204,11 +185,6 @@ class MyPlugin : VersatiaPlugin() {
 <CodeCard title="Shop.kt">
 
 ```kotlin
-package com.example.myplugin
-
-import dev.versatia.config.Value
-import dev.versatia.di.LocalBean
-
 @LocalBean
 class ShopConfig {
     @Value("currency")

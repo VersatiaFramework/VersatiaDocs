@@ -28,13 +28,12 @@ package of its own:
 <CodeCard title="Shop.kt">
 
 ```kotlin
-import dev.versatia.messages.Messages
-import dev.versatia.text.arg
-
 @LocalBean
 class Shop(private val messages: Messages) {
     fun sell(player: Player, item: ItemStack, price: Int) =
-        messages["shop.bought"].send(player, arg("player", player), arg("item", item), arg("price", price))
+        messages["shop.bought"].send(
+            player, arg("player", player), arg("item", item), arg("price", price)
+        )
 }
 ```
 

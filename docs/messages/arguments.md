@@ -83,9 +83,6 @@ A class implements `Presentable` and says how it appears; `presentation { }` is 
 where everything is lazy:
 
 ```kotlin
-import dev.versatia.text.Presentable
-import dev.versatia.text.presentation
-
 class Offer(val item: String, val price: Price) : Presentable {
     override fun presentation() = presentation {
         component { text(item) }         // {offer}
@@ -127,9 +124,6 @@ and a `Presentable` value always describes itself.
 for text that is built in code rather than read from a file:
 
 ```kotlin
-import dev.versatia.text.Text
-import dev.versatia.text.arg
-
 class Welcome(private val text: Text) : Listener {
     @EventHandler
     fun onJoin(event: PlayerJoinEvent) =

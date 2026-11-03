@@ -28,10 +28,6 @@ class is named, and no other bean may use that name. See
 ## `@Qualifier` and `@Primary` {/* #qualifier-and-primary */}
 
 ```kotlin
-import dev.versatia.di.LocalBean
-import dev.versatia.di.Primary
-import dev.versatia.di.Qualifier
-
 @LocalBean @Primary
 class FriendlyGreeter : Greeter
 

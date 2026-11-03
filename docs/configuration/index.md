@@ -18,8 +18,6 @@ Values on the main class, on an object and on a bean, from two files, re-read wi
 <CodeCard title="Shop.kt">
 
 ```kotlin
-import dev.versatia.config.Value
-
 @LocalBean
 class Shop {
     @Value("shop.tax")

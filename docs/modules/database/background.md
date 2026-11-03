@@ -77,8 +77,6 @@ For the server admin, `main-thread` is described in
 returns a `DatabaseFuture`:
 
 ```kotlin
-import dev.versatia.database.list
-
 database.async { named("top-coins", "limit" to 10).list<TopEntry>() }
     .thenSync { top -> show(sender, top) }
     .onFailureSync { sender.sendMessage(text("The leaderboard is unavailable right now.", NamedTextColor.RED)) }
@@ -98,8 +96,6 @@ In a coroutine of your [plugin scope or a background task](/docs/tasks/coroutine
 `await()` reads like sequential code and continues on the thread the coroutine runs on:
 
 ```kotlin
-import dev.versatia.database.await
-
 class LeaderboardTask(private val profiles: Profiles) : BackgroundTask {
     override suspend fun run() {
         every(period = 5.minutes) {

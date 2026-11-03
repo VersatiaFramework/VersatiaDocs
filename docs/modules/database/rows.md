@@ -28,8 +28,6 @@ For anything else, read the row yourself. A `Row` is the current row of the resu
 inside the function it was passed to:
 
 ```kotlin
-import dev.versatia.database.get
-
 val balances = sql("SELECT uuid, coins, last_seen FROM {prefix}profiles").list { row ->
     val coins: Long = row["coins"]                     // the type, nullability included, comes from the target
     val lastSeen: Instant? = row["last_seen"]
@@ -120,8 +118,6 @@ A `ColumnCodec` stores a type as one the module binds itself: `String`, `Int`, `
 constructor:
 
 ```kotlin
-import dev.versatia.database.mapping.ColumnCodec
-
 object BlockPosText : ColumnCodec<BlockPos, String> {
     override val storedAs = String::class
     override fun encode(value: BlockPos) = "${value.x},${value.y},${value.z}"
@@ -133,9 +129,6 @@ Use it for one property with `@Column(codec = ...)`, or for every statement, row
 plugin with `database.registerType`, called in a bean constructor so that it applies before the first use:
 
 ```kotlin
-import dev.versatia.database.mapping.Column
-import dev.versatia.database.registerType
-
 data class Home(val owner: UUID, @Column(codec = BlockPosText::class) val position: BlockPos)
 
 @LocalBean

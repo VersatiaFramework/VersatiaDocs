@@ -10,8 +10,6 @@ reschedule a task only when its interval did, say, declares the property as a
 `PreviousValueTracking<T>`, a `val` holding a cell the runtime fills:
 
 ```kotlin
-import dev.versatia.config.PreviousValueTracking
-
 @LocalBean
 class Announcer(private val plugin: JavaPlugin) {
     @Value("announce.interval-seconds")

@@ -23,10 +23,6 @@ types](rows.md).
 `database.sql(sql, ...parameters)` makes a `Statement`; one terminal call runs it:
 
 ```kotlin
-import dev.versatia.database.list
-import dev.versatia.database.single
-import dev.versatia.database.singleOrNull
-
 val top = sql("SELECT name, coins FROM {prefix}profiles ORDER BY coins DESC LIMIT :limit", "limit" to 10).list<TopEntry>()
 val players = sql("SELECT COUNT(*) FROM {prefix}profiles").single<Long>()
 val coins = sql("SELECT coins FROM {prefix}profiles WHERE uuid = :uuid", "uuid" to uuid).singleOrNull<Long>()

@@ -26,8 +26,6 @@ is on [Player stores](player-stores.md).
 `database.store(table, key) { create }` is a store of any key, loaded on demand:
 
 ```kotlin
-import dev.versatia.database.store
-
 data class Guild(val id: Long, val name: String = "", val bank: Long = 0)
 
 @LocalBean
@@ -114,9 +112,6 @@ the stores then write and delete the two together.
 for online and offline players alike; the cached values change only if it commits:
 
 ```kotlin
-import dev.versatia.database.store.get
-import dev.versatia.database.store.update
-
 data class Payment(val id: Long = 0, val payer: UUID, val payee: UUID, val coins: Long, val note: String)
 
 fun payBounty(victim: Player, killer: Player): DatabaseFuture<Payment?> = profiles.transaction(victim, killer, retries = 2) {
@@ -221,8 +216,6 @@ When one table per class does not fit (a value spread over several tables, a cus
 threads, inside the store's transactions:
 
 ```kotlin
-import dev.versatia.database.store.StoreSchema
-
 object Wallets : StoreSchema<UUID, Wallet> {
     override val name = "wallets"
     override fun load(sql: SqlScope, key: UUID) =

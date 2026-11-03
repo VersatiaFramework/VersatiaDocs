@@ -148,8 +148,6 @@ A plugin is registered under the `name:` of its `plugin.yml`, which is often lon
 on the main class registers it under a shorter one:
 
 ```kotlin
-import dev.versatia.FriendlyName
-
 @FriendlyName("shop")
 class ShopPlugin : VersatiaPlugin()
 ```
@@ -166,8 +164,6 @@ as the `Messages` instance made for your plugin. The module cannot know when you
 so the prototype implements `Reloadable` and reads the files in `reload()`:
 
 ```kotlin
-import dev.versatia.di.Reloadable
-
 @ExposePrototype
 internal class MessagesImpl(private val plugin: Plugin, private val text: Text) : Messages, Reloadable {
     private var bank = emptyMap<String, Message>()

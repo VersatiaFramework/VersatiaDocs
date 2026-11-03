@@ -10,9 +10,6 @@ Auto-invoked functions on the main class, on a bean and on an object, at three d
 </ExampleCard>
 
 ```kotlin
-import dev.versatia.Phase
-import dev.versatia.lifecycle.AutoInvoke
-
 class MyPlugin : VersatiaPlugin() {
 
     @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)

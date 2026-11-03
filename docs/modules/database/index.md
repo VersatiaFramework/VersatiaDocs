@@ -84,11 +84,6 @@ column `last_seen`). A [player store](player-stores.md) keeps one row per player
 before the player joins, changed in memory, saved on quit, by autosave and when the plugin stops.
 
 ```kotlin
-import dev.versatia.database.Database
-import dev.versatia.database.playerStore
-import dev.versatia.database.store.PlayerStore
-import dev.versatia.di.LocalBean
-
 data class Profile(val uuid: UUID, val name: String = "", val coins: Long = 0, val lastSeen: Instant? = null)
 
 @LocalBean
@@ -117,8 +112,6 @@ Anything that reaches the database blocks, so outside start, reload and stop it 
 plugin's database threads and comes back to the server thread with `thenSync`:
 
 ```kotlin
-import dev.versatia.database.list
-
 data class TopEntry(val name: String, val coins: Long)
 
 @LocalBean
