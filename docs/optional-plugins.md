@@ -8,14 +8,14 @@ plugin is enabled on the server. It is how a Versatia plugin integrates with a p
 may not be installed, without `Class.forName` checks and without a `NoClassDefFoundError` when the
 other plugin is missing.
 
-<ExampleCard repo="VersatiaExample-DI-OptionalPlugins" file="src/main/kotlin/com/github/marcoral/versatia/example/optionalplugins/VaultPayments.kt">
+<ExampleCard repo="VersatiaExample-DI-OptionalPlugins" file="src/main/kotlin/dev/versatia/example/optionalplugins/VaultPayments.kt">
 A <code>Payments</code> bean backed by Vault when it is installed, <code>@ConditionalOnPlugin("Vault")</code> and <code>@Primary</code>, a fallback otherwise, and the condition written once as <code>@NeedsVault</code>.
 </ExampleCard>
 
 ```kotlin
-import com.github.marcoral.versatia.ConditionalOnPlugin
-import com.github.marcoral.versatia.VersatiaEngine
-import com.github.marcoral.versatia.loadService
+import dev.versatia.ConditionalOnPlugin
+import dev.versatia.VersatiaEngine
+import dev.versatia.loadService
 import java.util.logging.Logger
 
 @ConditionalOnPlugin("Vault")

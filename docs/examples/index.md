@@ -21,52 +21,52 @@ VersatiaCore installed. Repositories are named
 <ExampleCard repo="VersatiaExample-Resources-Extraction" file="src/main/resources/resources" fileLabel="resources/">
 Files shipped under <code>resources/</code> in the JAR appear in the data folder when the plugin starts. Nothing to declare.
 </ExampleCard>
-<ExampleCard repo="VersatiaExample-DI-Beans" file="src/main/kotlin/com/github/marcoral/versatia/example/beans/Beans.kt">
+<ExampleCard repo="VersatiaExample-DI-Beans" file="src/main/kotlin/dev/versatia/example/beans/Beans.kt">
 Three local beans created in dependency order, each taking the plugin's <code>Logger</code>, a bean every plugin has without declaring it.
 </ExampleCard>
-<ExampleCard repo="VersatiaExample-DI-Qualifiers" file="src/main/kotlin/com/github/marcoral/versatia/example/qualifiers/Greeters.kt">
+<ExampleCard repo="VersatiaExample-DI-Qualifiers" file="src/main/kotlin/dev/versatia/example/qualifiers/Greeters.kt">
 Two beans provide one interface: <code>@Primary</code> picks the default, <code>@Qualifier</code> asks for the other by name.
 </ExampleCard>
-<ExampleCard repo="VersatiaExample-DI-CustomScope" file="src/main/kotlin/com/github/marcoral/versatia/example/customscope/Service.kt">
+<ExampleCard repo="VersatiaExample-DI-CustomScope" file="src/main/kotlin/dev/versatia/example/customscope/Service.kt">
 A scope annotation of your own, <code>@Service</code>, inheriting <code>@LocalBean</code>: one declaration, no runtime code.
 </ExampleCard>
-<ExampleCard repo="VersatiaExample-DI-PrivateBeans" file="src/main/kotlin/com/github/marcoral/versatia/example/privatebeans/Vault.kt">
+<ExampleCard repo="VersatiaExample-DI-PrivateBeans" file="src/main/kotlin/dev/versatia/example/privatebeans/Vault.kt">
 Private beans, constructors and functions: the generated code falls back to reflection, nothing has to be widened.
 </ExampleCard>
-<ExampleCard repo="VersatiaExample-Lifecycle-AutoInvoke" file="src/main/kotlin/com/github/marcoral/versatia/example/autoinvoke/AutoInvokePlugin.kt">
+<ExampleCard repo="VersatiaExample-Lifecycle-AutoInvoke" file="src/main/kotlin/dev/versatia/example/autoinvoke/AutoInvokePlugin.kt">
 Functions run at start, reload or stop with injected parameters: on the main class, on a bean and on an object.
 </ExampleCard>
-<ExampleCard repo="VersatiaExample-Config-Values" file="src/main/kotlin/com/github/marcoral/versatia/example/values/Shop.kt">
+<ExampleCard repo="VersatiaExample-Config-Values" file="src/main/kotlin/dev/versatia/example/values/Shop.kt">
 <code>@Value</code> properties on the main class, an object and a bean, set from two YAML files and re-read with <code>/versatia reload</code>.
 </ExampleCard>
-<ExampleCard repo="VersatiaExample-Lifecycle-Reload" file="src/main/kotlin/com/github/marcoral/versatia/example/reload/Announcer.kt">
+<ExampleCard repo="VersatiaExample-Lifecycle-Reload" file="src/main/kotlin/dev/versatia/example/reload/Announcer.kt">
 A plugin designed for reload: <code>@Value</code> properties re-read by <code>/versatia reload announcer</code>, a derived value rebuilt, a repeating task rescheduled when its interval changes and <code>versatiaReload()</code>.
 </ExampleCard>
-<ExampleCard repo="VersatiaExample-Events-Listeners" file="src/main/kotlin/com/github/marcoral/versatia/example/listeners/Listeners.kt">
+<ExampleCard repo="VersatiaExample-Events-Listeners" file="src/main/kotlin/dev/versatia/example/listeners/Listeners.kt">
 Listeners registered automatically: a plain class with injected dependencies and a bean registered with its instance.
 </ExampleCard>
-<ExampleCard repo="VersatiaExample-Tasks-Background" file="src/main/kotlin/com/github/marcoral/versatia/example/background/AutoBroadcastTask.kt">
+<ExampleCard repo="VersatiaExample-Tasks-Background" file="src/main/kotlin/dev/versatia/example/background/AutoBroadcastTask.kt">
 A <code>BackgroundTask</code> broadcasting at a period written as a duration, started by itself and restarted with the new values by every reload.
 </ExampleCard>
-<ExampleCard repo="VersatiaExample-Tasks-PluginScope" file="src/main/kotlin/com/github/marcoral/versatia/example/pluginscope/CombatTags.kt">
+<ExampleCard repo="VersatiaExample-Tasks-PluginScope" file="src/main/kotlin/dev/versatia/example/pluginscope/CombatTags.kt">
 Coroutines of your own in the injected <code>PluginScope</code>: a combat tag per player in <code>KeyedJobs</code>, replaced by every hit.
 </ExampleCard>
-<ExampleCard repo="VersatiaExample-Tasks-Conditions" file="src/main/kotlin/com/github/marcoral/versatia/example/conditions/Teleports.kt">
+<ExampleCard repo="VersatiaExample-Tasks-Conditions" file="src/main/kotlin/dev/versatia/example/conditions/Teleports.kt">
 Conditions rechecked on events, never polled: a teleport countdown cancelled by moving, a beacon lit while players are online.
 </ExampleCard>
-<ExampleCard repo="VersatiaExample-Tasks-Threads" file="src/main/kotlin/com/github/marcoral/versatia/example/threads/Greetings.kt">
+<ExampleCard repo="VersatiaExample-Tasks-Threads" file="src/main/kotlin/dev/versatia/example/threads/Greetings.kt">
 File reading moved off the server thread with <code>withContext(Dispatchers.IO)</code> and back for the Bukkit calls.
 </ExampleCard>
-<ExampleCard repo="VersatiaExample-DI-OptionalPlugins" file="src/main/kotlin/com/github/marcoral/versatia/example/optionalplugins/VaultPayments.kt">
+<ExampleCard repo="VersatiaExample-DI-OptionalPlugins" file="src/main/kotlin/dev/versatia/example/optionalplugins/VaultPayments.kt">
 A bean conditional on Vault with <code>@ConditionalOnPlugin</code> and <code>@Primary</code>, a fallback used without Vault, and the condition written once as <code>@NeedsVault</code>.
 </ExampleCard>
-<ExampleCard repo="VersatiaExample-DI-SharedBeans" file="provider/src/main/kotlin/com/github/marcoral/versatia/example/sharedbeans/SharedBeans.kt">
+<ExampleCard repo="VersatiaExample-DI-SharedBeans" file="provider/src/main/kotlin/dev/versatia/example/sharedbeans/SharedBeans.kt">
 Two plugins: a provider exposing a singleton and a prototype, and a consumer injecting both through <code>depend:</code>.
 </ExampleCard>
-<ExampleCard repo="VersatiaExample-Enhancements-FeatureSwitches" file="src/main/kotlin/com/github/marcoral/versatia/example/switches/SwitchesPlugin.kt">
+<ExampleCard repo="VersatiaExample-Enhancements-FeatureSwitches" file="src/main/kotlin/dev/versatia/example/switches/SwitchesPlugin.kt">
 <code>@DisableVersatiaFeatures</code> on a base class and on the main class; the nearest declaration wins.
 </ExampleCard>
-<ExampleCard repo="VersatiaExample-Enhancements-Custom" file="library/src/main/kotlin/com/github/marcoral/versatia/example/timing/Timed.kt">
+<ExampleCard repo="VersatiaExample-Enhancements-Custom" file="library/src/main/kotlin/dev/versatia/example/timing/Timed.kt">
 An enhancement of your own: a library plugin defines <code>@Timed</code> and its processor, another plugin uses it.
 </ExampleCard>
 <ExampleCard repo="VersatiaExample-Text-Messages" file="src/main/resources/resources/messages" fileLabel="messages/">

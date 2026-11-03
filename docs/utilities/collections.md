@@ -1,6 +1,6 @@
 # Collections
 
-Package `com.github.marcoral.versatia.util.collection`.
+Package `dev.versatia.util.collection`.
 
 ## `*OrThrow` helpers {/* #orthrow-helpers */}
 

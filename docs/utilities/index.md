@@ -2,14 +2,14 @@
 
 Besides the framework itself, VersatiaAPI ships a set of independent helpers over the Paper API.
 Server-wide calls start at one class, `VersatiaEngine`; everything else is an extension on the
-object you already hold, grouped under `com.github.marcoral.versatia.util` by the domain it
+object you already hold, grouped under `dev.versatia.util` by the domain it
 touches.
 
 ## Start with `VersatiaEngine.` {/* #start-with-versatiaengine */}
 
 Work that needs no object at hand, such as finding a player, broadcasting or looking up a service,
 is a static call on `VersatiaEngine`: one class to remember. Type `VersatiaEngine.` and pick from
-completion; IntelliJ adds the import (`import com.github.marcoral.versatia.broadcast`).
+completion; IntelliJ adds the import (`import dev.versatia.broadcast`).
 
 ```kotlin
 VersatiaEngine.broadcast(text("The shop is open"))

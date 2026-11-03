@@ -8,7 +8,7 @@ import TabItem from '@theme/TabItem';
 Beans marked `@ExposeSingleton` or `@ExposePrototype` can be injected into other plugins. This page
 is written from the consumer's side; the providing plugin only has to pick the scope.
 
-<ExampleCard repo="VersatiaExample-DI-SharedBeans" file="provider/src/main/kotlin/com/github/marcoral/versatia/example/sharedbeans/SharedBeans.kt">
+<ExampleCard repo="VersatiaExample-DI-SharedBeans" file="provider/src/main/kotlin/dev/versatia/example/sharedbeans/SharedBeans.kt">
 A provider plugin exposing a singleton and a prototype, and a consumer plugin injecting both.
 </ExampleCard>
 
@@ -22,8 +22,8 @@ Say the plugin **Shop** exposes `Clock` (a singleton) and `PluginSession` (a pro
 
 ```kotlin
 dependencies {
-    implementation("com.github.marcoral.versatia:VersatiaStarter:$versatiaVersion")
-    ksp("com.github.marcoral.versatia:VersatiaAPI-ksp:$versatiaVersion")
+    implementation("dev.versatia:VersatiaStarter:$versatiaVersion")
+    ksp("dev.versatia:VersatiaAPI-ksp:$versatiaVersion")
 
     compileOnly("com.example:Shop:1.0.0")
 }

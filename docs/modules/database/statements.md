@@ -21,9 +21,9 @@ while the plugin starts, reloads or stops, and anywhere else the call belongs in
 `database.sql(sql, ...parameters)` makes a `Statement`; one terminal call runs it:
 
 ```kotlin
-import com.github.marcoral.versatia.database.list
-import com.github.marcoral.versatia.database.single
-import com.github.marcoral.versatia.database.singleOrNull
+import dev.versatia.database.list
+import dev.versatia.database.single
+import dev.versatia.database.singleOrNull
 
 val top = sql("SELECT name, coins FROM {prefix}profiles ORDER BY coins DESC LIMIT :limit", "limit" to 10).list<TopEntry>()
 val players = sql("SELECT COUNT(*) FROM {prefix}profiles").single<Long>()
@@ -203,7 +203,7 @@ For anything else, read the row yourself. A `Row` is the current row of the resu
 inside the function it was passed to:
 
 ```kotlin
-import com.github.marcoral.versatia.database.get
+import dev.versatia.database.get
 
 val balances = sql("SELECT uuid, coins, last_seen FROM {prefix}profiles").list { row ->
     val coins: Long = row["coins"]                     // the type, nullability included, comes from the target
@@ -295,7 +295,7 @@ A `ColumnCodec` stores a type as one the module binds itself: `String`, `Int`, `
 constructor:
 
 ```kotlin
-import com.github.marcoral.versatia.database.mapping.ColumnCodec
+import dev.versatia.database.mapping.ColumnCodec
 
 object BlockPosText : ColumnCodec<BlockPos, String> {
     override val storedAs = String::class
@@ -308,8 +308,8 @@ Use it for one property with `@Column(codec = ...)`, or for every statement, row
 plugin with `database.registerType`, called in a bean constructor so that it applies before the first use:
 
 ```kotlin
-import com.github.marcoral.versatia.database.mapping.Column
-import com.github.marcoral.versatia.database.registerType
+import dev.versatia.database.mapping.Column
+import dev.versatia.database.registerType
 
 data class Home(val owner: UUID, @Column(codec = BlockPosText::class) val position: BlockPos)
 

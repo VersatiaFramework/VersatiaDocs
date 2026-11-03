@@ -1,6 +1,6 @@
 # Configuration
 
-Package `com.github.marcoral.versatia.util.config`. A value a plugin only has to hold needs none
+Package `dev.versatia.util.config`. A value a plugin only has to hold needs none
 of this: mark the property [`@Value`](../configuration.md) and the runtime reads it with these
 getters.
 

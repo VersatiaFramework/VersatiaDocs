@@ -111,7 +111,7 @@ These concern authors of [custom scopes and enhancements](../internals/enhanceme
 - a scope annotation that inherits `@Bean` but no `@VersatiaEnhancement`
   (`Service inherits @Bean but no @VersatiaEnhancement names its processor`);
 - a scope annotation that runs a bean processor at a phase other than plugin start
-  (`LateBean runs com.github.marcoral.versatia.di.LocalBeanEnhancementProcessor at PLUGIN_STOP; beans can only be declared at PLUGIN_START_ONLY`);
+  (`LateBean runs dev.versatia.di.LocalBeanEnhancementProcessor at PLUGIN_STOP; beans can only be declared at PLUGIN_START_ONLY`);
 - a `@VersatiaEnhancement` with an empty `processorClass`
   (`@VersatiaEnhancement on Service has no processorClass`);
 - an attribute argument the descriptor cannot hold, such as a nested annotation

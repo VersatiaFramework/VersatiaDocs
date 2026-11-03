@@ -5,7 +5,7 @@ import ExampleCard from '@site/src/components/ExampleCard';
 Most of the time one bean provides a requested type and nothing needs to be declared. When two
 beans implement the same interface, two annotations decide which one is injected.
 
-<ExampleCard repo="VersatiaExample-DI-Qualifiers" file="src/main/kotlin/com/github/marcoral/versatia/example/qualifiers/Greeters.kt">
+<ExampleCard repo="VersatiaExample-DI-Qualifiers" file="src/main/kotlin/dev/versatia/example/qualifiers/Greeters.kt">
 Two greeters behind one interface, one <code>@Primary</code>, the other reached by <code>@Qualifier("grumpy")</code>.
 </ExampleCard>
 
@@ -28,9 +28,9 @@ class is named, and no other bean may use that name. See
 ## `@Qualifier` and `@Primary` {/* #qualifier-and-primary */}
 
 ```kotlin
-import com.github.marcoral.versatia.di.LocalBean
-import com.github.marcoral.versatia.di.Primary
-import com.github.marcoral.versatia.di.Qualifier
+import dev.versatia.di.LocalBean
+import dev.versatia.di.Primary
+import dev.versatia.di.Qualifier
 
 @LocalBean @Primary
 class FriendlyGreeter : Greeter

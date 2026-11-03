@@ -113,7 +113,7 @@ Run `/versatia reload VersatiaCore`, then reload or restart the plugin. Every st
 plugin's start, reload and stop is logged:
 
 ```text
-[debug] Shop START: descriptor format 1.6, 11 elements, 9 for this event
+[debug] Shop START: descriptor format 1.0, 11 elements, 9 for this event
 [debug] Shop START: skipped VaultBridge: @ConditionalOnPlugin(Vault) is not met
 [debug] Shop START: created 2 beans: "plugin" (com.example.shop.ShopPlugin), "counter" (com.example.shop.Counter)
 [debug] Economy RELOAD: set 3 values, config.yml: base, rate, tax

@@ -98,9 +98,8 @@ const config: Config = {
     },
   },
 
-  // GitHub Pages serves the lowercase host; canonical links and the sitemap must agree
-  url: `https://${organizationName.toLowerCase()}.github.io`,
-  baseUrl: `/${projectName}/`,
+  url: 'https://versatia.dev',
+  baseUrl: '/',
   organizationName,
   projectName,
   trailingSlash: false,
@@ -132,7 +131,7 @@ const config: Config = {
           admonitions,
         },
         sitemap: {
-          ignorePatterns: [`/${projectName}/search/**`, `/${projectName}/search`],
+          ignorePatterns: ['/search/**', '/search'],
         },
         blog: false,
         theme: {

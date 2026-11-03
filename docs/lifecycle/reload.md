@@ -22,7 +22,7 @@ What a reload changes on the server, and what needs a restart, is explained to t
 
 :::
 
-<ExampleCard repo="VersatiaExample-Lifecycle-Reload" file="src/main/kotlin/com/github/marcoral/versatia/example/reload/Announcer.kt">
+<ExampleCard repo="VersatiaExample-Lifecycle-Reload" file="src/main/kotlin/dev/versatia/example/reload/Announcer.kt">
 Values re-read by <code>/versatia reload announcer</code>, a derived value rebuilt in a <code>PLUGIN_RELOAD_OR_START</code> function, a task rescheduled only when <code>PreviousValueTracking</code> says its interval changed, and a reload from code.
 </ExampleCard>
 
@@ -94,7 +94,7 @@ A plugin is registered under the `name:` of its `plugin.yml`, which is often lon
 on the main class registers it under a shorter one:
 
 ```kotlin
-import com.github.marcoral.versatia.FriendlyName
+import dev.versatia.FriendlyName
 
 @FriendlyName("shop")
 class ShopPlugin : VersatiaPlugin()
@@ -112,7 +112,7 @@ as the `Messages` instance made for your plugin. The module cannot know when you
 so the prototype implements `Reloadable` and reads the files in `reload()`:
 
 ```kotlin
-import com.github.marcoral.versatia.di.Reloadable
+import dev.versatia.di.Reloadable
 
 @ExposePrototype
 internal class MessagesImpl(private val plugin: Plugin, private val text: Text) : Messages, Reloadable {

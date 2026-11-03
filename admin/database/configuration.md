@@ -33,7 +33,7 @@ moves a plugin that already has data, while every other setting keeps following 
 # starts on an empty database; they apply after a restart. Any other key of the documentation may be
 # added here for Shop alone and applies on /versatia reload shop; what is left out comes from
 # defaults: in plugins/VersatiaModule-Database/config.yml, from the connection, or from the engine.
-# Every key: https://versatiaframework.github.io/VersatiaDocs/admin/database/configuration#every-key
+# Every key: https://versatia.dev/admin/database/configuration#every-key
 engine: sqlite
 file: database.db
 table-prefix: shop_

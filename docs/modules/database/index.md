@@ -15,7 +15,7 @@ already applied; the server admin moves it to H2, MySQL, MariaDB or PostgreSQL b
 `database.yml`, and the module takes care of the pool, the SQL differences between engines, the
 threads, the reload and the shutdown. You write SQL; the module runs it where and when it is safe.
 
-<ExampleCard repo="VersatiaExample-Modules-Database" file="src/main/kotlin/com/github/marcoral/versatia/example/database/Profiles.kt">
+<ExampleCard repo="VersatiaExample-Modules-Database" file="src/main/kotlin/dev/versatia/example/database/Profiles.kt">
 Player coins with no setup: three migrations, a player store loaded at login and saved on quit, a transaction that moves coins between two players, and a leaderboard read in the background.
 </ExampleCard>
 
@@ -26,7 +26,7 @@ libraries the module lists in its `plugin.yml` (HikariCP and the H2, MariaDB and
 drivers) into the server's `libraries/` folder; the SQLite and MySQL drivers are the server's own.
 
 A build that depends on `VersatiaAPI` alone adds
-`compileOnly("com.github.marcoral.versatia:VersatiaModule-Database:0.0.1")` (`libs.versatia.database`).
+`compileOnly("dev.versatia:VersatiaModule-Database:0.0.1")` (`libs.versatia.database`).
 
 :::admin
 
@@ -59,9 +59,9 @@ The module gives your plugin one bean, and two packages hold what you write arou
 
 | Inject     | Package                                         | What it is                                                     |
 |------------|-------------------------------------------------|----------------------------------------------------------------|
-| `Database` | `com.github.marcoral.versatia.database`         | your plugin's database: [statements](statements.md), [transactions](background.md#transactions), [background work](background.md#background-work), its engine, prefix and status |
-|            | `com.github.marcoral.versatia.database.store`   | [stores](stores.md): `KeyedStore`, `PlayerStore`, `StoreSchema`, made by `database.store(...)` and `database.playerStore(...)` |
-|            | `com.github.marcoral.versatia.database.mapping` | `Column` and `ColumnCodec`, for [columns whose name or type needs help](statements.md#your-own-types) |
+| `Database` | `dev.versatia.database`         | your plugin's database: [statements](statements.md), [transactions](background.md#transactions), [background work](background.md#background-work), its engine, prefix and status |
+|            | `dev.versatia.database.store`   | [stores](stores.md): `KeyedStore`, `PlayerStore`, `StoreSchema`, made by `database.store(...)` and `database.playerStore(...)` |
+|            | `dev.versatia.database.mapping` | `Column` and `ColumnCodec`, for [columns whose name or type needs help](statements.md#your-own-types) |
 
 ## A first plugin {/* #a-first-plugin */}
 
@@ -83,10 +83,10 @@ column `last_seen`). A [player store](stores.md#player-stores) keeps one row per
 before the player joins, changed in memory, saved on quit, by autosave and when the plugin stops.
 
 ```kotlin
-import com.github.marcoral.versatia.database.Database
-import com.github.marcoral.versatia.database.playerStore
-import com.github.marcoral.versatia.database.store.PlayerStore
-import com.github.marcoral.versatia.di.LocalBean
+import dev.versatia.database.Database
+import dev.versatia.database.playerStore
+import dev.versatia.database.store.PlayerStore
+import dev.versatia.di.LocalBean
 
 data class Profile(val uuid: UUID, val name: String = "", val coins: Long = 0, val lastSeen: Instant? = null)
 
@@ -116,7 +116,7 @@ Anything that reaches the database blocks, so outside start, reload and stop it 
 plugin's database threads and comes back to the server thread with `thenSync`:
 
 ```kotlin
-import com.github.marcoral.versatia.database.list
+import dev.versatia.database.list
 
 data class TopEntry(val name: String, val coins: Long)
 

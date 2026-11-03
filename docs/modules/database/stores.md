@@ -195,7 +195,7 @@ at SEVERE, as before.
 ### Autosave events {/* #autosave-events */}
 
 An autosave that has changed entries to write is announced by two Bukkit events of the package
-`com.github.marcoral.versatia.database.store`, both called on the server thread:
+`dev.versatia.database.store`, both called on the server thread:
 
 | Event                     | When                         | Properties |
 |---------------------------|------------------------------|------------|
@@ -224,7 +224,7 @@ class AutosaveNotices(private val plugin: MarketPlugin) : Listener {
 `database.store(table, key) { create }` is a store of any key, loaded on demand:
 
 ```kotlin
-import com.github.marcoral.versatia.database.store
+import dev.versatia.database.store
 
 data class Guild(val id: Long, val name: String = "", val bank: Long = 0)
 
@@ -312,8 +312,8 @@ the stores then write and delete the two together.
 for online and offline players alike; the cached values change only if it commits:
 
 ```kotlin
-import com.github.marcoral.versatia.database.store.get
-import com.github.marcoral.versatia.database.store.update
+import dev.versatia.database.store.get
+import dev.versatia.database.store.update
 
 data class Payment(val id: Long = 0, val payer: UUID, val payee: UUID, val coins: Long, val note: String)
 
@@ -332,7 +332,7 @@ fun payBounty(victim: Player, killer: Player): DatabaseFuture<Payment?> = profil
   created, and stays cached afterwards. `this[key] = value` is written at once, in the transaction,
   and `update(key) { ... }` does both in one call, returning the new value. In a player store, a
   `Player` or `OfflinePlayer` stands for its UUID in all three (imports from
-  `com.github.marcoral.versatia.database.store`).
+  `dev.versatia.database.store`).
 - The receiver runs SQL like any [transaction](background.md#transactions) (`sql`, `insert`,
   `afterCommit`, ...), all in the same database transaction.
 - **On commit** the written values become the cached ones. Changes made meanwhile on the server
@@ -419,7 +419,7 @@ When one table per class does not fit (a value spread over several tables, a cus
 threads, inside the store's transactions:
 
 ```kotlin
-import com.github.marcoral.versatia.database.store.StoreSchema
+import dev.versatia.database.store.StoreSchema
 
 object Wallets : StoreSchema<UUID, Wallet> {
     override val name = "wallets"

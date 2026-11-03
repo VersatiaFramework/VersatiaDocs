@@ -30,7 +30,7 @@ npm ci
 npm start
 ```
 
-Serves the site at <http://localhost:3000/VersatiaDocs/> and reloads on every saved file.
+Serves the site at <http://localhost:3000/> and reloads on every saved file.
 
 ```bash
 npm run build

@@ -6,7 +6,7 @@ Versatia wires objects through **constructor injection** driven entirely by the 
 descriptor. There is no container to configure, no module to write and nothing to look up at
 runtime: you annotate classes, the build validates the graph, the runtime instantiates it.
 
-<ExampleCard repo="VersatiaExample-DI-Beans" file="src/main/kotlin/com/github/marcoral/versatia/example/beans/Beans.kt">
+<ExampleCard repo="VersatiaExample-DI-Beans" file="src/main/kotlin/dev/versatia/example/beans/Beans.kt">
 Three local beans created in dependency order, each taking the plugin's logger, a bean every plugin has.
 </ExampleCard>
 
@@ -16,7 +16,7 @@ A bean is a class annotated with a *scope*. Its constructor parameters are its d
 they are satisfied by other beans.
 
 ```kotlin
-import com.github.marcoral.versatia.di.LocalBean
+import dev.versatia.di.LocalBean
 
 interface Greeter {
     fun greeting(): String
@@ -44,7 +44,7 @@ except `Any`, so `FriendlyGreeter` satisfies the request.
 | `@ExposeSingleton`  | the declaring plugin and every plugin enabled later | one, shared                                |
 | `@ExposePrototype`  | the declaring plugin and every plugin enabled later | one per consuming plugin                   |
 
-All three live in `com.github.marcoral.versatia.di`. Their semantics and the lifetime of beans are
+All three live in `dev.versatia.di`. Their semantics and the lifetime of beans are
 covered in [Scopes and lifetime](scopes.md); sharing beans between plugins in
 [Beans across plugins](cross-plugin.md).
 
@@ -98,10 +98,10 @@ Every plugin may inject these without declaring anything:
 | your main class (bean `plugin`) | yours | the plugin instance, also as `VersatiaPlugin`, `JavaPlugin`, `Plugin`; see [above](#the-plugin-itself). Its `plugin.yml` data is `plugin.pluginMeta` | `@PluginBean` on `VersatiaPlugin` |
 | `Logger` | `java.util.logging` | `plugin.logger`: logs exactly as the plugin does, with its name | VersatiaCore, exposed prototype |
 | `ComponentLogger` | `net.kyori.adventure.text.logger.slf4j` | `plugin.componentLogger`, for logging components; also injectable as `org.slf4j.Logger` | VersatiaCore, exposed prototype |
-| `PluginRegistry` | `com.github.marcoral.versatia` | the running Versatia plugins by friendly name; see [From code](../lifecycle/reload.md#from-code) | VersatiaCore, exposed singleton |
-| `PluginScope` | `com.github.marcoral.versatia.task` | the plugin's own coroutines, one scope per plugin; see [Your own coroutines](../tasks.md#your-own-coroutines) | VersatiaCore, exposed prototype |
-| `Messages` | `com.github.marcoral.versatia.messages` | the plugin's bank of messages, read from its `messages/` folder; see [Messages](../messages.md) | VersatiaCore, exposed prototype |
-| `Text` | `com.github.marcoral.versatia.text` | the plugin's parser of MiniMessage with runtime arguments; see [Text without a file](../messages.md#text-without-a-file) | VersatiaCore, exposed prototype |
+| `PluginRegistry` | `dev.versatia` | the running Versatia plugins by friendly name; see [From code](../lifecycle/reload.md#from-code) | VersatiaCore, exposed singleton |
+| `PluginScope` | `dev.versatia.task` | the plugin's own coroutines, one scope per plugin; see [Your own coroutines](../tasks.md#your-own-coroutines) | VersatiaCore, exposed prototype |
+| `Messages` | `dev.versatia.messages` | the plugin's bank of messages, read from its `messages/` folder; see [Messages](../messages.md) | VersatiaCore, exposed prototype |
+| `Text` | `dev.versatia.text` | the plugin's parser of MiniMessage with runtime arguments; see [Text without a file](../messages.md#text-without-a-file) | VersatiaCore, exposed prototype |
 
 A class that only logs takes the logger, not the plugin:
 
@@ -145,7 +145,7 @@ class Greeter(private val logger: Logger) {
 A scope is itself an annotation marked `@Bean`. Annotating your own annotation with an existing
 scope *inherits* it, so you can give your beans a domain-specific name:
 
-<ExampleCard repo="VersatiaExample-DI-CustomScope" file="src/main/kotlin/com/github/marcoral/versatia/example/customscope/Service.kt">
+<ExampleCard repo="VersatiaExample-DI-CustomScope" file="src/main/kotlin/dev/versatia/example/customscope/Service.kt">
 A <code>@Service</code> annotation inheriting <code>@LocalBean</code>, and a bean declared with it.
 </ExampleCard>
 

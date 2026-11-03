@@ -10,12 +10,12 @@ A value a plugin reads from its configuration is a property marked `@Value`: the
 from a YAML file in the data folder when the plugin starts and again at every
 [reload](lifecycle/reload.md). No file handling, no getter, no reload function.
 
-<ExampleCard repo="VersatiaExample-Config-Values" file="src/main/kotlin/com/github/marcoral/versatia/example/values/Shop.kt">
+<ExampleCard repo="VersatiaExample-Config-Values" file="src/main/kotlin/dev/versatia/example/values/Shop.kt">
 Values on the main class, on an object and on a bean, from two files, re-read with <code>/versatia reload values</code>.
 </ExampleCard>
 
 ```kotlin
-import com.github.marcoral.versatia.config.Value
+import dev.versatia.config.Value
 
 @LocalBean
 class Shop {
@@ -112,12 +112,12 @@ duration such as `-5s` and `Infinity` are rejected the same way.
 
 ### Secrets {/* #secrets */}
 
-A password, a token or an API key is a `Secret` (`com.github.marcoral.versatia.util.type`). It
+A password, a token or an API key is a `Secret` (`dev.versatia.util.type`). It
 prints as `****`, so a log line, a message or an exception never shows it, and the file may name
 where the secret is instead of holding it:
 
 ```kotlin
-import com.github.marcoral.versatia.util.type.Secret
+import dev.versatia.util.type.Secret
 
 @LocalBean
 class DiscordBridge(private val logger: Logger) {
@@ -173,8 +173,8 @@ A type of your own, or a value that is not what the file says, is read by a `Val
 in the annotation:
 
 ```kotlin
-import com.github.marcoral.versatia.config.SectionMapper
-import com.github.marcoral.versatia.config.ValueMapper
+import dev.versatia.config.SectionMapper
+import dev.versatia.config.ValueMapper
 
 object TicksFromSeconds : ValueMapper<Long> {
     override fun map(section: ConfigurationSection, key: String) = section.getLongOrThrow(key) * 20
@@ -241,7 +241,7 @@ reschedule a task only when its interval did, say, declares the property as a
 `PreviousValueTracking<T>`, a `val` holding a cell the runtime fills:
 
 ```kotlin
-import com.github.marcoral.versatia.config.PreviousValueTracking
+import dev.versatia.config.PreviousValueTracking
 
 @LocalBean
 class Announcer(private val plugin: JavaPlugin) {

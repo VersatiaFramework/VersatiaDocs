@@ -8,7 +8,7 @@ lifecycle functions. The [installation](installation.md) is assumed to be done.
 ```kotlin
 package com.example.myplugin
 
-import com.github.marcoral.versatia.VersatiaPlugin
+import dev.versatia.VersatiaPlugin
 
 class MyPlugin : VersatiaPlugin()
 ```
@@ -24,8 +24,8 @@ A bean is a class annotated with a *scope*. Its constructor parameters are its d
 ```kotlin
 package com.example.myplugin
 
-import com.github.marcoral.versatia.config.Value
-import com.github.marcoral.versatia.di.LocalBean
+import dev.versatia.config.Value
+import dev.versatia.di.LocalBean
 
 @LocalBean
 class ShopConfig {
@@ -64,9 +64,9 @@ reads `config.currency` when it describes an item, so it always shows the curren
 ```kotlin
 package com.example.myplugin
 
-import com.github.marcoral.versatia.Phase
-import com.github.marcoral.versatia.VersatiaPlugin
-import com.github.marcoral.versatia.lifecycle.AutoInvoke
+import dev.versatia.Phase
+import dev.versatia.VersatiaPlugin
+import dev.versatia.lifecycle.AutoInvoke
 
 class MyPlugin : VersatiaPlugin() {
 
@@ -119,25 +119,25 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
   override val elements: List<EnhancedElement>
     get() = listOf(
       EnhancedElement(
-        processorClass = "com.github.marcoral.versatia.di.PluginBeanEnhancementProcessor",
+        processorClass = "dev.versatia.di.PluginBeanEnhancementProcessor",
         phase = Phase.PLUGIN_RELOAD_OR_START,
-        annotation = AnnotationOccurrence("com.github.marcoral.versatia.di.PluginBean"),
+        annotation = AnnotationOccurrence("dev.versatia.di.PluginBean"),
         target = PluginTarget(
           className = "com.example.myplugin.MyPlugin",
-          assignableTypes = listOf("com.example.myplugin.MyPlugin", "com.github.marcoral.versatia.VersatiaPlugin", /* ... */),
+          assignableTypes = listOf("com.example.myplugin.MyPlugin", "dev.versatia.VersatiaPlugin", /* ... */),
           annotations = emptyList(),
         ),
       ),
       EnhancedElement(
-        processorClass = "com.github.marcoral.versatia.resources.ExtractResourcesEnhancementProcessor",
+        processorClass = "dev.versatia.resources.ExtractResourcesEnhancementProcessor",
         phase = Phase.PLUGIN_RELOAD_OR_START,
-        annotation = AnnotationOccurrence("com.github.marcoral.versatia.resources.ExtractResources"),
+        annotation = AnnotationOccurrence("dev.versatia.resources.ExtractResources"),
         target = PluginTarget(/* the same */),
       ),
       EnhancedElement(
-        processorClass = "com.github.marcoral.versatia.di.LocalBeanEnhancementProcessor",
+        processorClass = "dev.versatia.di.LocalBeanEnhancementProcessor",
         phase = Phase.PLUGIN_START_ONLY,
-        annotation = AnnotationOccurrence("com.github.marcoral.versatia.di.LocalBean"),
+        annotation = AnnotationOccurrence("dev.versatia.di.LocalBean"),
         target = ClassTarget(
           className = "com.example.myplugin.PriceList",
           assignableTypes = listOf("com.example.myplugin.PriceList"),
@@ -147,9 +147,9 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
         ),
       ),
       EnhancedElement(
-        processorClass = "com.github.marcoral.versatia.lifecycle.AutoInvokeEnhancementProcessor",
+        processorClass = "dev.versatia.lifecycle.AutoInvokeEnhancementProcessor",
         phase = Phase.PLUGIN_RELOAD_OR_START,
-        annotation = AnnotationOccurrence("com.github.marcoral.versatia.lifecycle.AutoInvoke", mapOf("phase" to "PLUGIN_RELOAD_OR_START")),
+        annotation = AnnotationOccurrence("dev.versatia.lifecycle.AutoInvoke", mapOf("phase" to "PLUGIN_RELOAD_OR_START")),
         target = FunctionTarget(
           className = "com.example.myplugin.MyPlugin",
           binaryClassName = "com.example.myplugin.MyPlugin",

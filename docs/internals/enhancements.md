@@ -15,7 +15,7 @@ implies.
 ## Vocabulary {/* #vocabulary */}
 
 - **Enhancement**: an annotation whose occurrences the framework acts on. It names its processor
-  class and the phase it runs at with `@VersatiaEnhancement` (`com.github.marcoral.versatia`).
+  class and the phase it runs at with `@VersatiaEnhancement` (`dev.versatia`).
 - **Element**: one recorded occurrence in the descriptor, with the processor class, the phase, the
   annotation as written and the target (a class, a function, a property or the plugin's main class).
 - **Processor**: the class, loaded by name, that receives the elements naming it and does something
@@ -171,7 +171,7 @@ the state stores, and using a marked member warns.
 
 The built-in processors, all in VersatiaCore:
 
-| Processor class (`com.github.marcoral.versatia…`) | Handles                                                       |
+| Processor class (`dev.versatia…`) | Handles                                                       |
 |----------------------------------------------------|---------------------------------------------------------------|
 | `.di.LocalBeanEnhancementProcessor`                           | `ClassTarget`s of `@LocalBean`                                |
 | `.di.PluginBeanEnhancementProcessor`                          | the `PluginTarget` of the main class, sent by `@PluginBean`   |
@@ -189,7 +189,7 @@ The built-in processors, all in VersatiaCore:
 The supported way to extend the framework from a plugin without writing a processor is a **scope
 annotation that inherits a built-in one**. It costs one declaration and changes nothing at runtime:
 
-<ExampleCard repo="VersatiaExample-DI-CustomScope" file="src/main/kotlin/com/github/marcoral/versatia/example/customscope/Service.kt">
+<ExampleCard repo="VersatiaExample-DI-CustomScope" file="src/main/kotlin/dev/versatia/example/customscope/Service.kt">
 A <code>@Service</code> annotation inheriting <code>@LocalBean</code>, and a bean declared with it.
 </ExampleCard>
 
@@ -212,7 +212,7 @@ with the main class as its `PluginTarget`. That is how `VersatiaPlugin` gives ev
 bean container (`@PluginBean`), its [resources](../resources.md) (`@ExtractResources`) and its
 coroutine scope (`@RunBackgroundTasks`), and it works for your own base classes too:
 
-<ExampleCard repo="VersatiaExample-Enhancements-FeatureSwitches" file="src/main/kotlin/com/github/marcoral/versatia/example/switches/SwitchesPlugin.kt">
+<ExampleCard repo="VersatiaExample-Enhancements-FeatureSwitches" file="src/main/kotlin/dev/versatia/example/switches/SwitchesPlugin.kt">
 A base plugin class switching extraction off and a main class switching listener registration off.
 </ExampleCard>
 
@@ -299,7 +299,7 @@ A new feature is an annotation, optionally some attributes, and a processor. The
 processor follows (naming, packages, state, errors) are collected in
 [Best practices](../reference/best-practices.md).
 
-<ExampleCard repo="VersatiaExample-Enhancements-Custom" file="library/src/main/kotlin/com/github/marcoral/versatia/example/timing/Timed.kt">
+<ExampleCard repo="VersatiaExample-Enhancements-Custom" file="library/src/main/kotlin/dev/versatia/example/timing/Timed.kt">
 A library plugin providing <code>@Timed</code> and its processor, and a plugin running a function every few ticks with it.
 </ExampleCard>
 

@@ -1,6 +1,6 @@
 # Scheduler, logging and more
 
-The smaller helper packages under `com.github.marcoral.versatia.util`. Server-wide calls, such as
+The smaller helper packages under `dev.versatia.util`. Server-wide calls, such as
 finding players, broadcasting or loading a service, are on [`VersatiaEngine`](index.md#start-with-versatiaengine).
 
 ## Logging {/* #logging */}

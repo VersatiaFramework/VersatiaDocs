@@ -66,7 +66,7 @@ rules follow from it:
 - **Packages are organised by feature**, as if the API and the runtime were slices of one
   monolith: a feature package holds the definitions in VersatiaAPI and the processors in
   VersatiaCore. The mechanism itself and the plugin bootstrap (`VersatiaPlugin`, `VersatiaEngine`)
-  are elementary and belong to the root package `com.github.marcoral.versatia`. The descriptor is
+  are elementary and belong to the root package `dev.versatia`. The descriptor is
   a technical detail of the mechanism, not a feature.
 
 ## Decisions taken {/* #decisions-taken */}

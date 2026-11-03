@@ -155,7 +155,7 @@ sure the JAR is in `plugins/`.
 
 The full message is `Plugin X: descriptor com.example.VersatiaDescriptor not found. Is the
 VersatiaAPI KSP processor applied to the plugin build?`. The plugin JAR has no descriptor, so the code generator did not run. Apply the
-`com.google.devtools.ksp` plugin and add `ksp("com.github.marcoral.versatia:VersatiaAPI-ksp:...")`;
+`com.google.devtools.ksp` plugin and add `ksp("dev.versatia:VersatiaAPI-ksp:...")`;
 see [In your build](../getting-started/installation.md#in-your-build). The related
 `Plugin X: com.example.VersatiaDescriptor is not a Kotlin object; it is not a Versatia descriptor`
 means a class of your own uses the reserved name next to the main class: rename it.
@@ -207,7 +207,7 @@ No bean of your plugin and no exposed bean of a plugin enabled earlier provides 
 - If your plugin can work without it, give the constructor parameter a default value; see
   [Optional dependencies](../dependency-injection/index.md#optional-dependencies).
 
-### `Plugin X: no bean provides com.github.marcoral.versatia.task.PluginScope, ...` {/* #plugin-x-no-bean-provides-comgithubmarcoralversatiataskpluginscope- */}
+### `Plugin X: no bean provides dev.versatia.task.PluginScope, ...` {/* #plugin-x-no-bean-provides-comgithubmarcoralversatiataskpluginscope- */}
 
 VersatiaCore exposes `PluginScope` to every plugin, so this means the installed VersatiaCore is
 older than the VersatiaAPI the plugin was built with: install the VersatiaCore matching that API.
@@ -453,7 +453,7 @@ When a plugin does not behave as its code suggests, set `debug: true` in
 the plugin. VersatiaCore logs every step of each plugin's start, reload and stop at `INFO`:
 
 ```text
-[debug] Shop START: descriptor format 1.6, 11 elements, 9 for this event
+[debug] Shop START: descriptor format 1.0, 11 elements, 9 for this event
 [debug] Shop START: skipped VaultBridge: @ConditionalOnPlugin(Vault) is not met
 [debug] Shop START: AutoInvokeEnhancementProcessor receives Counter.report()
 [debug] Shop START: created 2 beans: "plugin" (com.example.shop.ShopPlugin), "counter" (com.example.shop.Counter)

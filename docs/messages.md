@@ -21,12 +21,12 @@ package of its own:
 
 | Inject     | Package                                 | What it is                                                   |
 |------------|-----------------------------------------|--------------------------------------------------------------|
-| `Messages` | `com.github.marcoral.versatia.messages` | your plugin's [bank of messages](#the-files), read from its data folder |
-| `Text`     | `com.github.marcoral.versatia.text`     | the parser behind the messages, for [text that is not in a file](#text-without-a-file) and for describing your types; arguments (`arg`) and presentations live here too |
+| `Messages` | `dev.versatia.messages` | your plugin's [bank of messages](#the-files), read from its data folder |
+| `Text`     | `dev.versatia.text`     | the parser behind the messages, for [text that is not in a file](#text-without-a-file) and for describing your types; arguments (`arg`) and presentations live here too |
 
 ```kotlin
-import com.github.marcoral.versatia.messages.Messages
-import com.github.marcoral.versatia.text.arg
+import dev.versatia.messages.Messages
+import dev.versatia.text.arg
 
 @LocalBean
 class Shop(private val messages: Messages) {
@@ -218,8 +218,8 @@ A class implements `Presentable` and says how it appears; `presentation { }` is 
 where everything is lazy:
 
 ```kotlin
-import com.github.marcoral.versatia.text.Presentable
-import com.github.marcoral.versatia.text.presentation
+import dev.versatia.text.Presentable
+import dev.versatia.text.presentation
 
 class Offer(val item: String, val price: Price) : Presentable {
     override fun presentation() = presentation {
@@ -262,8 +262,8 @@ and a `Presentable` value always describes itself.
 for text that is built in code rather than read from a file:
 
 ```kotlin
-import com.github.marcoral.versatia.text.Text
-import com.github.marcoral.versatia.text.arg
+import dev.versatia.text.Text
+import dev.versatia.text.arg
 
 class Welcome(private val text: Text) : Listener {
     @EventHandler

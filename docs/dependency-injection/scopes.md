@@ -69,9 +69,9 @@ the descriptor:
 
 | Scope               | Processor class in VersatiaCore                          |
 |---------------------|----------------------------------------------------------|
-| `@LocalBean`        | `com.github.marcoral.versatia.di.LocalBeanEnhancementProcessor`       |
-| `@ExposeSingleton`  | `com.github.marcoral.versatia.di.ExposeSingletonEnhancementProcessor` |
-| `@ExposePrototype`  | `com.github.marcoral.versatia.di.ExposePrototypeEnhancementProcessor` |
+| `@LocalBean`        | `dev.versatia.di.LocalBeanEnhancementProcessor`       |
+| `@ExposeSingleton`  | `dev.versatia.di.ExposeSingletonEnhancementProcessor` |
+| `@ExposePrototype`  | `dev.versatia.di.ExposePrototypeEnhancementProcessor` |
 
 All three run at `PLUGIN_START_ONLY`, and a scope that would send one of them another phase is a
 compile error. The main class has a processor of its own, `PluginBeanEnhancementProcessor`,

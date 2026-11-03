@@ -57,8 +57,8 @@ version = "1.0.0"
 val versatiaVersion = "0.0.1"
 
 dependencies {
-    implementation("com.github.marcoral.versatia:VersatiaStarter:$versatiaVersion")
-    ksp("com.github.marcoral.versatia:VersatiaAPI-ksp:$versatiaVersion")
+    implementation("dev.versatia:VersatiaStarter:$versatiaVersion")
+    ksp("dev.versatia:VersatiaAPI-ksp:$versatiaVersion")
 }
 
 java {
@@ -90,7 +90,7 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
     repositories {
-        mavenLocal { content { includeGroup("com.github.marcoral.versatia") } }
+        mavenLocal { content { includeGroup("dev.versatia") } }
         mavenCentral()
         maven("https://repo.papermc.io/repository/maven-public/")
     }
@@ -115,12 +115,12 @@ Two dependencies, nothing else:
 | `VersatiaAPI-ksp`         | `ksp`            | the code generator. Lives on the annotation-processing classpath only and never reaches the server; it cannot come through the starter, because Gradle does not fill the `ksp` configuration transitively |
 
 Keep the version in one `versatiaVersion` value; both lines use it. A plugin that uses no module
-may depend on `com.github.marcoral.versatia:VersatiaAPI` instead of the starter.
+may depend on `dev.versatia:VersatiaAPI` instead of the starter.
 
 ### Versions from VersatiaCatalog {/* #versatia-catalog */}
 
 Instead of writing the Kotlin, KSP and Versatia versions yourself, you can import the Gradle
-version catalog the framework is built with, `com.github.marcoral.versatia:VersatiaCatalog`
+version catalog the framework is built with, `dev.versatia:VersatiaCatalog`
 (published by VersatiaAPI). The examples and the template do this. The Versatia version moves to
 `gradle.properties`, the one place both scripts read it from:
 
@@ -131,7 +131,7 @@ versatiaVersion=0.0.1
 ```kotlin title="settings.gradle.kts (added inside dependencyResolutionManagement)"
 versionCatalogs {
     create("libs") {
-        from("com.github.marcoral.versatia:VersatiaCatalog:${providers.gradleProperty("versatiaVersion").get()}")
+        from("dev.versatia:VersatiaCatalog:${providers.gradleProperty("versatiaVersion").get()}")
     }
 }
 ```

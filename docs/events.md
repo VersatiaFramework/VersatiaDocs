@@ -12,7 +12,7 @@ class WelcomeListener(private val greeter: Greeter) : Listener {
 }
 ```
 
-<ExampleCard repo="VersatiaExample-Events-Listeners" file="src/main/kotlin/com/github/marcoral/versatia/example/listeners/Listeners.kt">
+<ExampleCard repo="VersatiaExample-Events-Listeners" file="src/main/kotlin/dev/versatia/example/listeners/Listeners.kt">
 A plain listener with an injected bean and a listener that is itself a bean, both registered automatically.
 </ExampleCard>
 
@@ -39,7 +39,7 @@ the runtime adds nothing to that.
 
 ## Switching it off {/* #switching-it-off */}
 
-<ExampleCard repo="VersatiaExample-Enhancements-FeatureSwitches" file="src/main/kotlin/com/github/marcoral/versatia/example/switches/SwitchesPlugin.kt">
+<ExampleCard repo="VersatiaExample-Enhancements-FeatureSwitches" file="src/main/kotlin/dev/versatia/example/switches/SwitchesPlugin.kt">
 A base plugin class switching extraction off and a main class switching listener registration off.
 </ExampleCard>
 

@@ -77,7 +77,7 @@ For the server admin, `main-thread` is described in
 returns a `DatabaseFuture`:
 
 ```kotlin
-import com.github.marcoral.versatia.database.list
+import dev.versatia.database.list
 
 database.async { named("top-coins", "limit" to 10).list<TopEntry>() }
     .thenSync { top -> show(sender, top) }
@@ -98,7 +98,7 @@ In a coroutine of your [plugin scope or a background task](/docs/tasks#your-own-
 `await()` reads like sequential code and continues on the thread the coroutine runs on:
 
 ```kotlin
-import com.github.marcoral.versatia.database.await
+import dev.versatia.database.await
 
 class LeaderboardTask(private val profiles: Profiles) : BackgroundTask {
     override suspend fun run() {
@@ -121,7 +121,7 @@ submitted the work, its [kind](operations.md#failure-kinds) and the statement:
 
 ```text
 [Shop] A database task submitted at com.example.shop.Leaderboard.show(Leaderboard.kt:14) failed (TIMEOUT)
-com.github.marcoral.versatia.database.QueryException: Plugin Shop: query failed: ERROR: canceling statement due to statement timeout (PostgreSQL 0, SQLState 57014)
+dev.versatia.database.QueryException: Plugin Shop: query failed: ERROR: canceling statement due to statement timeout (PostgreSQL 0, SQLState 57014)
 SQL: SELECT name, coins FROM {prefix}profiles ORDER BY coins DESC LIMIT :limit
 Parameters: :limit
 ```

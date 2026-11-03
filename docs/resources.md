@@ -81,7 +81,7 @@ anywhere else in `src/main/resources`, such as `plugin.yml`, stay inside the JAR
 
 A plugin that wants to handle its files itself switches the feature off on its main class:
 
-<ExampleCard repo="VersatiaExample-Enhancements-FeatureSwitches" file="src/main/kotlin/com/github/marcoral/versatia/example/switches/SwitchesPlugin.kt">
+<ExampleCard repo="VersatiaExample-Enhancements-FeatureSwitches" file="src/main/kotlin/dev/versatia/example/switches/SwitchesPlugin.kt">
 A base plugin class switching extraction off and a main class switching listener registration off.
 </ExampleCard>
 

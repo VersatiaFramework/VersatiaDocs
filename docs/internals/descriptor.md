@@ -5,7 +5,7 @@ import ExampleCard from '@site/src/components/ExampleCard';
 The descriptor is the generated `object VersatiaDescriptor`, placed in the package of the plugin's
 main class so that the runtime can load it by name: for `com.example.MyPlugin` it is
 `com.example.VersatiaDescriptor`. It implements `VersatiaPluginDescriptor` from
-`com.github.marcoral.versatia.engine.descriptor` and builds its elements with the `Direct` and
+`dev.versatia.engine.descriptor` and builds its elements with the `Direct` and
 `Reflective` implementations of `Instantiator`, `Invoker` and `Setter`. Those types are marked
 [`@VersatiaInternalApi`](../reference/best-practices.md#internal-plumbing), so the file opts in with
 `@file:OptIn(VersatiaInternalApi::class)` and compiles without warnings in any plugin.
@@ -21,7 +21,7 @@ The descriptor is deliberately **flat**: a format version and a list of `Enhance
 
 | Field of `EnhancedElement` | Meaning                                                                   |
 |----------------------------|---------------------------------------------------------------------------|
-| `processorClass`           | the processor that interprets it, for example `com.github.marcoral.versatia.di.LocalBeanEnhancementProcessor` |
+| `processorClass`           | the processor that interprets it, for example `dev.versatia.di.LocalBeanEnhancementProcessor` |
 | `phase`                    | the `Phase` at which it runs; see [Phases and events](../lifecycle/phases.md) |
 | `annotation`               | the enhancement annotation that produced it, with all its arguments        |
 | `target`                   | what was annotated: a `ClassTarget`, a `FunctionTarget`, a `PropertyTarget` or a `PluginTarget` |
@@ -102,7 +102,7 @@ adds a `ClassTarget` per `BackgroundTask` class, or the `PluginTarget` when the 
 Encapsulation is preserved: beans, constructors, functions and their parameter types may be
 `private`. The generator picks per element:
 
-<ExampleCard repo="VersatiaExample-DI-PrivateBeans" file="src/main/kotlin/com/github/marcoral/versatia/example/privatebeans/Vault.kt">
+<ExampleCard repo="VersatiaExample-DI-PrivateBeans" file="src/main/kotlin/dev/versatia/example/privatebeans/Vault.kt">
 Private beans and a private auto-invoked function; compare the direct and reflective entries in its descriptor.
 </ExampleCard>
 
@@ -162,37 +162,37 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
   override val elements: List<EnhancedElement>
     get() = listOf(
       EnhancedElement(
-        processorClass = "com.github.marcoral.versatia.di.PluginBeanEnhancementProcessor",
+        processorClass = "dev.versatia.di.PluginBeanEnhancementProcessor",
         phase = Phase.PLUGIN_RELOAD_OR_START,
-        annotation = AnnotationOccurrence("com.github.marcoral.versatia.di.PluginBean"),
+        annotation = AnnotationOccurrence("dev.versatia.di.PluginBean"),
         target = PluginTarget(
           className = "com.example.alpha.AlphaPlugin",
-          assignableTypes = listOf("com.example.alpha.AlphaPlugin", "com.github.marcoral.versatia.VersatiaPlugin", "org.bukkit.plugin.java.JavaPlugin", "org.bukkit.plugin.Plugin", /* ... */),
+          assignableTypes = listOf("com.example.alpha.AlphaPlugin", "dev.versatia.VersatiaPlugin", "org.bukkit.plugin.java.JavaPlugin", "org.bukkit.plugin.Plugin", /* ... */),
           annotations = emptyList(),
         ),
       ),
       EnhancedElement(
-        processorClass = "com.github.marcoral.versatia.resources.ExtractResourcesEnhancementProcessor",
+        processorClass = "dev.versatia.resources.ExtractResourcesEnhancementProcessor",
         phase = Phase.PLUGIN_RELOAD_OR_START,
-        annotation = AnnotationOccurrence("com.github.marcoral.versatia.resources.ExtractResources"),
+        annotation = AnnotationOccurrence("dev.versatia.resources.ExtractResources"),
         target = PluginTarget(/* the same */),
       ),
       EnhancedElement(
-        processorClass = "com.github.marcoral.versatia.task.PluginScopeEnhancementProcessor",
+        processorClass = "dev.versatia.task.PluginScopeEnhancementProcessor",
         phase = Phase.PLUGIN_START_ONLY,
-        annotation = AnnotationOccurrence("com.github.marcoral.versatia.task.RunBackgroundTasks"),
+        annotation = AnnotationOccurrence("dev.versatia.task.RunBackgroundTasks"),
         target = PluginTarget(/* the same */),
       ),
       EnhancedElement(
-        processorClass = "com.github.marcoral.versatia.task.PluginScopeEnhancementProcessor",
+        processorClass = "dev.versatia.task.PluginScopeEnhancementProcessor",
         phase = Phase.PLUGIN_STOP,
-        annotation = AnnotationOccurrence("com.github.marcoral.versatia.task.RunBackgroundTasks"),
+        annotation = AnnotationOccurrence("dev.versatia.task.RunBackgroundTasks"),
         target = PluginTarget(/* the same */),
       ),
       EnhancedElement(
-        processorClass = "com.github.marcoral.versatia.di.ExposeSingletonEnhancementProcessor",
+        processorClass = "dev.versatia.di.ExposeSingletonEnhancementProcessor",
         phase = Phase.PLUGIN_START_ONLY,
-        annotation = AnnotationOccurrence("com.github.marcoral.versatia.di.ExposeSingleton"),
+        annotation = AnnotationOccurrence("dev.versatia.di.ExposeSingleton"),
         target = ClassTarget(
           className = "com.example.alpha.Clock",
           assignableTypes = listOf("com.example.alpha.Clock"),
@@ -202,9 +202,9 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
         ),
       ),
       EnhancedElement(
-        processorClass = "com.github.marcoral.versatia.di.LocalBeanEnhancementProcessor",
+        processorClass = "dev.versatia.di.LocalBeanEnhancementProcessor",
         phase = Phase.PLUGIN_START_ONLY,
-        annotation = AnnotationOccurrence("com.github.marcoral.versatia.di.LocalBean"),
+        annotation = AnnotationOccurrence("dev.versatia.di.LocalBean"),
         target = ClassTarget(
           className = "com.example.alpha.ConsoleGreeter",
           assignableTypes = listOf("com.example.alpha.ConsoleGreeter", "com.example.alpha.Greeter"),
@@ -214,14 +214,14 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
         ),
       ),
       EnhancedElement(
-        processorClass = "com.github.marcoral.versatia.di.LocalBeanEnhancementProcessor",
+        processorClass = "dev.versatia.di.LocalBeanEnhancementProcessor",
         phase = Phase.PLUGIN_START_ONLY,
-        annotation = AnnotationOccurrence("com.github.marcoral.versatia.di.LocalBean"),
+        annotation = AnnotationOccurrence("dev.versatia.di.LocalBean"),
         target = ClassTarget(
           className = "com.example.alpha.HiddenAudit",
           assignableTypes = listOf("com.example.alpha.HiddenAudit"),
           annotations = emptyList(),
-          constructorParameters = listOf(Parameter("com.example.alpha.Greeter", listOf(AnnotationOccurrence("com.github.marcoral.versatia.di.Qualifier", mapOf("value" to "consoleGreeter"))))),
+          constructorParameters = listOf(Parameter("com.example.alpha.Greeter", listOf(AnnotationOccurrence("dev.versatia.di.Qualifier", mapOf("value" to "consoleGreeter"))))),
           instantiator = Instantiator.Reflective("com.example.alpha.HiddenAudit", listOf("com.example.alpha.Greeter")),
         ),
       ),
@@ -232,7 +232,7 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
 ## Format version {/* #format-version */}
 
 The format has its own `major.minor` version, `VersatiaPluginDescriptor.FORMAT_VERSION`, currently
-**`1.6`**. It is independent of the library version. A runtime accepts exactly the version it was
+**`1.0`**. It is independent of the library version. A runtime accepts exactly the version it was
 built with and rejects any other with a message naming the plugin, both versions and the fix; see
 [The runtime](runtime.md#descriptor-format-compatibility).
 

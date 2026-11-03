@@ -24,13 +24,13 @@ the starter exports the API of every module.
 
 ```kotlin
 dependencies {
-    implementation("com.github.marcoral.versatia:VersatiaStarter:$versatiaVersion")
-    ksp("com.github.marcoral.versatia:VersatiaAPI-ksp:$versatiaVersion")
+    implementation("dev.versatia:VersatiaStarter:$versatiaVersion")
+    ksp("dev.versatia:VersatiaAPI-ksp:$versatiaVersion")
 }
 ```
 
 The starter brings the module's API. A build that depends on `VersatiaAPI` alone adds the module
-as `compileOnly("com.github.marcoral.versatia:VersatiaModule-Database:0.0.1")`. Either way the API
+as `compileOnly("dev.versatia:VersatiaModule-Database:0.0.1")`. Either way the API
 is on the compile classpath only: on the server the classes come from the module's plugin, and
 nothing the server provides goes into your JAR; see
 [In your build](../getting-started/installation.md#in-your-build). The artifact holds the module's
@@ -103,7 +103,7 @@ and the module fits the ecosystem.
   This is what the hook exists for: a plugin's own files are `@Value` properties, a module's
   prototype has no other way to follow the consumer's reloads.
 - **Two repositories, like VersatiaAPI and VersatiaCore.** `VersatiaModule-<Name>` is the public
-  API, published as `com.github.marcoral.versatia:VersatiaModule-<Name>`: the interfaces, value
+  API, published as `dev.versatia:VersatiaModule-<Name>`: the interfaces, value
   types and exceptions a consumer sees. `VersatiaModule-<Name>Impl` is the implementation, private,
   all `internal`; it builds the plugin `VersatiaModule-<Name>-<version>.jar`, which carries the API
   classes as VersatiaCore carries VersatiaAPI. Consumers compile against the API alone, so the

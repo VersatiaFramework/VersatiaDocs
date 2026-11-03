@@ -5,13 +5,13 @@ import ExampleCard from '@site/src/components/ExampleCard';
 `@AutoInvoke(phase)` marks a function the runtime calls at the given phase, with its parameters
 injected from the beans. It is Versatia's replacement for `onEnable` and `onDisable`.
 
-<ExampleCard repo="VersatiaExample-Lifecycle-AutoInvoke" file="src/main/kotlin/com/github/marcoral/versatia/example/autoinvoke/AutoInvokePlugin.kt">
+<ExampleCard repo="VersatiaExample-Lifecycle-AutoInvoke" file="src/main/kotlin/dev/versatia/example/autoinvoke/AutoInvokePlugin.kt">
 Auto-invoked functions on the main class, on a bean and on an object, at three different phases.
 </ExampleCard>
 
 ```kotlin
-import com.github.marcoral.versatia.Phase
-import com.github.marcoral.versatia.lifecycle.AutoInvoke
+import dev.versatia.Phase
+import dev.versatia.lifecycle.AutoInvoke
 
 class MyPlugin : VersatiaPlugin() {
 

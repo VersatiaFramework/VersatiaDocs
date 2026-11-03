@@ -83,7 +83,7 @@ from one release. A plugin built for another VersatiaCore stays disabled, with a
 both versions and what to update:
 
 ```text
-Shop was built for descriptor format 1.7, but this VersatiaCore supports 1.6. Update VersatiaCore, or
+Shop was built for descriptor format 1.1, but this VersatiaCore supports 1.0. Update VersatiaCore, or
 rebuild the plugin against the VersatiaAPI matching it. The plugin stays disabled.
 ```
 

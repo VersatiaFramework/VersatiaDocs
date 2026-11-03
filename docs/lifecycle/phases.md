@@ -6,7 +6,7 @@ dispatches only the elements whose phase applies.
 
 ## Phases {/* #phases */}
 
-`Phase` in `com.github.marcoral.versatia`:
+`Phase` in `dev.versatia`:
 
 | `Phase`                  | Applies to the events        |
 |--------------------------|------------------------------|

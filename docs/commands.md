@@ -14,9 +14,9 @@ package com.example.shop.command
 
 import com.example.shop.PriceList
 import com.example.shop.ShopPlugin
-import com.github.marcoral.versatia.ConditionalOnPlugin
-import com.github.marcoral.versatia.Phase
-import com.github.marcoral.versatia.lifecycle.AutoInvoke
+import dev.versatia.ConditionalOnPlugin
+import dev.versatia.Phase
+import dev.versatia.lifecycle.AutoInvoke
 import dev.jorel.commandapi.CommandAPI
 import dev.jorel.commandapi.kotlindsl.commandAPICommand
 import dev.jorel.commandapi.kotlindsl.playerExecutor
@@ -46,7 +46,7 @@ object ShopCommand {
 
 - **A `command` subpackage** of the feature or plugin the command belongs to, one `object` per
   command: `com.example.shop.command.ShopCommand`, VersatiaCore's
-  `com.github.marcoral.versatia.engine.command.VersatiaCommand`.
+  `dev.versatia.engine.command.VersatiaCommand`.
 - **An `object`, not a bean.** An object's [auto-invoked functions](lifecycle/auto-invoke.md)
   receive any bean as a parameter, so the command needs no instance of its own and nothing
   injects it.
@@ -131,7 +131,7 @@ it.
 ## VersatiaCore's `/versatia` {/* #versatiacores-versatia */}
 
 VersatiaCore declares [`/versatia reload [plugin]`](lifecycle/reload.md) and
-`/versatia info [plugin]` the same way, in `com.github.marcoral.versatia.engine.command.VersatiaCommand`:
+`/versatia info [plugin]` the same way, in `dev.versatia.engine.command.VersatiaCommand`:
 
 ```kotlin
 @ConditionalOnPlugin("CommandAPI")

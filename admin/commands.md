@@ -48,9 +48,9 @@ the running Versatia plugins with their short name, version and descriptor forma
 `plugin.yml` name when it differs from the short name:
 
 ```text
-VersatiaCore 0.0.1 (descriptor format 1.6)
-economy 1.2.0 (Economy, descriptor format 1.6)
-shop 0.4.0 (Shop, descriptor format 1.6)
+VersatiaCore 0.0.1 (descriptor format 1.0)
+economy 1.2.0 (Economy, descriptor format 1.0)
+shop 0.4.0 (Shop, descriptor format 1.0)
 ```
 
 With a plugin's short name it adds what that plugin consists of: its beans (the objects the plugin
@@ -58,7 +58,7 @@ is built from) grouped by scope, the beans other plugins use, the plugins its re
 and the files it reads values from:
 
 ```text
-economy 1.2.0 (Economy, descriptor format 1.6)
+economy 1.2.0 (Economy, descriptor format 1.0)
 Beans (3):
   local (1):
     "plugin" com.example.economy.EconomyPlugin

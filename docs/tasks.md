@@ -39,11 +39,11 @@ No bean scope is needed: the runtime creates the task with its constructor injec
 plugin's [`Logger`](dependency-injection/index.md#beans-every-plugin-has), and sets its `@Value`
 properties.
 
-<ExampleCard repo="VersatiaExample-Tasks-Background" file="src/main/kotlin/com/github/marcoral/versatia/example/background/AutoBroadcastTask.kt">
+<ExampleCard repo="VersatiaExample-Tasks-Background" file="src/main/kotlin/dev/versatia/example/background/AutoBroadcastTask.kt">
 A <code>BackgroundTask</code> broadcasting the lines of <code>config.yml</code> at a period written as a duration, restarted with the new values by every reload.
 </ExampleCard>
 
-Everything here lives in `com.github.marcoral.versatia.task`, and the coroutines run on the
+Everything here lives in `dev.versatia.task`, and the coroutines run on the
 server thread, so Bukkit calls are safe in them. VersatiaAPI brings `kotlinx.coroutines`; see
 [Installation](getting-started/installation.md#pluginyml) for why your plugin must not add it.
 
@@ -128,7 +128,7 @@ class CombatTags(scope: PluginScope) : Listener {
 }
 ```
 
-<ExampleCard repo="VersatiaExample-Tasks-PluginScope" file="src/main/kotlin/com/github/marcoral/versatia/example/pluginscope/CombatTags.kt">
+<ExampleCard repo="VersatiaExample-Tasks-PluginScope" file="src/main/kotlin/dev/versatia/example/pluginscope/CombatTags.kt">
 A combat tag per player as a coroutine of the plugin's own scope, kept in <code>KeyedJobs</code> so that every hit replaces the running timer.
 </ExampleCard>
 
@@ -300,7 +300,7 @@ class Teleports(scope: PluginScope) : Listener {
 }
 ```
 
-<ExampleCard repo="VersatiaExample-Tasks-Conditions" file="src/main/kotlin/com/github/marcoral/versatia/example/conditions/Teleports.kt">
+<ExampleCard repo="VersatiaExample-Tasks-Conditions" file="src/main/kotlin/dev/versatia/example/conditions/Teleports.kt">
 A teleport that waits for the player to stand still, cancelled by moving, and a background task lighting a beacon while anyone is online.
 </ExampleCard>
 
@@ -496,7 +496,7 @@ class Greetings(private val plugin: ThreadsPlugin, private val scope: PluginScop
 }
 ```
 
-<ExampleCard repo="VersatiaExample-Tasks-Threads" file="src/main/kotlin/com/github/marcoral/versatia/example/threads/Greetings.kt">
+<ExampleCard repo="VersatiaExample-Tasks-Threads" file="src/main/kotlin/dev/versatia/example/threads/Greetings.kt">
 A file read on a worker thread at every join with <code>withContext(Dispatchers.IO)</code>, and the message sent back on the server thread.
 </ExampleCard>
 

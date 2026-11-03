@@ -73,7 +73,7 @@ brought. Calls of the plugins still running fail from then on with
 
 ## Errors <Audience who="developer" /> {/* #errors */}
 
-Every failure is a `DatabaseException` (package `com.github.marcoral.versatia.database`) whose
+Every failure is a `DatabaseException` (package `dev.versatia.database`) whose
 message starts with `Plugin <name>:` and says what to do:
 
 | Exception                     | When                                                             |

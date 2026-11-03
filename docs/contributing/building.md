@@ -61,7 +61,7 @@ shows:
 
 - Repositories are declared only in `settings.gradle.kts`, under `dependencyResolutionManagement`
   with `RepositoriesMode.FAIL_ON_PROJECT_REPOS`; `mavenLocal()` is filtered to the group
-  `com.github.marcoral.versatia`.
+  `dev.versatia`.
 - Versions come from [VersatiaCatalog](#versions): `settings.gradle.kts` imports it as `libs` at
   `versatiaVersion` from `gradle.properties`, the only place the Versatia version is written, and
   the build script uses `alias(libs.plugins.kotlin.jvm)`, `alias(libs.plugins.ksp)`,
@@ -97,7 +97,7 @@ build replaces the deployed JAR instead of landing next to it.
 
 Every third-party version (Kotlin, KSP, KotlinPoet, kctfork, Paper API, CommandAPI, SnakeYAML)
 lives in one file, `gradle/libs.versions.toml` of VersatiaAPI. Its `catalog` module publishes the
-file as the version catalog `com.github.marcoral.versatia:VersatiaCatalog`, adding the version
+file as the version catalog `dev.versatia:VersatiaCatalog`, adding the version
 `versatia` and the libraries `versatia-api`, `versatia-ksp`, `versatia-starter` and
 `versatia-database`. The framework version itself is `versatiaVersion` in each repository's
 `gradle.properties`; every other repository imports the catalog at that version in
