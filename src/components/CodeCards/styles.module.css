@@ -141,6 +141,22 @@
   opacity: 0.75;
 }
 
+/* On a phone the switch gets a row of its own above the tabs, which keep the full width */
+@media screen and (max-width: 600px) {
+  .bar {
+    flex-wrap: wrap;
+  }
+
+  .tabs {
+    flex-basis: 100%;
+  }
+
+  .switch {
+    order: -1;
+    margin: 0.5rem 0.75rem 0 auto;
+  }
+}
+
 .spares {
   margin: 0;
   padding: 0.6rem var(--ifm-pre-padding);

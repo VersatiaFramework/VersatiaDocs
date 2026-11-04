@@ -34,7 +34,7 @@ const config = `prices:
 const output = `[14:02:11 INFO]: [Shop] Enabling Shop v1.0.0
 [14:02:11 INFO]: [Shop] Loaded 3 prices`;
 
-// The same plugin with plain Bukkit, as on the Introduction page
+// The same plugin with plain Paper, as on the Introduction page
 const bukkitSample = `public final class ShopPlugin extends JavaPlugin {
     private PriceList prices;
 
@@ -163,7 +163,7 @@ function Hero() {
                 <CodeCard title="Console" output bukkit>{output}</CodeCard>
               </CodeCards>
               <Link to="/docs/getting-started/coming-from-bukkit#side-by-side" className={styles.compare}>
-                Every example next to plain Bukkit →
+                Every example next to plain Paper →
               </Link>
             </div>
           </div>

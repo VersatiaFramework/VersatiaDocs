@@ -14,7 +14,7 @@ export type CodeCardProps = {
   output?: boolean;
   /** The tab shown first; the first tab when none is marked. */
   default?: boolean;
-  /** Belongs to the Bukkit side of a pair: the same behaviour written with plain Bukkit, shown by the switch. */
+  /** Belongs to the Bukkit side of a pair: the same behaviour written with plain Paper, shown by the switch. */
   bukkit?: boolean;
   /** The content: a string, or in MDX an untitled fenced code block. */
   children: ReactNode;
@@ -54,7 +54,7 @@ export function linesOf(cards: Card[]): number {
 
 const options: {side: Side; label: string}[] = [
   {side: 'versatia', label: 'Versatia'},
-  {side: 'bukkit', label: 'Bukkit'},
+  {side: 'bukkit', label: 'Plain Paper'},
 ];
 
 /** The Versatia/Bukkit switch with the lines of code of each side; flipping one flips every pair for the rest of the visit. */

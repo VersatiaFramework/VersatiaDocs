@@ -1,5 +1,5 @@
 ---
-description: What changes when a Bukkit plugin moves to Versatia, and every example of this documentation next to the same code written with plain Bukkit.
+description: What changes when a Bukkit plugin moves to Versatia, and every example of this documentation next to the same code written with plain Paper.
 ---
 
 # Coming from Bukkit
@@ -15,8 +15,8 @@ seals `onEnable` and `onDisable`, and `plugin.yml` lists `VersatiaCore` under `d
 ## Side by side {/* #side-by-side */}
 
 Wherever a page of this documentation replaces Bukkit code, its example carries a switch:
-**Versatia** shows the Kotlin the page teaches, **Bukkit** the same behaviour in Java with plain
-Bukkit, error handling and reload included, and what you no longer write. The numbers count the
+**Versatia** shows the Kotlin the page teaches, **Plain Paper** the same behaviour in Java with the
+plain Paper API, error handling and reload included, and what you no longer write. The numbers count the
 lines of code without blank lines and imports. Flipping one switch flips every example for the
 rest of your visit. Here they all are, in the order of the sidebar, each linking to its page:
 

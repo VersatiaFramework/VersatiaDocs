@@ -284,4 +284,4 @@ both.
 Ready? Start with the [installation](getting-started/installation.md), or browse the
 [example plugins](examples/index.md), one feature each. Coming from a Bukkit plugin?
 [Coming from Bukkit](getting-started/coming-from-bukkit.md) puts every example of this
-documentation next to the same code written with plain Bukkit.
+documentation next to the same code written with plain Paper.
