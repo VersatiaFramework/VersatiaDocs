@@ -158,22 +158,22 @@ html.plugin-id-admin .navbar {
   font-weight: 700;
 }
 
-/* On narrow screens long code lines wrap instead of scrolling sideways; a wrapped line continues one indent further */
-@media screen and (max-width: 996px) {
-  pre code {
-    display: block;
-    float: none;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-  }
+/* Long code lines wrap at the block's edge on every screen instead of scrolling sideways; a wrapped line continues one indent further than its own start */
+pre code {
+  display: block;
+  float: none;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 
-  pre code .token-line {
-    padding-left: 4ch;
-    text-indent: -4ch;
-  }
+/* --indent comes from src/theme/CodeBlock/Line */
+pre code .token-line {
+  --wrap-indent: calc(var(--indent, 0ch) + 4ch);
+  padding-left: var(--wrap-indent);
+  text-indent: calc(-1 * var(--wrap-indent));
+}
 
-  pre code .token-line.code-block-error-line,
-  pre code .token-line.code-block-fix-line {
-    padding-left: calc(var(--ifm-pre-padding) + 4ch);
-  }
+pre code .token-line.code-block-error-line,
+pre code .token-line.code-block-fix-line {
+  padding-left: calc(var(--ifm-pre-padding) + var(--wrap-indent));
 }
