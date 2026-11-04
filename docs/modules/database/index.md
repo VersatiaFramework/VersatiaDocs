@@ -9,6 +9,7 @@ description: A database per plugin, injected and ready, with migrations, backgro
 
 import ExampleCard from '@site/src/components/ExampleCard';
 import Audience from '@site/src/components/Audience';
+import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
 
 VersatiaModule-Database gives every plugin **its own database, injected and ready**. Without any
 configuration a plugin gets a SQLite file in its data folder with the migrations from its JAR
@@ -66,22 +67,20 @@ The module gives your plugin one bean, and two packages hold what you write arou
 
 ## A first plugin {/* #a-first-plugin */}
 
-The table comes from a migration in the JAR. `{prefix}` and `{uuid}` are
-[tokens](tokens.md): the table prefix of your plugin and the UUID column type of
-whatever engine the admin picks.
-
-```sql title="src/main/resources/database/migrations/V1__create_profiles.sql"
-CREATE TABLE {prefix}profiles (
-    uuid      {uuid} NOT NULL PRIMARY KEY,
-    name      VARCHAR(16) NOT NULL DEFAULT '',
-    coins     BIGINT NOT NULL DEFAULT 0,
-    last_seen {timestamp}
-) {table_options};
-```
+The table comes from a migration in the JAR, `src/main/resources/database/migrations/`.
+`{prefix}` and `{uuid}` are [tokens](tokens.md): the table prefix of your plugin and the UUID
+column type of whatever engine the admin picks.
 
 A row is an immutable data class, mapped by its constructor parameter names (`lastSeen` is the
 column `last_seen`). A [player store](player-stores.md) keeps one row per player: loaded
 before the player joins, changed in memory, saved on quit, by autosave and when the plugin stops.
+Changing a value touches memory only, so it is safe in any event handler (`Rewards`). Anything that
+reaches the database blocks, so outside start, reload and stop it runs on the plugin's database
+threads and comes back to the server thread with `thenSync` (`Leaderboard`). At the first start the
+log shows the migrations and one summary line.
+
+<CodeCards spares="the pool, the `CREATE TABLE`, loading each player at login with a refusal when it fails, the name and `last_seen` upkeep, the autosave and the final save, the hops between threads (and the module also retries failed saves, writes only changed columns and runs on any engine the admin picks)">
+<CodeCard title="Profiles.kt">
 
 ```kotlin
 data class Profile(val uuid: UUID, val name: String = "", val coins: Long = 0, val lastSeen: Instant? = null)
@@ -97,7 +96,8 @@ class Profiles(database: Database) : PlayerStore<Profile> by database.playerStor
 }
 ```
 
-Changing a value touches memory only, so it is safe in any event handler:
+</CodeCard>
+<CodeCard title="Rewards.kt">
 
 ```kotlin
 class Rewards(private val profiles: Profiles) : Listener {
@@ -108,8 +108,8 @@ class Rewards(private val profiles: Profiles) : Listener {
 }
 ```
 
-Anything that reaches the database blocks, so outside start, reload and stop it runs on the
-plugin's database threads and comes back to the server thread with `thenSync`:
+</CodeCard>
+<CodeCard title="Leaderboard.kt">
 
 ```kotlin
 data class TopEntry(val name: String, val coins: Long)
@@ -121,12 +121,285 @@ class Leaderboard(private val database: Database) {
 }
 ```
 
-At the first start the log shows the migrations and one summary line:
+</CodeCard>
+<CodeCard title="V1__create_profiles.sql">
+
+```sql
+CREATE TABLE {prefix}profiles (
+    uuid      {uuid} NOT NULL PRIMARY KEY,
+    name      VARCHAR(16) NOT NULL DEFAULT '',
+    coins     BIGINT NOT NULL DEFAULT 0,
+    last_seen {timestamp}
+) {table_options};
+```
+
+</CodeCard>
+<CodeCard title="Console" output>
 
 ```text
 [Shop] Applying V1__create_profiles.sql
 [Shop] SQLITE database.db, prefix shop_, schema V1 (applied V1 in 12 ms)
 ```
+
+</CodeCard>
+<CodeCard title="ShopPlugin.java" bukkit>
+
+```java
+public final class ShopPlugin extends JavaPlugin {
+    private HikariDataSource dataSource;
+    private Profiles profiles;
+    private Leaderboard leaderboard;
+
+    @Override
+    public void onEnable() {
+        getDataFolder().mkdirs();
+        var config = new HikariConfig();
+        config.setJdbcUrl("jdbc:sqlite:" + new File(getDataFolder(), "database.db"));
+        config.setMaximumPoolSize(1);
+        dataSource = new HikariDataSource(config);
+        profiles = new Profiles(this, dataSource);
+        try {
+            createTable();
+            profiles.loadOnline();
+        } catch (SQLException e) {
+            getLogger().log(Level.SEVERE, "Could not open database.db", e);
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        leaderboard = new Leaderboard(this, dataSource);
+        getServer().getPluginManager().registerEvents(profiles, this);
+        getServer().getPluginManager().registerEvents(new Rewards(profiles), this);
+        getServer().getScheduler().runTaskTimerAsynchronously(
+                this, profiles::saveChanged, 5 * 60 * 20, 5 * 60 * 20);
+        getLogger().info("Opened database.db");
+    }
+
+    @Override
+    public void onDisable() {
+        if (profiles != null) profiles.saveOnStop();
+        if (dataSource != null) dataSource.close();
+    }
+
+    public Leaderboard leaderboard() {
+        return leaderboard;
+    }
+
+    private void createTable() throws SQLException {
+        try (var connection = dataSource.getConnection();
+             var statement = connection.createStatement()) {
+            statement.executeUpdate("""
+                    CREATE TABLE IF NOT EXISTS shop_profiles (
+                        uuid      TEXT NOT NULL PRIMARY KEY,
+                        name      VARCHAR(16) NOT NULL DEFAULT '',
+                        coins     BIGINT NOT NULL DEFAULT 0,
+                        last_seen TIMESTAMP
+                    )""");
+        }
+    }
+}
+```
+
+</CodeCard>
+<CodeCard title="Profiles.java" bukkit>
+
+```java
+record Profile(UUID uuid, String name, long coins, Instant lastSeen) {
+    Profile withName(String name) {
+        return new Profile(uuid, name, coins, lastSeen);
+    }
+
+    Profile withCoins(long coins) {
+        return new Profile(uuid, name, coins, lastSeen);
+    }
+
+    Profile withLastSeen(Instant lastSeen) {
+        return new Profile(uuid, name, coins, lastSeen);
+    }
+}
+
+final class Profiles implements Listener {
+    private static final String UPSERT = """
+            INSERT INTO shop_profiles (uuid, name, coins, last_seen) VALUES (?, ?, ?, ?)
+            ON CONFLICT (uuid) DO UPDATE SET name = excluded.name,
+                coins = excluded.coins, last_seen = excluded.last_seen""";
+
+    private final JavaPlugin plugin;
+    private final DataSource dataSource;
+    private final Map<UUID, Profile> profiles = new ConcurrentHashMap<>();
+    private final Set<UUID> changed = ConcurrentHashMap.newKeySet();
+
+    Profiles(JavaPlugin plugin, DataSource dataSource) {
+        this.plugin = plugin;
+        this.dataSource = dataSource;
+    }
+
+    void give(Player player, long coins) {
+        update(player.getUniqueId(), profile -> profile.withCoins(profile.coins() + coins));
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onPreLogin(AsyncPlayerPreLoginEvent event) {
+        if (event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) return;
+        try {
+            profiles.put(event.getUniqueId(), load(event.getUniqueId()));
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.WARNING, "Could not load " + event.getName(), e);
+            event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
+                    text("Your data could not be loaded; try again later", RED));
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onLogin(PlayerLoginEvent event) {
+        if (event.getResult() != PlayerLoginEvent.Result.ALLOWED)
+            profiles.remove(event.getPlayer().getUniqueId());
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onJoin(PlayerJoinEvent event) {
+        var player = event.getPlayer();
+        update(player.getUniqueId(), profile -> profile.withName(player.getName()));
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onQuit(PlayerQuitEvent event) {
+        var uuid = event.getPlayer().getUniqueId();
+        changed.remove(uuid);
+        var profile = profiles.remove(uuid).withLastSeen(Instant.now());
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> save(List.of(profile)));
+    }
+
+    void loadOnline() throws SQLException {
+        for (var player : plugin.getServer().getOnlinePlayers())
+            profiles.put(player.getUniqueId(), load(player.getUniqueId()).withName(player.getName()));
+    }
+
+    void saveChanged() {
+        var batch = new ArrayList<Profile>();
+        for (var iterator = changed.iterator(); iterator.hasNext(); ) {
+            var profile = profiles.get(iterator.next());
+            iterator.remove();
+            if (profile != null) batch.add(profile);
+        }
+        if (!batch.isEmpty()) save(batch);
+    }
+
+    void saveOnStop() {
+        var now = Instant.now();
+        profiles.replaceAll((uuid, profile) -> profile.withLastSeen(now));
+        save(profiles.values());
+    }
+
+    private void update(UUID uuid, UnaryOperator<Profile> change) {
+        if (profiles.computeIfPresent(uuid, (key, profile) -> change.apply(profile)) != null)
+            changed.add(uuid);
+    }
+
+    private Profile load(UUID uuid) throws SQLException {
+        try (var connection = dataSource.getConnection();
+             var statement = connection.prepareStatement(
+                     "SELECT name, coins, last_seen FROM shop_profiles WHERE uuid = ?")) {
+            statement.setString(1, uuid.toString());
+            try (var result = statement.executeQuery()) {
+                if (!result.next()) return new Profile(uuid, "", 0, null);
+                var lastSeen = result.getTimestamp("last_seen");
+                return new Profile(uuid, result.getString("name"), result.getLong("coins"),
+                        lastSeen == null ? null : lastSeen.toInstant());
+            }
+        }
+    }
+
+    private void save(Collection<Profile> batch) {
+        try (var connection = dataSource.getConnection();
+             var statement = connection.prepareStatement(UPSERT)) {
+            for (var profile : batch) {
+                var lastSeen = profile.lastSeen();
+                statement.setString(1, profile.uuid().toString());
+                statement.setString(2, profile.name());
+                statement.setLong(3, profile.coins());
+                statement.setTimestamp(4, lastSeen == null ? null : Timestamp.from(lastSeen));
+                statement.addBatch();
+            }
+            statement.executeBatch();
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Could not save " + batch.size() + " profiles", e);
+        }
+    }
+}
+```
+
+</CodeCard>
+<CodeCard title="Rewards.java" bukkit>
+
+```java
+final class Rewards implements Listener {
+    private final Profiles profiles;
+
+    Rewards(Profiles profiles) {
+        this.profiles = profiles;
+    }
+
+    @EventHandler
+    public void onKill(EntityDeathEvent event) {
+        var killer = event.getEntity().getKiller();
+        if (killer != null) profiles.give(killer, 1);
+    }
+}
+```
+
+</CodeCard>
+<CodeCard title="Leaderboard.java" bukkit>
+
+```java
+public final class Leaderboard {
+    private final JavaPlugin plugin;
+    private final DataSource dataSource;
+
+    Leaderboard(JavaPlugin plugin, DataSource dataSource) {
+        this.plugin = plugin;
+        this.dataSource = dataSource;
+    }
+
+    public void show(CommandSender sender) {
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            var lines = new ArrayList<String>();
+            try (var connection = dataSource.getConnection();
+                 var statement = connection.prepareStatement(
+                         "SELECT name, coins FROM shop_profiles ORDER BY coins DESC LIMIT 10");
+                 var result = statement.executeQuery()) {
+                while (result.next())
+                    lines.add((lines.size() + 1) + ". " + result.getString("name") + ": " + result.getLong("coins"));
+            } catch (SQLException e) {
+                plugin.getLogger().log(Level.SEVERE, "Could not read the leaderboard", e);
+                return;
+            }
+            plugin.getServer().getScheduler().runTask(plugin, () -> lines.forEach(sender::sendMessage));
+        });
+    }
+}
+```
+
+</CodeCard>
+<CodeCard title="plugin.yml" bukkit>
+
+```yaml
+name: Shop
+version: 1.0.0
+main: com.example.shop.ShopPlugin
+api-version: '1.21'
+libraries:
+  - com.zaxxer:HikariCP:7.1.0
+```
+
+</CodeCard>
+<CodeCard title="Console" output bukkit>
+
+```text
+[Shop] Opened database.db
+```
+
+</CodeCard>
+</CodeCards>
 
 Every plugin's tables carry its own prefix, its friendly name in snake_case plus `_`, so the table
 here is `shop_profiles`. Later starts show `schema V1` alone. The module has also written

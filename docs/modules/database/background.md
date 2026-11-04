@@ -7,6 +7,7 @@ description: What blocks, the server-thread guard, database.async and its future
 # Threads, background work and transactions
 
 import Audience from '@site/src/components/Audience';
+import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
 
 <Audience who="developer" below />
 
@@ -146,12 +147,64 @@ more for it) and their futures fail with
 `transaction { }` runs its block on one connection: committed when the block returns, rolled back
 when it throws. The block's receiver is a `Transaction`, which runs SQL like the database does:
 
+<CodeCards spares="the connection and its auto-commit, the commit and the rollback, the parameters by position, reading the generated key">
+<CodeCard title="Purchases.kt">
+
 ```kotlin
-database.transaction {
-    sql("UPDATE {prefix}profiles SET coins = coins - :price WHERE uuid = :buyer", "price" to price, "buyer" to buyer).update()
-    insertAndGetKey("purchases", Purchase(buyer = buyer, item = item, price = price))
+data class Purchase(val id: Long = 0, val buyer: UUID, val item: String, val price: Long)
+
+@LocalBean
+class Purchases(private val database: Database) {
+    fun buy(buyer: UUID, item: String, price: Long) = database.transaction {
+        sql("UPDATE {prefix}profiles SET coins = coins - :price WHERE uuid = :buyer", "price" to price, "buyer" to buyer).update()
+        insertAndGetKey("purchases", Purchase(buyer = buyer, item = item, price = price))
+    }
 }
 ```
+
+</CodeCard>
+<CodeCard title="Purchases.java" bukkit>
+
+```java
+final class Purchases {
+    private final DataSource dataSource;
+
+    Purchases(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    long buy(UUID buyer, String item, long price) throws SQLException {
+        try (var connection = dataSource.getConnection()) {
+            connection.setAutoCommit(false);
+            try (var update = connection.prepareStatement(
+                         "UPDATE shop_profiles SET coins = coins - ? WHERE uuid = ?");
+                 var insert = connection.prepareStatement(
+                         "INSERT INTO shop_purchases (buyer, item, price) VALUES (?, ?, ?)",
+                         Statement.RETURN_GENERATED_KEYS)) {
+                update.setLong(1, price);
+                update.setString(2, buyer.toString());
+                update.executeUpdate();
+                insert.setString(1, buyer.toString());
+                insert.setString(2, item);
+                insert.setLong(3, price);
+                insert.executeUpdate();
+                try (var keys = insert.getGeneratedKeys()) {
+                    keys.next();
+                    var id = keys.getLong(1);
+                    connection.commit();
+                    return id;
+                }
+            } catch (SQLException | RuntimeException e) {
+                connection.rollback();
+                throw e;
+            }
+        }
+    }
+}
+```
+
+</CodeCard>
+</CodeCards>
 
 | Inside `transaction { }`         | Does                                                            |
 |----------------------------------|-----------------------------------------------------------------|
