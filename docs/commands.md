@@ -21,8 +21,7 @@ object ShopCommand {
     const val PRICE_PERMISSION = "versatia.shop.command.price"
 
     @AutoInvoke(Phase.PLUGIN_START_ONLY)
-    fun register(plugin: ShopPlugin, prices: PriceList) =
-        commandAPICommand(NAME, plugin) {
+    fun register(plugin: ShopPlugin, prices: PriceList) = commandAPICommand(NAME, plugin) {
             subcommand("price") {
                 withPermission(PRICE_PERMISSION)
                 stringArgument("item")
@@ -50,8 +49,7 @@ public final class ShopCommand implements TabExecutor {
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command,
-            String label, String[] args) {
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length != 2 || !args[0].equalsIgnoreCase("price"))
             return false;
         if (!(sender instanceof Player player)) {

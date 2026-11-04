@@ -68,16 +68,13 @@ public final class Shop {
         FileConfiguration config = plugin.getConfig();
         if (!(config.get("shop.tax") instanceof Number tax)
                 || tax.doubleValue() < 0 || tax.doubleValue() > 1)
-            throw new IllegalStateException(
-                    "shop.tax in config.yml is not from 0 to 1");
+            throw new IllegalStateException("shop.tax in config.yml is not from 0 to 1");
         if (!config.isList("shop.hours"))
-            throw new IllegalStateException(
-                    "shop.hours in config.yml is not a list");
+            throw new IllegalStateException("shop.hours in config.yml is not a list");
         List<Integer> hours = new ArrayList<>();
         for (Object hour : config.getList("shop.hours")) {
             if (!(hour instanceof Integer value))
-                throw new IllegalStateException(
-                        "shop.hours in config.yml holds " + hour);
+                throw new IllegalStateException("shop.hours in config.yml holds " + hour);
             hours.add(value);
         }
 
@@ -85,8 +82,7 @@ public final class Shop {
         if (!file.exists()) plugin.saveResource("limits.yml", false);
         YamlConfiguration limits = YamlConfiguration.loadConfiguration(file);
         if (!limits.isInt("max-players"))
-            throw new IllegalStateException(
-                    "max-players in limits.yml is not a number");
+            throw new IllegalStateException("max-players in limits.yml is not a number");
 
         this.tax = tax.doubleValue();
         this.hours = hours;

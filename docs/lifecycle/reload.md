@@ -48,7 +48,6 @@ re-read for you, and the rest is rebuilt in functions such as
 
 ```kotlin
 class ShopPlugin : VersatiaPlugin() {
-
     @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
     private fun load(prices: PriceList) = prices.rebuild()
 }
@@ -70,8 +69,7 @@ public final class ShopPlugin extends JavaPlugin {
 
     // /shopreload, declared in plugin.yml
     @Override
-    public boolean onCommand(CommandSender sender, Command command,
-            String label, String[] args) {
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         try {
             saveDefaultConfig();
             reloadConfig();

@@ -12,8 +12,7 @@ starts. There is no `registerEvents` call to write and nothing to annotate:
 ```kotlin
 class WelcomeListener(private val greeter: Greeter) : Listener {
     @EventHandler
-    fun onJoin(event: PlayerJoinEvent) =
-        event.player.sendMessage(greeter.greeting())
+    fun onJoin(event: PlayerJoinEvent) = event.player.sendMessage(greeter.greeting())
 }
 ```
 

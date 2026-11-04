@@ -45,8 +45,7 @@ final class VaultBridge implements Listener {
         RegisteredServiceProvider<Economy> provider =
                 Bukkit.getServicesManager().getRegistration(Economy.class);
         if (provider == null)
-            throw new IllegalStateException(
-                    "Vault is installed without an economy plugin");
+            throw new IllegalStateException("Vault is installed without an economy plugin");
         var bridge = new VaultBridge(provider.getProvider());
         plugin.getServer().getPluginManager().registerEvents(bridge, plugin);
         plugin.getLogger().info("Vault found, prices are charged");

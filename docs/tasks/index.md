@@ -73,8 +73,7 @@ public final class AutoBroadcast {
             throw new IllegalStateException("period-seconds is not positive");
         List<String> lines = config.getStringList("auto-broadcast.lines");
         if (lines.isEmpty()) {
-            plugin.getLogger().info(
-                    "No lines to broadcast; add some to config.yml and reload");
+            plugin.getLogger().info("No lines to broadcast; add some to config.yml and reload");
             return;
         }
         plugin.getLogger().info("Broadcasting " + lines.size()

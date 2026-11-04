@@ -11,7 +11,6 @@ Auto-invoked functions on the main class, on a bean and on an object, at three d
 
 ```kotlin
 class MyPlugin : VersatiaPlugin() {
-
     @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
     private fun start(clock: Clock) { /* ... */ }
 
@@ -40,7 +39,6 @@ object Statistics {
 
 @LocalBean
 class StartupBanner(private val greeter: Greeter) {
-
     @AutoInvoke(Phase.PLUGIN_START_ONLY)
     fun show(clock: Clock) { /* uses greeter and clock */ }
 }

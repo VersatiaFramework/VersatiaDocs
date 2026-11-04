@@ -20,10 +20,8 @@ into the server.
 
 ```kotlin
 class ShopPlugin : VersatiaPlugin() {
-
     @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
-    private fun start(prices: PriceList) =
-        logger.info("Loaded ${prices.size} prices")
+    private fun start(prices: PriceList) = logger.info("Loaded ${prices.size} prices")
 }
 
 @LocalBean
@@ -71,8 +69,7 @@ public final class ShopPlugin extends JavaPlugin {
 
     // /shopreload, declared in plugin.yml
     @Override
-    public boolean onCommand(CommandSender sender,
-            Command command, String label, String[] args) {
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         reloadConfig();
         try {
             load();
@@ -87,8 +84,7 @@ public final class ShopPlugin extends JavaPlugin {
     private void load() {
         var config = ShopConfig.read(getConfig());
         prices = new PriceList(config);
-        getLogger().info(
-                "Loaded " + prices.size() + " prices");
+        getLogger().info("Loaded " + prices.size() + " prices");
     }
 }
 
@@ -100,15 +96,13 @@ record PriceList(ShopConfig config) {
 
 record ShopConfig(Map<String, Integer> prices) {
     static ShopConfig read(ConfigurationSection config) {
-        ConfigurationSection section =
-                config.getConfigurationSection("prices");
+        ConfigurationSection section = config.getConfigurationSection("prices");
         if (section == null)
             throw new IllegalStateException("No prices");
         Map<String, Integer> prices = new HashMap<>();
         for (String item : section.getKeys(false)) {
             if (!section.isInt(item))
-                throw new IllegalStateException(
-                        "Not a price: " + item);
+                throw new IllegalStateException("Not a price: " + item);
             prices.put(item, section.getInt(item));
         }
         return new ShopConfig(prices);

@@ -58,7 +58,6 @@ reads `config.currency` when it describes an item, so it always shows the curren
 
 ```kotlin
 class MyPlugin : VersatiaPlugin() {
-
     @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
     private fun start(prices: PriceList) = logger.info(prices.describe("Diamond"))
 
@@ -172,7 +171,6 @@ whole plugin, and what its log shows:
 
 ```kotlin
 class MyPlugin : VersatiaPlugin() {
-
     @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
     private fun start(prices: PriceList) = logger.info(prices.describe("Diamond"))
 

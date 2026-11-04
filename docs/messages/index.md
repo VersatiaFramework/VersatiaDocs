@@ -67,8 +67,7 @@ public final class ShopMessages {
     public void sendBought(Player player, ItemStack item, int price) {
         String raw = messages.getString("shop.bought");
         if (raw == null)
-            throw new IllegalStateException(
-                    "shop.bought is missing from messages.yml");
+            throw new IllegalStateException("shop.bought is missing from messages.yml");
         player.sendMessage(MiniMessage.miniMessage().deserialize(raw,
                 Placeholder.component("player", player.displayName()),
                 Placeholder.component("item", item.displayName()),
