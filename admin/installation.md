@@ -4,7 +4,7 @@ counterpart: /docs/getting-started/installation
 
 # Installation
 
-1. Run Paper **1.21.4** on Java **21** or newer.
+1. Run Paper **26.3** on Java **25** or newer.
 2. Drop `VersatiaCore-0.0.1.jar` into the `plugins/` directory.
 3. Add the [modules](#modules) and the [optional plugins](#soft-dependencies) the plugins on your
    server need, then the plugins themselves.

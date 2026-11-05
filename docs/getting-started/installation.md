@@ -14,7 +14,7 @@ which comes with **VersatiaStarter**.
 
 ## On the server <Audience who="admin" /> {/* #on-the-server */}
 
-The server needs Paper **1.21.4** on Java **21**, **VersatiaCore** in `plugins/`, and the
+The server needs Paper **26.3** on Java **25**, **VersatiaCore** in `plugins/`, and the
 [modules](../modules/index.md) your plugin uses. Installing, configuring and updating them is
 covered by the [server admin guide](/admin/installation), which is also the page to send to the
 people who run your plugin.
@@ -63,13 +63,13 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_21
+        jvmTarget = JvmTarget.JVM_25
     }
 }
 ```
@@ -190,7 +190,7 @@ plugin you inject beans from, which you add as
 name: MyPlugin
 version: '1.0.0'
 main: com.example.myplugin.MyPlugin
-api-version: '1.21'
+api-version: '26.3'
 depend:
   - VersatiaCore
 ```

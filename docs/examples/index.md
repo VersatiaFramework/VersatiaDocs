@@ -3,7 +3,7 @@
 import ExampleCard, {ExampleGrid} from '@site/src/components/ExampleCard';
 
 Every example is a repository of its own in the
-[VersatiaFramework](https://github.com/VersatiaFramework) organisation: one Paper 1.21.4 plugin
+[VersatiaFramework](https://github.com/VersatiaFramework) organisation: one Paper 26.3 plugin
 (two, where the feature is about two plugins) showing exactly one feature, with one file to read,
 the log lines to expect and a few things to try. The catalogue with the learning path lives in
 [VersatiaExamples](https://github.com/VersatiaFramework/VersatiaExamples); the cards below follow

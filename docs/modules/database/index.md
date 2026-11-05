@@ -250,9 +250,15 @@ final class Profiles implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onLogin(PlayerLoginEvent event) {
-        if (event.getResult() != PlayerLoginEvent.Result.ALLOWED)
-            profiles.remove(event.getPlayer().getUniqueId());
+    public void onLogin(PlayerConnectionValidateLoginEvent event) {
+        if (event.isAllowed()) return;
+        var profile = switch (event.getConnection()) {
+            case PlayerLoginConnection login -> login.getAuthenticatedProfile();
+            case PlayerConfigurationConnection configuration -> configuration.getProfile();
+            default -> null;
+        };
+        if (profile != null && plugin.getServer().getPlayer(profile.getId()) == null)
+            profiles.remove(profile.getId());
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -386,7 +392,7 @@ public final class Leaderboard {
 name: Shop
 version: 1.0.0
 main: com.example.shop.ShopPlugin
-api-version: '1.21'
+api-version: '26.3'
 libraries:
   - com.zaxxer:HikariCP:7.1.0
 ```

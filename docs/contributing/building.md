@@ -16,7 +16,7 @@ page is for building the framework itself; plugin authors only need the
 | `VersatiaExample-*`          | the example plugins, one repository per feature; see [Example plugins](../examples/index.md) |
 | `VersatiaDocs`               | this site                                                            |
 
-Requirements: JDK 21 or newer. Gradle comes from the wrapper in each repository.
+Requirements: JDK 25 or newer. Gradle comes from the wrapper in each repository.
 
 ## Build order {/* #build-order */}
 

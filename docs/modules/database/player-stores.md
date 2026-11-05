@@ -42,13 +42,13 @@ log in, an NPC for one, has none:
 A player never plays on default data: the value is loaded while the server is still deciding
 whether to let them in, and a login whose data cannot be loaded is refused.
 
-| Event                       | Priority | The store                                                      |
-|-----------------------------|----------|----------------------------------------------------------------|
-| `AsyncPlayerPreLoginEvent`  | `HIGH`, if still allowed | loads the value (or uses the one still cached from a recent session), waiting at most `stores.login-timeout`; when that fails, refuses the login with `messages.load-failed` and logs `Refused the login of Steve (069a79f4-...): profiles could not be loaded (...)`; while the plugin stops, refuses it with `messages.closing` |
-| `AsyncPlayerPreLoginEvent`  | `MONITOR` | when a later handler refused the login, lets go of the value; a value with no unsaved change, or one just created for a new player, is dropped |
-| `PlayerLoginEvent`          | `MONITOR` | the same, for a refusal there: a ban, the whitelist, a full server |
-| `PlayerJoinEvent`           | `LOWEST` | applies `onJoin`, so your own join handlers see its result       |
-| `PlayerQuitEvent`           | `MONITOR` | after your own quit handlers: applies `onLeave`, then saves the value in the background and forgets it, unless the player is back by then |
+| Event                                | Priority | The store                                                      |
+|--------------------------------------|----------|----------------------------------------------------------------|
+| `AsyncPlayerPreLoginEvent`           | `HIGH`, if still allowed | loads the value (or uses the one still cached from a recent session), waiting at most `stores.login-timeout`; when that fails, refuses the login with `messages.load-failed` and logs `Refused the login of Steve (069a79f4-...): profiles could not be loaded (...)`; while the plugin stops, refuses it with `messages.closing` |
+| `AsyncPlayerPreLoginEvent`           | `MONITOR` | when a later handler refused the login, lets go of the value; a value with no unsaved change, or one just created for a new player, is dropped |
+| `PlayerConnectionValidateLoginEvent` | `MONITOR` | the same, for a refusal there: a ban, the whitelist, a full server (a player already online is being reconfigured and keeps it) |
+| `PlayerJoinEvent`                    | `LOWEST` | applies `onJoin`, so your own join handlers see its result       |
+| `PlayerQuitEvent`                    | `MONITOR` | after your own quit handlers: applies `onLeave`, then saves the value in the background and forgets it, unless the player is back by then |
 
 A player who logs in again before the save of their last session finished gets the cached value
 back, and a duplicate login ("logged in from another location") shares the value of the old
@@ -210,6 +210,8 @@ class AutosaveNotices(private val plugin: MarketPlugin) : Listener {
 - **Before `HIGH`, a player's value is not loaded.** An `AsyncPlayerPreLoginEvent` handler at
   `LOWEST`, `LOW` or `NORMAL` runs before the store; read the value from `PlayerJoinEvent` on.
 - **Your quit handlers see the value before `onLeave`**, which the store applies at `MONITOR`.
+- **A reconfiguration keeps the value**: a `PlayerConnectionValidateLoginEvent` refused for a player
+  who is already online lets go of nothing; the quit that follows applies `onLeave` and saves.
 - **A plugin enabled on a running server** (a plugin manager) loads and claims the players already
   online, but does not apply `onJoin` to them: they did not join now. See
   [Players already online](#players-already-online).

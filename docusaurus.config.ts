@@ -287,7 +287,7 @@ const config: Config = {
     footer: {
       style: 'dark',
       links: developerFooter,
-      copyright: `Copyright © ${new Date().getFullYear()} ${organizationName}. Versatia framework for Paper 1.21.4, licensed under the Apache License 2.0. Documentation built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} ${organizationName}. Versatia framework for Paper 26.3, licensed under the Apache License 2.0. Documentation built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.github,

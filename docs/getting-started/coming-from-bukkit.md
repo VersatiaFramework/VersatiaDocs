@@ -42,7 +42,7 @@ not a supported Versatia plugin. The `checkPluginYml` task of the
 name: MyPlugin
 version: '1.0.0'
 main: com.example.myplugin.MyPlugin
-api-version: '1.21'
+api-version: '26.3'
 # error-start
 dependencies:
   server:
@@ -56,7 +56,7 @@ dependencies:
 name: MyPlugin
 version: '1.0.0'
 main: com.example.myplugin.MyPlugin
-api-version: '1.21'
+api-version: '26.3'
 # fix-start
 depend:
   - VersatiaCore

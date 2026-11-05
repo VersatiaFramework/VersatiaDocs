@@ -9,7 +9,7 @@ import Link from '@docusaurus/Link';
 import Audience from '@site/src/components/Audience';
 import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
 
-**Versatia** is a framework for [Paper](https://papermc.io/) **1.21.4** plugins written in Kotlin.
+**Versatia** is a framework for [Paper](https://papermc.io/) **26.3** plugins written in Kotlin.
 Its mission is to remove the Bukkit boilerplate from plugins: wiring singletons, passing
 dependencies around by hand, registering things in `onEnable` and tearing them down in
 `onDisable`. A plugin declares *what* it has; Versatia takes care of *when* and *how* it is hooked
@@ -276,8 +276,8 @@ both.
 | Component | Version  |
 |-----------|----------|
 | Versatia  | `0.0.1`  |
-| Paper     | `1.21.4` |
-| Java      | 21       |
+| Paper     | `26.3`   |
+| Java      | 25       |
 | Kotlin    | `2.4.20` |
 | KSP       | `2.3.12` |
 

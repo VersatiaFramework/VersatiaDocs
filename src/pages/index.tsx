@@ -145,7 +145,7 @@ function Hero() {
             </Heading>
             <p className={styles.subtitle}>{siteConfig.tagline}</p>
             <p className={styles.lead}>
-              A Kotlin framework for Paper 1.21.4 plugins. Dependency injection and lifecycle hooks
+              A Kotlin framework for Paper 26.3 plugins. Dependency injection and lifecycle hooks
               resolved at compile time, executed by a small runtime, with nothing discovered on the
               server.
             </p>
@@ -215,7 +215,7 @@ export default function Home(): ReactNode {
   return (
     <Layout
       title="Kotlin framework for Paper plugins"
-      description="Versatia: a Kotlin framework for Paper 1.21.4 plugins with compile-time dependency injection, configuration values, lifecycle hooks, automatic listeners and modules.">
+      description="Versatia: a Kotlin framework for Paper 26.3 plugins with compile-time dependency injection, configuration values, lifecycle hooks, automatic listeners and modules.">
       <Hero />
       <main>
         <HowItWorks />
