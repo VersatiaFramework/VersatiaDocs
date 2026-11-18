@@ -13,8 +13,11 @@ installed.
 | `/versatia reload [plugin]` | `versatia.core.command.reload` | operators |
 | `/versatia info [plugin]`   | `versatia.core.command.info`   | operators |
 
-Replies use one set of colours: text gray, labels up to their colon gold, the values the server
-fills in (plugin names, versions, counts) aqua, a success green and an error red.
+Replies take the server's [styles](messages.md#styles), like every plugin's messages: a reply
+opens with its tone (`neutral`, `positive`, `warning`, `negative`), labels up to their colon are
+`label`, a plugin's name heading its lines is `heading`, and the values filled in (plugin names,
+versions, counts) are `accent`. Change those in `plugins/VersatiaCore/styles.yml` and the replies
+change with them.
 
 ## `/versatia reload` {/* #versatia-reload */}
 
@@ -38,6 +41,9 @@ A reload re-reads the plugin's files in `plugins/<Name>/`:
   Reloaded economy; then shop, which uses beans of economy.
   ```
 
+- **The styles are VersatiaCore's.** `plugins/VersatiaCore/styles.yml`, the
+  [styles](messages.md#styles) every plugin's messages use, is read again by `/versatia reload`
+  without a name, before the plugins check their messages against it.
 - **What a plugin decides at start needs a restart**: its commands, and the optional plugins it
   found next to it (a plugin that integrates with Vault only when Vault is installed checks that once).
 

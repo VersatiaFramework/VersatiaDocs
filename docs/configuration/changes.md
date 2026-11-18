@@ -62,16 +62,16 @@ current in one of three ways, from the simplest:
 
     ```kotlin
     @LocalBean
-    class Shop {
+    class Shop(private val text: Text) {
         @Value("shop.name")
         lateinit var name: String
 
-        var label = text("")
+        var label: Component = Component.empty()
             private set
 
         @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
         fun recompute() {
-            label = MiniMessage.miniMessage().deserialize("<gold>$name")
+            label = text.parse("<heading>{name}</heading>", arg("name", name))
         }
     }
     ```

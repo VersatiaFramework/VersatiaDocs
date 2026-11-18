@@ -168,9 +168,22 @@ Every plugin may inject these without declaring anything:
 | `Logger` | `java.util.logging` | `plugin.logger`: logs exactly as the plugin does, with its name | VersatiaCore, exposed prototype |
 | `ComponentLogger` | `net.kyori.adventure.text.logger.slf4j` | `plugin.componentLogger`, for logging components; also injectable as `org.slf4j.Logger` | VersatiaCore, exposed prototype |
 | `PluginRegistry` | `dev.versatia` | the running Versatia plugins by friendly name; see [From code](../lifecycle/reload.md#from-code) | VersatiaCore, exposed singleton |
-| `PluginScope` | `dev.versatia.task` | the plugin's own coroutines, one scope per plugin; see [Your own coroutines](../tasks/coroutines.md) | VersatiaCore, exposed prototype |
-| `Messages` | `dev.versatia.messages` | the plugin's bank of messages, read from its `messages/` folder; see [Messages](../messages/index.md) | VersatiaCore, exposed prototype |
-| `Text` | `dev.versatia.text` | the plugin's parser of MiniMessage with runtime arguments; see [Text without a file](../messages/arguments.md#text-without-a-file) | VersatiaCore, exposed prototype |
+| `PluginScope` | `dev.versatia.task` | `plugin.scope`: the plugin's own coroutines, one scope per plugin; see [Your own coroutines](../tasks/coroutines.md) | VersatiaCore, exposed prototype |
+| `Messages` | `dev.versatia.messages` | `plugin.messages`: the plugin's bank of messages, read from its `messages/` folder; see [Messages](../messages/index.md) | VersatiaCore, exposed prototype |
+| `Text` | `dev.versatia.text` | `plugin.text`: the plugin's parser of MiniMessage with runtime arguments; see [Text without a file](../messages/arguments.md#text-without-a-file) | VersatiaCore, exposed prototype |
+
+`plugin.scope`, `plugin.messages` and `plugin.text` are the instances the plugin's beans are
+injected, so the main class uses them with nothing injected:
+
+```kotlin
+class ShopPlugin : VersatiaPlugin() {
+    @AutoInvoke(Phase.PLUGIN_RELOAD_OR_START)
+    fun announce() = componentLogger.info(messages["shop.open"].get())
+}
+```
+
+They are there from the moment the plugin's beans exist until it stops. A bean takes what it uses
+as a constructor parameter, like the logger.
 
 A class that only logs takes the logger, not the plugin:
 
@@ -340,6 +353,13 @@ The plugin instance is available at all three places as well.
 - **The consumer's own rules for a prototype's logger.** A prototype made for another plugin
   receives the `Logger`, `ComponentLogger` and `PluginScope` that plugin would get
   itself: its own local `Logger` bean when it declares one, its `plugin.logger` otherwise.
+- **`plugin.text` before the beans exist** fails, in a constructor or a property initializer of
+  any class: `Plugin Shop has no Text at this point: plugin.text is there while a Versatia plugin
+  runs, from the moment its beans exist until it stops. In a constructor or a property
+  initializer, take Text as a constructor parameter instead.` The same holds for `plugin.messages`
+  and `plugin.scope`, and after the plugin stopped.
+- **A local bean of the type** is what `plugin.text` gives too, as it is what every `Text`
+  parameter of the plugin gets.
 - **The injected logger is a delegate.** The `Logger` is not the same object as `plugin.logger`:
   it carries the same name and forwards every record, its level, handlers and filter to
   `plugin.logger`, so what it logs and every setting made through it are the plugin's. Compare

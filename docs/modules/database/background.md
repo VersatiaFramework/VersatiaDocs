@@ -80,7 +80,7 @@ returns a `DatabaseFuture`:
 ```kotlin
 database.async { named("top-coins", "limit" to 10).list<TopEntry>() }
     .thenSync { top -> show(sender, top) }
-    .onFailureSync { sender.sendMessage(text("The leaderboard is unavailable right now.", NamedTextColor.RED)) }
+    .onFailureSync { sender.sendMessage(text.parse("<negative>The leaderboard is unavailable right now.")) }
 ```
 
 | On a `DatabaseFuture`        | Does                                                                |

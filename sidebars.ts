@@ -46,7 +46,7 @@ const sidebars: SidebarsConfig = {
         {
           type: 'category',
           label: 'Messages',
-          items: ['messages/index', 'messages/arguments'],
+          items: ['messages/index', 'messages/arguments', 'messages/styles'],
         },
       ],
     },

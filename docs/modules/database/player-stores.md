@@ -195,12 +195,12 @@ final save at stop is no autosave). Every plugin's stores fire them, so a listen
 class AutosaveNotices(private val plugin: MarketPlugin) : Listener {
     @EventHandler
     fun onStart(event: StoreAutosaveStartEvent) {
-        if (event.plugin == plugin) VersatiaEngine.broadcast(text("Saving coins...", NamedTextColor.GRAY))
+        if (event.plugin == plugin) VersatiaEngine.broadcast(plugin.text.parse("<neutral>Saving coins..."))
     }
 
     @EventHandler
     fun onEnd(event: StoreAutosaveEndEvent) {
-        if (event.plugin == plugin) VersatiaEngine.broadcast(text("Saved ${event.saved} profiles in ${event.duration.inWholeMilliseconds} ms", NamedTextColor.GRAY))
+        if (event.plugin == plugin) VersatiaEngine.broadcast(plugin.text.parse("<neutral>Saved {saved} profiles in {duration} ms", arg("saved", event.saved), arg("duration", event.duration.inWholeMilliseconds)))
     }
 }
 ```

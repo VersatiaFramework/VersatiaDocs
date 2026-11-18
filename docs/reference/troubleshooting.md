@@ -276,6 +276,15 @@ reload of the plugin, so at start-up the plugin does not enable, and at a reload
 case the message still names your plugin, whose data folder it reads. See
 [Reloadable beans](../lifecycle/reload.md#reloadable-beans).
 
+### `... cannot be shown: <x> is neither a MiniMessage tag nor a style` {/* #neither-a-minimessage-tag-nor-a-style */}
+
+A message, or a text given to `text.parse`, uses a tag nobody answers: not MiniMessage, not a tag
+you registered, not a [style](../messages/styles.md) of the server. For a message it comes as
+`Plugin X: MessagesImpl failed its check at the end of the start` or `failed to reload`, with the
+file and the key in the cause. Fix the name, ship a default for the style in your `styles.yml`,
+register the tag before your start functions have finished, or write `\<x>` when the brackets are
+text. See [Tags that do not exist](../messages/styles.md#tags-that-do-not-exist).
+
 ### `Plugin X: Y failed to close` {/* #plugin-x-y-failed-to-close */}
 
 A bean implementing `AutoCloseable` threw from `close()` while the plugin disabled. The other

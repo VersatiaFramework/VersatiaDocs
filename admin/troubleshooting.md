@@ -76,8 +76,9 @@ restart, or fix the path and reload.
 
 ### Messages {/* #messages */}
 
-`messages/f.yml is not valid YAML`, `is defined twice`, `has no message "k"` and
-`cannot be shown` are explained in [Editing messages](messages.md#mistakes).
+`messages/f.yml is not valid YAML`, `is defined twice`, `has no message "k"`, `cannot be shown`,
+`is neither a MiniMessage tag nor a style` and everything naming
+`plugins/VersatiaCore/styles.yml` are explained in [Editing messages](messages.md#mistakes).
 
 ## At a reload {/* #at-a-reload */}
 

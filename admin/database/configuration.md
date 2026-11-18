@@ -92,9 +92,9 @@ start of the server, with a warning at each reload until then.
 | `stores.save-failure.action` | `kick`, `warn`, `shutdown` | `kick`                         | what follows a value that has failed to save for `stores.save-failure.after`: [kick its player, log, or stop the server](operations.md#player-data) | reload |
 | `stores.save-failure.after` | duration           | 1m                                      | how long a value may fail to save before `stores.save-failure.action` applies; failed values are retried every 15 s | reload |
 | `stores.save-failure.keep-in-file` | `true`, `false` | `true`                                | values the final save at a stop cannot write are [kept in a file](/docs/modules/database/player-stores#unsaved-values-at-a-stop) and written at the next start | reload |
-| `messages.load-failed`    | MiniMessage          | `<red>Your data could not be loaded. Please try again in a moment.` | the text of a login refused because its data could not be loaded | reload |
-| `messages.closing`        | MiniMessage          | `<red>The server is restarting. Please try again in a moment.` | the text of a login refused while the database closes | reload |
-| `messages.save-failed`    | MiniMessage          | `<red>Your data could not be saved, so you cannot play right now. Please try again in a few minutes.` | the text of a player kicked, or a login refused, under `stores.save-failure.action: kick` | reload |
+| `messages.load-failed`    | MiniMessage          | `<negative>Your data could not be loaded. Please try again in a moment.` | the text of a login refused because its data could not be loaded | reload |
+| `messages.closing`        | MiniMessage          | `<negative>The server is restarting. Please try again in a moment.` | the text of a login refused while the database closes | reload |
+| `messages.save-failed`    | MiniMessage          | `<negative>Your data could not be saved, so you cannot play right now. Please try again in a few minutes.` | the text of a player kicked, or a login refused, under `stores.save-failure.action: kick` | reload |
 | `import-from`             | section              | none                                    | a database to [copy the tables from](data.md#changing-the-database) at the next start: `connection`, or the keys `engine` (required) to `properties` without `pool`; plus `table-prefix`, the tables' prefix there when it differs | restart |
 
 Each of the keys from `queue-limit` to `messages.save-failed` (all soft keys but `threads`) comes from

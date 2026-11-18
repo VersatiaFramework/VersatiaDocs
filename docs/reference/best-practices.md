@@ -11,6 +11,9 @@ rather than around it. Each links to the page with the details.
   as you like: the generated code reaches them without wider visibility.
 - **Inject `logger` when you only log**, not the plugin; a `ComponentLogger` is `componentLogger`.
   See [Beans every plugin has](../dependency-injection/index.md#beans-every-plugin-has).
+- **The main class takes nothing it already has**: `text`, `messages` and `scope` are at hand in
+  it, as `logger` is, and anywhere else as `plugin.text`, `plugin.messages`, `plugin.scope`. A
+  bean takes what it uses as a constructor parameter.
 - **An optional dependency is a default value**, `class PriceList(format: PriceFormat = PlainFormat)`,
   never a nullable parameter or a lookup. See [Optional dependencies](../dependency-injection/index.md#optional-dependencies).
 - **An integration is a conditional bean**: `@ConditionalOnPlugin("Vault")`, with `@Primary` over a
@@ -50,6 +53,42 @@ fun connect() {
     if (token.isEmpty()) return logger.info("Discord bridge off: discord.token is empty")
     client.login(token.reveal())
 }
+```
+
+### Messages {/* #messages */}
+
+- **A message names styles, not colours.** It says what a text is, and the server's `styles.yml`
+  says how that looks, the same in every plugin. See [Styles](../messages/styles.md).
+- **A chat message opens with its tone**: `<positive>`, `<negative>`, `<warning>` or `<neutral>`.
+  Inside it `<accent>` marks what matters most and `<hint>` what matters least or what to do next.
+  These [shared styles](../messages/styles.md#shared-styles) come with VersatiaCore; never invent
+  a synonym for one.
+- **`label` and `heading` are reserved names**: the name before a value and the title of a list
+  or of a page are called that in every plugin, and a plugin that has one ships its default.
+- **The server's name is `<serverTag/>`, never text.** A message carrying
+  [the tag](../messages/styles.md#server-tag) has it right after the tone,
+  `<neutral><serverTag/>Welcome!`. A plugin speaking in its own name ships a tag of its own, named
+  after the plugin and ending in `Tag` (`<questTag/>`). The space after a tag belongs to the
+  style; lines of a list, hints under a message and menus carry no tag.
+- **A value is not wrapped in a tag**: whatever a brace inserts takes the `accent` by itself, or
+  the style of its type. `<accent>` is for fixed text, such as a command to type. A type that
+  always looks its own way names its style, `override val style get() = "quest"` in a
+  `Presentable` class or `text.present<Town>(style = "town")` for a type you do not own, instead
+  of a tag around every brace.
+- **A style of your own is named after a thing of your plugin**, `quest` or `rank`, never after a
+  colour or a look, and its default ships in `styles.yml` next to `plugin.yml`. A name of two
+  words is written in camel case, `questTag`.
+- **Brackets a player should read take a backslash**, `\<player>`: a tag that does not exist fails
+  the load.
+
+```yaml title="Wrong: this plugin's colours, a value highlighted by hand"
+# error-next-line
+bought: "<green>{player} bought <gold>{item}</gold>."
+```
+
+```yaml title="Right"
+# fix-next-line
+bought: "<positive>{player} bought {item}."
 ```
 
 ### Tasks and threads {/* #tasks-and-threads */}

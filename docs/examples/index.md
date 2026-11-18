@@ -72,6 +72,9 @@ An enhancement of your own: a library plugin defines <code>@Timed</code> and its
 <ExampleCard repo="VersatiaExample-Text-Messages" file="src/main/resources/resources/messages" fileLabel="messages/">
 Messages: files under <code>messages/</code> become a bank reloaded with the plugin, sent with runtime arguments, <code>{"{offer.price}"}</code> and <code>{"{player.location}"}</code> decided by the text.
 </ExampleCard>
+<ExampleCard repo="VersatiaExample-Text-Styles" file="src/main/resources/resources/messages/quests.yml" fileLabel="messages/quests.yml">
+Styles: messages that name what a text is, <code>{"<positive>"}</code> and <code>{"<hint>"}</code>, while the server's <code>styles.yml</code> says how it looks; values stand out by themselves, and the plugin ships the defaults of a style and a tag of its own.
+</ExampleCard>
 </ExampleGrid>
 
 ## Adding an example {/* #adding-an-example */}

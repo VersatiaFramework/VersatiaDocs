@@ -42,7 +42,7 @@ class Shop(private val messages: Messages) {
 
 ```yaml
 shop:
-  bought: "<green>{player} bought {item} for <gold>{price}</gold> coins."
+  bought: "<positive>{player} bought {item} for {price} coins."
 ```
 
 </CodeCard>
@@ -87,7 +87,9 @@ shop:
 </CodeCard>
 </CodeCards>
 
-Arguments, their properties and tags of your own are on [Arguments and tags](arguments.md).
+Arguments, their properties and tags of your own are on [Arguments and tags](arguments.md). A
+message names [styles](styles.md), `<positive>` or `<hint>`, never a colour: the server decides
+how they look.
 
 ## The files {/* #the-files */}
 
@@ -97,11 +99,11 @@ puts them into `plugins/<Name>/messages/` on the first start, where server owner
 
 ```yaml title="messages/shop.yml"
 shop:
-  open: "<green>The shop is open: {offers} offers today."
-  bought: "<green>{player} bought {item} for <gold>{price}</gold> coins."
+  open: "<positive>The shop is open: {offers} offers today."
+  bought: "<positive>{player} bought {item} for {price} coins."
   closed:
-    - "<red>The shop is closed."
-    - "<gray>Come back tomorrow."
+    - "<negative>The shop is closed."
+    - "<hint>Come back tomorrow."
 ```
 
 | In the file                      | Becomes                                                            |
@@ -118,8 +120,10 @@ Files are read as UTF-8; a file in another encoding is an error that says to sav
 Invalid YAML is reported with the file and the place:
 `Plugin Shop: messages/shop.yml is not valid YAML at line 3, column 12: mapping values are not allowed here`.
 
-Every standard MiniMessage tag works in angle brackets; the arguments are in braces, as
-[Arguments and tags](arguments.md#arguments-and-properties) shows.
+Every standard MiniMessage tag works in angle brackets, and so do the server's
+[styles](styles.md); the arguments are in braces, as
+[Arguments and tags](arguments.md#arguments-and-properties) shows. A tag that is none of these
+[fails the load](styles.md#tags-that-do-not-exist) instead of reaching a player as text.
 
 :::admin
 
@@ -168,6 +172,8 @@ messages, `keys` for all of them.
 
 A message is parsed when it is used, never when the file is read, so a
 [tag](arguments.md#tags-with-access-to-the-arguments) registered after the files were read applies at once.
+Its tags are [checked](styles.md#tags-that-do-not-exist) before that: once your plugin has started,
+and at every reload.
 A text without braces and without registered tags gives the same component every time, so it is
 parsed on its first use and reused; this holds for each constant line of a message even when the
 call passes arguments. A text with a registered tag is parsed at every use, because the tag may
@@ -181,25 +187,26 @@ them apart, which is what item lore takes:
 ```yaml
 sword:
   lore:
-    - "<gray>Damage: <red>{damage}"
-    - "<gray>Forged by {smith}"
+    - "<neutral><label>Damage:</label> {damage}"
+    - "<neutral>Forged by {smith}"
 ```
 
 ```kotlin
 meta.lore(messages["sword.lore"].lines(arg("damage", 7), arg("smith", player)))
 ```
 
-Each line is parsed on its own, so formatting never carries over: a `<red>` left open on the
-first line does not colour the second. A message that is a single text is one line.
+Each line is parsed on its own, so formatting never carries over: a `<label>` left open on the
+first line does not style the second. A message that is a single text is one line.
 
 ## Reloading {/* #reloading */}
 
 `/versatia reload <name>` re-reads the files before your reload-phase functions run; nothing in
 your plugin knows about it, because the `Messages` instance made for your plugin is a
 [`Reloadable` bean](../lifecycle/reload.md#reloadable-beans) of your plugin. A file that fails to
-read (invalid YAML, a duplicate key, a value that is not text) fails the reload with
-`Plugin X: ... failed to reload` and a cause naming the file, and the previous messages stay in
-use; at start-up the plugin does not enable.
+read (invalid YAML, a duplicate key, a value that is not text, a tag that does not exist) fails
+the reload with `Plugin X: ... failed to reload` and a cause naming the file, and the previous
+messages stay in use; at start-up the plugin does not enable. The server's styles are VersatiaCore's:
+`/versatia reload` without a name reads them again before any plugin's messages.
 
 ## One instance per plugin {/* #one-instance-per-plugin */}
 
@@ -207,7 +214,8 @@ use; at start-up the plugin does not enable.
 instances you inject are your plugin's own. Your `Messages` reads your data folder and parses with your `Text`,
 the same instance your beans inject, so the presentations and tags you register apply to your
 messages. Two plugins never see each other's messages or registrations, and neither needs the
-other's keys to be unique.
+other's keys to be unique. What they do share is the server's [styles](styles.md), which is the
+point of them.
 
 ## Errors {/* #errors */}
 
@@ -216,7 +224,7 @@ A missing or unreadable message is a `MessagesException` (package `messages`):
 | Exception                       | When                                                           |
 |---------------------------------|----------------------------------------------------------------|
 | `MissingMessageException`       | `messages["shop.byu"]`: no such key; lists the keys starting the same way |
-| `MessagesLoadException`         | a file cannot be read, is not valid YAML or not UTF-8, a value is not text, a key is defined twice or is both a message and a group of messages, `messages/.versatia.yml` holds an unknown setting; names the file |
+| `MessagesLoadException`         | a file cannot be read, is not valid YAML or not UTF-8, a value is not text, a key is defined twice or is both a message and a group of messages, `messages/.versatia.yml` holds an unknown setting, a message uses a [tag that does not exist](styles.md#tags-that-do-not-exist); names the file |
 | `MessageRenderException`        | a message cannot be shown; names the key and the file, with the `TextException` below as its cause: `Plugin Shop: message "shop.bought" in messages/shop.yml cannot be shown: No argument "nmae"; the arguments are: player, item, price` |
 
 A text that uses an argument wrongly fails the call with a `TextException` (package `text`) naming
@@ -235,9 +243,10 @@ broken message file is found at the first use rather than by a player reading a 
 | `DuplicateArgumentException`    | the same argument name passed twice in one call                  |
 | `ReservedTagNameException`      | a tag named like a MiniMessage tag (`b`, `color`, `click`...), starting with `versatia-argument-`, or not a tag name |
 | `ArgumentTypeException`         | `values.require<T>` on an argument of another type               |
+| `UnknownTagException`           | `<sucess>`: a tag that is neither MiniMessage's, registered by you nor a [style](styles.md) defined where it stands; lists the styles |
 
-MiniMessage tags that do not exist are not an error: MiniMessage leaves them as text, as it
-always does.
+A tag that does not exist is never left as text, as plain MiniMessage would leave it: write
+`\<player>` for brackets a player should read.
 
 ## Corner cases {/* #corner-cases */}
 

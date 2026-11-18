@@ -10,14 +10,14 @@ chain: `{player.location.x}` is the x coordinate of the player's location. The t
 picks what to show, so a message file can switch from `{player}` to `{player.name}` without a
 rebuild. An argument is never a tag:
 
-```yaml title="Wrong: MiniMessage leaves the unknown tags as text"
+```yaml title="Wrong: <player> and <world> are read as tags, and a tag that does not exist fails the load"
 # error-next-line
-joined: "<yellow><player> joined in <world>"
+joined: "<neutral><player> joined in <world>"
 ```
 
 ```yaml title="Right"
 # fix-next-line
-joined: "<yellow>{player} joined in {player.world}"
+joined: "<neutral>{player} joined in {player.world}"
 ```
 
 What a value offers depends on its type:
@@ -40,7 +40,11 @@ What a value offers depends on its type:
 | anything else                      | its `toString()`                  | none, unless [registered](#types-you-do-not-own)                  |
 
 A value of a more specific type keeps its own row: a `Player` or an `ItemStack` is shown as above,
-not as a translatable. Properties are evaluated only when the text uses them, and once per call.
+not as a translatable. Every value stands out by itself, in the server's
+[`accent` style](styles.md#values-in-a-style); a player, an entity, an item, a location and a world
+take the style named after them where the server defines one, and so does a value whose
+[class](#your-own-values) or [registration](#types-you-do-not-own) names a style. Properties
+are evaluated only when the text uses them, and once per call.
 Argument names consist
 of letters, digits, `_` and `-`; braces around anything else (`{}`, `{ x }`, `{1,2}`) are plain
 text, so JSON or code in a message is left alone.
@@ -96,14 +100,33 @@ A property may return anything an argument may be, which is how they chain. A pr
 without `component { }` can only be used through its properties; using the bare brace fails with
 `{offer} cannot be inserted as text; use one of its properties: item, price`.
 
+A class may also name the [style](styles.md#values-in-a-style) it is shown in, as a player has
+`player`:
+
+```kotlin
+class Quest(val name: String, val reward: Int) : Presentable {
+    override val style get() = "quest"
+
+    override fun presentation() = presentation {
+        component { text(name) }
+        property("reward") { reward }
+    }
+}
+```
+
+`{quest}` then looks like `<quest>{quest}</quest>` in every message, without the tag: the value
+takes that style where the server defines it, for which you
+[ship its default](styles.md#default-styles), and the accent where it does not.
+
 ## Types you do not own {/* #types-you-do-not-own */}
 
 For a type you cannot make `Presentable`, register a presentation on your `Text`, once, for
-example in an `@AutoInvoke(Phase.PLUGIN_START_ONLY)` function:
+example in an `@AutoInvoke(Phase.PLUGIN_START_ONLY)` function of the main class, where `text` is
+at hand:
 
 ```kotlin
 @AutoInvoke(Phase.PLUGIN_START_ONLY)
-fun describe(text: Text) = text.present<Duration> { duration ->
+fun describe() = text.present<Duration> { duration ->
     presentation {
         component { text("${duration.toMinutes()} min") }
         property("seconds") { duration.toSeconds() }
@@ -118,6 +141,12 @@ specific one for `Player` to players; your registrations take precedence over th
 `String`, numbers and collections included, registering a type again replaces its presentation,
 and a `Presentable` value always describes itself.
 
+A registration names the style of its values as a class [names its own](#your-own-values):
+
+```kotlin
+text.present<Town>(style = "town") { town -> presentation { component { text(town.name) } } }
+```
+
 ## Text without a file {/* #text-without-a-file */}
 
 `text.parse(input, ...arguments)` parses a string with the same rules and returns a `Component`,
@@ -127,7 +156,7 @@ for text that is built in code rather than read from a file:
 class Welcome(private val text: Text) : Listener {
     @EventHandler
     fun onJoin(event: PlayerJoinEvent) =
-        event.player.sendMessage(text.parse("<gold>Welcome {player}, you are at {player.location}.", arg("player", event.player)))
+        event.player.sendMessage(text.parse("<neutral>Welcome {player}, you are at {player.location}.", arg("player", event.player)))
 }
 ```
 
@@ -156,15 +185,20 @@ MiniMessage, and a clan tag `<click:run_command:'/op x'>` becomes a working clic
 
 :::
 
-Tag names follow MiniMessage's rules (lower-case letters, digits, `_`, `-`) and cannot shadow a
-standard tag; names starting with `versatia-argument-` are reserved for the braces.
+Tag names are letters, digits, `_` and `-`, one name in either case as MiniMessage reads them
+(`serverTime` is `<servertime>` too), and cannot shadow a standard tag; names starting with
+`versatia-argument-` are reserved for the braces. Register a tag
+when your plugin starts, in a `PLUGIN_START_ONLY` function or the `init` block of a bean: your
+messages are [checked for tags that do not exist](styles.md#tags-that-do-not-exist) once the start
+functions have run, and a tag registered later than that fails every message using it.
 
 ## Corner cases {/* #corner-cases */}
 
-- **A brace inside `<pre>`** is not replaced: the message shows an internal placeholder instead of
-  the value. Keep arguments out of `<pre>`.
 - **A tag of your own is called twice per parse**, because MiniMessage reads a text in two passes.
-  Keep it free of side effects.
+  Keep it free of side effects. It is not called at all when your messages are checked for tags
+  that do not exist.
+- **A tag of your own that answers `null`** is printed as text, as MiniMessage prints a tag nobody
+  resolves; insert an empty component to show nothing.
 - **An `Inventory` is an `Iterable`**, so `{inventory}` lists its items; an empty slot shows as
   nothing between two commas.
 - **Backslashes before a brace pair up.** An odd number escapes it; in the text and in a quoted
