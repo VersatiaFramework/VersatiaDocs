@@ -79,6 +79,13 @@ fun connect() {
   always looks its own way names its style, `override val style get() = "quest"` in a
   `Presentable` class or `text.present<Town>(style = "town")` for a type you do not own, instead
   of a tag around every brace.
+- **One plugin decides how a type looks on the whole server.** The plugin owning a type's look,
+  an RPG plugin's player card, declares a
+  [`@ServerPresentation`](../messages/arguments.md#server-presentations); other plugins write
+  `{player}` and its properties and never copy the presentation. It defines only what it changes,
+  so what it leaves out stays as the server has it, the `player` style of a card's name included.
+- **A presenter is cheap and thread-safe**: it runs in every plugin's messages, chat threads
+  included, so it reads what a bean keeps, never a database or a file.
 - **A style of your own is named after a thing of your plugin**, `quest` or `rank`, never after a
   colour or a look, and its default ships in `styles.yml` next to `plugin.yml`. A name of two
   words is written in camel case, `questTag`.
@@ -136,6 +143,7 @@ fun teleportHome(player: Player, home: Location) {
 | a `Condition`              | the state it describes, without `is`               | `standsStill`, `anyoneOnline` |
 | a `KeyedJobs`              | the plural of one job                              | `teleports`, `combatTags`     |
 | an injected `PluginScope`  | `scope`                                            | `class Teleports(scope: PluginScope)` |
+| a `Presenter`              | what it shows plus `Presenter`, in the package of the feature it serves | `PlayerCardPresenter` |
 
 ### Commands {/* #commands */}
 

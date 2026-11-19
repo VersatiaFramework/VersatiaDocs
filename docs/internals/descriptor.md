@@ -56,6 +56,7 @@ A class whose instances the runtime may create.
 | `annotations`           | the attributes written on the class                                   |
 | `constructorParameters` | one `Parameter` per constructor parameter, in order                   |
 | `instantiator`          | how to create an instance from resolved arguments                     |
+| `genericSupertypes`     | each generic supertype as a `TypeReference` with the type arguments the class gives it, through a generic superclass too: `Presenter<Player>` for `class Card : Presenter<Player>`; one whose arguments are not all class types, such as a star projection, is left out |
 
 ### `FunctionTarget` {/* #functiontarget */}
 
@@ -161,7 +162,7 @@ the processor emits (shortened):
 
 object VersatiaDescriptor : VersatiaPluginDescriptor {
   override val formatMajor: Int = 1
-  override val formatMinor: Int = 0
+  override val formatMinor: Int = 1
 
   override val elements: List<EnhancedElement>
     get() = listOf(
@@ -236,7 +237,7 @@ object VersatiaDescriptor : VersatiaPluginDescriptor {
 ## Format version {/* #format-version */}
 
 The format has its own `major.minor` version, `VersatiaPluginDescriptor.FORMAT_VERSION`, currently
-**`1.0`**. It is independent of the library version. A runtime accepts exactly the version it was
+**`1.1`**. It is independent of the library version. A runtime accepts exactly the version it was
 built with and rejects any other with a message naming the plugin, both versions and the fix; see
 [The runtime](runtime.md#descriptor-format-compatibility).
 

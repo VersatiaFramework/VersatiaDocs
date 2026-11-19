@@ -46,6 +46,14 @@ plugin: mark one of them `@Primary`; see [Conditional beans](../optional-plugins
 Make `X` conditional on the same plugins, declare a provider without the condition, or give the
 parameter a default value to make it [optional](../dependency-injection/index.md#optional-dependencies).
 
+### `X carries @ServerPresentation but is no Presenter; ...` {/* #x-carries-serverpresentation-but-is-no-presenter- */}
+
+A [server presentation](../messages/arguments.md#server-presentations) says what it presents by
+implementing `Presenter` for the type: `class PlayerCardPresenter : Presenter<Player>`. The type
+is a class without type arguments, never `Any`, and two classes of your plugin presenting one
+type need exactly one `@Primary`; [Server presentations](compile-time-checks.md#server-presentations)
+lists the messages.
+
 ### `Bean name "x" is used by A, B` {/* #bean-name-x-is-used-by-a-b */}
 
 Two beans share a name (by default the decapitalised simple class name). Rename one with
@@ -221,6 +229,13 @@ and shadows VersatiaCore's; remove it and inject the scope.
 
 Several plugins expose beans providing `T`. The candidates are listed with their owning plugin.
 Add `@Qualifier("name")` to the parameter, or ask the providers to mark one `@Primary`.
+
+### `Plugin X: T would have several server presentations: A of Y, B of X; ...` {/* #plugin-x-t-would-have-several-server-presentations- */}
+
+Two plugins present the same type for the whole server, so the one starting second stays
+disabled. Mark the one that should decide `@Primary`; the other one is then used while the
+`@Primary` one is not running. See
+[Presentations for the whole server](../messages/arguments.md#server-presentations).
 
 ### `ClassCastException` when a bean from another plugin is injected {/* #classcastexception-when-a-bean-from-another-plugin-is-injected */}
 
@@ -463,7 +478,7 @@ When a plugin does not behave as its code suggests, set `debug: true` in
 the plugin. VersatiaCore logs every step of each plugin's start, reload and stop at `INFO`:
 
 ```text
-[debug] Shop START: descriptor format 1.0, 11 elements, 9 for this event
+[debug] Shop START: descriptor format 1.1, 11 elements, 9 for this event
 [debug] Shop START: skipped VaultBridge: @ConditionalOnPlugin(Vault) is not met
 [debug] Shop START: AutoInvokeEnhancementProcessor receives Counter.report()
 [debug] Shop START: created 2 beans: "plugin" (com.example.shop.ShopPlugin), "counter" (com.example.shop.Counter)

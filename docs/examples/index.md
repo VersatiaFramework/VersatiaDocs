@@ -79,6 +79,9 @@ Messages: files under <code>messages/</code> become a bank reloaded with the plu
 <ExampleCard repo="VersatiaExample-Text-Styles" file="src/main/resources/resources/messages/quests.yml" fileLabel="messages/quests.yml">
 Styles: messages that name what a text is, <code>{"<positive>"}</code> and <code>{"<hint>"}</code>, while the server's <code>styles.yml</code> says how it looks; values stand out by themselves, and the plugin ships the defaults of a style and a tag of its own.
 </ExampleCard>
+<ExampleCard repo="VersatiaExample-Text-ServerPresentations" file="provider/src/main/kotlin/dev/versatia/example/serverpresentations/PlayerCardPresenter.kt" fileLabel="provider/.../PlayerCardPresenter.kt">
+Presentations for the whole server: a provider decides how a player appears in every plugin's messages, a card on hover and <code>{"{player.rank}"}</code>, and a plugin knowing nothing of it shows both.
+</ExampleCard>
 </ExampleGrid>
 
 ## Adding an example {/* #adding-an-example */}

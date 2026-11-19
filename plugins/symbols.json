@@ -961,11 +961,27 @@
       "summary": "A presentation, or the code it calls, threw while showing the brace; `cause` is what it threw."
     },
     {
+      "name": "Presenter",
+      "package": "dev.versatia.text",
+      "kind": "fun interface",
+      "artifact": "VersatiaAPI",
+      "signature": "interface Presenter<T : Any>",
+      "summary": "How the values of `T` appear in the messages of every plugin, as a class annotated with `ServerPresentation`: `class PlayerCardPresenter : Presenter<Player>`."
+    },
+    {
       "name": "ReservedTagNameException",
       "package": "dev.versatia.text",
       "kind": "class",
       "artifact": "VersatiaAPI",
       "signature": "class ReservedTagNameException"
+    },
+    {
+      "name": "ServerPresentation",
+      "package": "dev.versatia.text",
+      "kind": "annotation",
+      "artifact": "VersatiaAPI",
+      "signature": "@ServerPresentation(style: String = \"\")",
+      "summary": "Presents a type in the messages of every plugin on the server: the annotated class implements `Presenter` for that type, `class PlayerCardPresenter(...) : Presenter<Player>`, and is a local bean of its plugin, so its constructor is injected and `@ConditionalOnPlugin` and `@Primary` apply."
     },
     {
       "name": "Text",

@@ -187,6 +187,7 @@ The built-in processors, all in VersatiaCore:
 | `.event.RegisterListenersEnhancementProcessor`                | every `Listener` of the plugin, sent by `@RegisterListeners` |
 | `.task.RunBackgroundTasksEnhancementProcessor`                | every `BackgroundTask` of the plugin, sent by `@RunBackgroundTasks` |
 | `.task.PluginScopeEnhancementProcessor`                       | the `PluginTarget` of the main class, twice, sent by `@RunBackgroundTasks`: at start and at stop |
+| `.text.ServerPresentationEnhancementProcessor`                | `ClassTarget`s of `@ServerPresentation`, which are also beans through the `@LocalBean` it inherits |
 
 ## Defining your own scope {/* #defining-your-own-scope */}
 

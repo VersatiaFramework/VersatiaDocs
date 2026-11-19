@@ -273,7 +273,7 @@ stands like any other name:
 | an `ItemStack`                                             | `item`     |
 | a `Location`                                               | `location` |
 | a `World`                                                  | `world`    |
-| a value whose [class](arguments.md#your-own-values) or [registration](arguments.md#types-you-do-not-own) names a style, `override val style get() = "quest"` | that style, `quest` |
+| a value whose [class](arguments.md#your-own-values), [registration](arguments.md#types-you-do-not-own) or [server presentation](arguments.md#server-presentations) names a style, `override val style get() = "quest"` | that style, `quest` |
 | anything else: a text, a number, a value of your own type  | `accent`   |
 
 ```yaml
@@ -356,12 +356,14 @@ single-quoted one once.
   The value's click, hover and insertion stay its own.
 - **A gradient or a rainbow around a value alone** colours only what the value leaves open, as
   MiniMessage applies it while it builds the text: a name with colours of its own keeps them.
-- **Your own presentation** of a type, also of `Player`, takes the accent unless it names a style:
-  `text.present<Player>(style = "player") { ... }` keeps the one the built-in presentation has.
+- **Your own presentation** of a type that has a style, such as `Player`, keeps that style unless
+  it names another: names shown by `text.present<Player> { ... }` are still in `player`, and
+  `text.present<Player>(style = "accent") { ... }` shows them in the accent.
   `text.miniMessage` is plain MiniMessage and knows no style.
 - **A style a class or a registration names need not exist**: where the server defines none of
   that name the value takes the accent, so a misspelt name shows as the accent, not as an error.
-  A name that can never be a style fails, at the registration or when the value is first shown:
+  A name that can never be a style fails, at the registration or when the value is first shown,
+  and for a [server presentation](arguments.md#server-presentations) at its plugin's start:
   `"bold" cannot name the style of com.example.Quest: it is a MiniMessage tag`.
 - **A class that already has a `style` of another kind** cannot answer the one of `Presentable`
   too; register its presentation with `text.present` instead.

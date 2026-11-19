@@ -4,6 +4,9 @@ description: Arguments and their properties in messages, presentations of your o
 
 # Arguments and tags
 
+import ExampleCard from '@site/src/components/ExampleCard';
+import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
+
 A [message](index.md) shows the values the code hands over: `{name}` inserts an argument,
 `{name.property}` one of its properties, and tags of your own can read the arguments too.
 
@@ -140,16 +143,91 @@ fun describe() = text.present<Duration> { duration ->
 
 The registration applies to everything your plugin parses, its messages included, and to nothing
 else: `Text` is a [prototype of each plugin](index.md#one-instance-per-plugin). Among registered types, the one
-nearest to the value's class wins, so a presentation for `Entity` applies to a villager and a more
-specific one for `Player` to players; your registrations take precedence over the built-in ones,
-`String`, numbers and collections included, registering a type again replaces its presentation,
-and a `Presentable` value always describes itself.
+nearest to the value's class comes first, so a presentation for `Entity` applies to a villager and
+a more specific one for `Player` to players; your registrations come before the built-in ones,
+`String`, numbers and collections included, and what they leave out, the component, the style or
+a property, comes from the next presentation: a `present<Player>` defining one property keeps
+`{player}` and `{player.name}`, and one defining the component keeps the `player` style.
+Registering a type again replaces its presentation, and a
+`Presentable` value always describes itself first.
 
 A registration names the style of its values as a class [names its own](#your-own-values):
 
 ```kotlin
 text.present<Town>(style = "town") { town -> presentation { component { text(town.name) } } }
 ```
+
+## Presentations for the whole server {/* #server-presentations */}
+
+A registration on your `Text` reaches your plugin alone. When one plugin should decide how a type
+looks in the messages of every plugin, say an RPG plugin giving each player name a card with the
+player's rank, it declares a `@ServerPresentation` class that implements `Presenter` for the type,
+and the messages of every other plugin, here a trade plugin's, show the result:
+
+<ExampleCard repo="VersatiaExample-Text-ServerPresentations" file="provider/src/main/kotlin/dev/versatia/example/serverpresentations/PlayerCardPresenter.kt" fileLabel="provider/.../PlayerCardPresenter.kt">
+A provider giving every player a card with a rank, and a plugin that knows nothing of it showing both in its messages.
+</ExampleCard>
+
+<CodeCards>
+<CodeCard title="PlayerCardPresenter.kt">
+
+```kotlin
+@ServerPresentation
+class PlayerCardPresenter(
+    private val ranks: Ranks,
+    private val messages: Messages,
+) : Presenter<Player> {
+    override fun present(value: Player) = presentation {
+        component {
+            val card = messages["card"].get(arg("name", value.name), arg("rank", ranks.of(value)))
+            value.displayName().hoverEvent(card)
+        }
+        property("rank") { ranks.of(value) }
+    }
+}
+```
+
+</CodeCard>
+<CodeCard title="messages/trade.yml">
+
+```yaml
+offer: "<neutral>{player} ({player.rank}) offers you {item}."
+```
+
+</CodeCard>
+</CodeCards>
+
+The class is a [local bean](../dependency-injection/index.md) of its plugin, so its constructor is
+injected and `@ConditionalOnPlugin` and `@Primary` apply. The type it presents is the one it gives
+`Presenter`, `Player` here; a class that is no `Presenter`, or presents a generic type or `Any`,
+fails the build. The presentation is in use from the moment the plugin's beans exist, before its
+start functions run, until the plugin stops, and a reload keeps it like every bean. While it is in
+use, every plugin's `{player}` shows the card, with no dependency on the RPG plugin and no change
+to its code.
+
+A server presentation **replaces only what it defines**: the component, the style and each
+property separately. The card above defines the component and `rank`, so `{player.name}`,
+`{player.ping}` and the other [built-in properties](#arguments-and-properties) stay, and as it
+names no style, player names keep the look the server gives players. A presentation defining only
+`property("rank")` leaves `{player}` exactly as it was. One naming a style,
+`@ServerPresentation(style = "hero")`, shows the name in that style whichever presentation gives
+the component, and `style = "accent"` shows it in the accent.
+
+Several presentations may apply to one value, and each part comes from the first that defines it:
+
+1. the value's own, when it is [`Presentable`](#your-own-values);
+2. the server presentations and the plugin's own registrations together, the type nearest to the
+   value's class first, and the server presentation first for the same type;
+3. the built-in ones.
+
+So a server presentation of `OfflinePlayer` covers players too, unless a server presentation or
+your own registration presents `Player`; then that one comes first and the `OfflinePlayer` one
+fills in what it leaves out.
+
+Two plugins presenting the same type would contradict each other, so the one starting second
+fails its start with a message naming both. Marking one of them `@Primary` decides, as
+[among beans](../dependency-injection/qualifiers.md): the `@Primary` one is used while it runs,
+and the other one when it stops.
 
 ## Text without a file {/* #text-without-a-file */}
 
@@ -213,3 +291,22 @@ functions have run, and a tag registered later than that fails every message usi
 - **Inside an unquoted tag argument** the brace escape is the only backslash rule: MiniMessage
   reads every other backslash there literally, so `<insert:\{nick}>` inserts `{nick}` and
   `<insert:\\{nick}>` inserts `\\Steve`.
+- **A server presentation runs on any thread.** `present` and the parts of what it returns run in
+  the parse of whichever plugin shows the value, on that plugin's thread, the async chat event's
+  included, and on several threads at once. Keep them cheap and thread-safe: read what a bean
+  keeps, in a concurrent map for instance, never a database or a file.
+- **A server presentation that inserts its own value into its component calls itself**: a card
+  whose hover is a message with `{player}` builds the card again inside the card, until the stack
+  overflows. Insert a property, `{player.name}`, which never asks for the component.
+- **A property only a server presentation defines** exists while its plugin runs: without it,
+  `{player.rank}` fails as `{player} has no property "rank"`, like any property no presentation
+  defines. A plugin's default messages use what every server has; an admin adds `{player.rank}`
+  to the messages of a server running the plugin that defines it.
+- **Your registration of a type a server presentation presents** only fills in what that
+  presentation leaves out. To show such a value your own way, wrap it in a class of your own that
+  is `Presentable`.
+- **Two presented types unrelated to each other**, both matching a value of a class that
+  implements both, have no nearest one: the server's presentations come first, in the order their
+  plugins started, then yours, in the order you registered them.
+- **When the `@Primary` presentation of a type stops** and several others remain, the one whose
+  plugin started first is used.

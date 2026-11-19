@@ -41,6 +41,12 @@ author has to rebuild it; nothing on the server fixes it.
 Two plugins claim the same short name, so the second stays disabled. Keep one of them, and tell
 the authors.
 
+### `Plugin X: T would have several server presentations: ...` {/* #several-server-presentations */}
+
+Two plugins both decide how a type, players for instance, looks in every plugin's messages, so the
+one starting second stays disabled. Keep one of them, or tell their authors: the author of the one
+that should decide marks it, and then both run.
+
 ### Any other `Plugin X: ...` at start {/* #other-start-errors */}
 
 Messages about beans, descriptors or classes (`no bean provides`, `descriptor ... not found`,
@@ -122,7 +128,7 @@ debug: true
 <CodeCard title="Console" output>
 
 ```text
-[debug] Shop START: descriptor format 1.0, 11 elements, 9 for this event
+[debug] Shop START: descriptor format 1.1, 11 elements, 9 for this event
 [debug] Shop START: skipped VaultBridge: @ConditionalOnPlugin(Vault) is not met
 [debug] Shop START: created 2 beans: "plugin" (com.example.shop.ShopPlugin), "counter" (com.example.shop.Counter)
 [debug] Economy RELOAD: set 3 values, config.yml: base, rate, tax

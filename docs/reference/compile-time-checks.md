@@ -108,6 +108,22 @@ These checks apply to an attribute inherited through an
 [annotation of your own](../dependency-injection/index.md#your-own-attribute-annotations) exactly as to one written
 directly.
 
+## Server presentations {/* #server-presentations */}
+
+A class carrying [`@ServerPresentation`](../messages/arguments.md#server-presentations) is a bean
+like any other, so the bean declaration checks apply, and the build fails when it:
+
+- is no `Presenter` (`Card carries @ServerPresentation but is no Presenter; implement Presenter
+  for the type it presents, as in class Card : Presenter<Player>`);
+- presents a generic type (`ListPresenter must present a class without type arguments, such as
+  Presenter<Player>: a generic type would match its values whatever their type arguments`) or
+  `Any` (`AnyPresenter presents Any, which would change how every value of every plugin appears;
+  present the type you mean`);
+- presents the same type as another class of the plugin while neither or both are `@Primary`,
+  also where that happens only while some optional plugins are enabled
+  (`org.bukkit.entity.Player has several server presentations while "Vault" is enabled:
+  PlainPresenter, VaultPresenter; mark the one to use @Primary, or remove the others`).
+
 ## Enhancement annotations {/* #enhancement-annotations */}
 
 These concern authors of [custom scopes and enhancements](../internals/enhancements.md):
