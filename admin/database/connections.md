@@ -1,3 +1,7 @@
+---
+description: Connections several plugins share in connections.yml, the module-wide defaults in config.yml, SSL modes and the connection pool.
+---
+
 # Connections and defaults
 
 import TwinEngines from '@site/src/components/TwinEngines';

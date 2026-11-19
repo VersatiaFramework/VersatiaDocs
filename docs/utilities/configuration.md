@@ -1,3 +1,7 @@
+---
+description: Strict getters over Bukkit's ConfigurationSection and helpers for YAML files, in dev.versatia.util.config.
+---
+
 # Configuration
 
 Package `dev.versatia.util.config`. A value a plugin only has to hold needs none

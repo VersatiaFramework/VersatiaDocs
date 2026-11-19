@@ -1,3 +1,7 @@
+---
+description: The example plugins, one repository and one feature each, in the order of a learning path, and how to add one.
+---
+
 # Example plugins
 
 import ExampleCard, {ExampleGrid} from '@site/src/components/ExampleCard';

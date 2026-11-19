@@ -1,6 +1,7 @@
 ---
 title: Database configuration
 counterpart: /docs/modules/database/configuration
+description: Which engine, database and connection a plugin's data uses, set in its database.yml, key by key.
 ---
 # Database configuration
 
@@ -148,7 +149,7 @@ shared connection its `threads-per-plugin` when that is set.
 
 #### Examples {/* #database-yml-examples */}
 
-The SQLite default needs no file: the one the module writes, shown above, records it. Anything
+The SQLite default needs no file: the one the module writes, shown under [database.yml](#database-yml), records it. Anything
 else takes a few keys; what is left out keeps its default.
 
 ```yaml title="plugins/Shop/database.yml: its own MySQL database"

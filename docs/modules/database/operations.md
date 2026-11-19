@@ -67,7 +67,7 @@ failure to close.
 ### The module disabled first {/* #the-module-disabled-first */}
 
 When VersatiaModule-Database itself is disabled while plugins using it still run (a plugin manager
-unloading it), it closes every database as above, then its pools, and unregisters the drivers it
+unloading it), it closes every database as at a [shutdown](#shutdown), then its pools, and unregisters the drivers it
 brought. Calls of the plugins still running fail from then on with
 `Plugin Shop: VersatiaModule-Database was disabled; restart the server`.
 

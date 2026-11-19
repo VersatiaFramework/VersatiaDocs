@@ -1,5 +1,6 @@
 ---
 counterpart: /docs/configuration
+description: Where a plugin's files in plugins/<Name>/ come from, how to write their values and secrets, when a change applies and what a mistake does.
 ---
 
 # Configuration files

@@ -1,3 +1,7 @@
+---
+description: 'Injecting beans another plugin exposes with @ExposeSingleton or @ExposePrototype: the set-up, what arrives, a missing bean and lifetimes.'
+---
+
 # Beans across plugins
 
 import ExampleCard from '@site/src/components/ExampleCard';

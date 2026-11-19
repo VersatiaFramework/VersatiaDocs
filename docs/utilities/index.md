@@ -1,6 +1,7 @@
 ---
 sidebar_label: Overview
 pagination_label: Utilities
+description: 'The helpers VersatiaAPI ships over the Paper API: server-wide calls through VersatiaEngine and extensions grouped by package.'
 ---
 # Utilities
 

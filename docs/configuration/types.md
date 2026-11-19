@@ -1,3 +1,7 @@
+---
+description: The types a @Value property may hold, durations and secrets in their own notation, and mappers for any other type.
+---
+
 # Value types
 
 import CodeCards, {CodeCard} from '@site/src/components/CodeCards';

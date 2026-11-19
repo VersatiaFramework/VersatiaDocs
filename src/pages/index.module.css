@@ -126,6 +126,28 @@
   margin-bottom: 0.75rem;
 }
 
+/* The documentation is written for coding assistants too (docs/getting-started/ai-assistants.md) */
+.aiNote {
+  max-width: 34rem;
+  margin: 1rem 0 0;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.9rem;
+}
+
+.aiBadge {
+  display: inline-block;
+  margin-right: 0.5rem;
+  padding: 0.05rem 0.5rem;
+  border: 1px solid var(--versatia-developer);
+  border-radius: 999px;
+  color: var(--versatia-developer);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: 0.1em;
+}
+
 .compare {
   display: block;
   text-align: right;

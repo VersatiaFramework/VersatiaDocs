@@ -1,5 +1,6 @@
 ---
 counterpart: /admin/configuration-files
+description: 'Reading configuration into @Value properties: where they may live, missing and invalid values, constructor values and when values are set.'
 ---
 # Reading values
 

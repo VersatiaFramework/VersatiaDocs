@@ -1,3 +1,7 @@
+---
+description: 'Tokens that make one SQL text right for every engine: how they expand, where they work and the {prefix} token.'
+---
+
 # Tokens
 
 import Audience from '@site/src/components/Audience';

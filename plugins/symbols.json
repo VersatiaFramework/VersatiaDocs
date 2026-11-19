@@ -1,0 +1,2828 @@
+{
+  "version": "0.0.1",
+  "artifacts": [
+    "VersatiaAPI",
+    "VersatiaModule-Database"
+  ],
+  "symbols": [
+    {
+      "name": "ConditionalOnPlugin",
+      "package": "dev.versatia",
+      "kind": "annotation",
+      "artifact": "VersatiaAPI",
+      "signature": "@ConditionalOnPlugin(vararg value: String)",
+      "summary": "Keeps the annotated element out of the runtime's work unless every named plugin is enabled on the server: a bean is not created, a listener is not registered, a function is not called, and a value is not read."
+    },
+    {
+      "name": "DisableVersatiaFeatures",
+      "package": "dev.versatia",
+      "kind": "annotation",
+      "artifact": "VersatiaAPI",
+      "signature": "@DisableVersatiaFeatures(extractResources: Boolean = false, registerListeners: Boolean = false, runBackgroundTasks: Boolean = false)",
+      "summary": "Switches off, for the annotated plugin, features that every Versatia plugin otherwise has because `VersatiaPlugin` declares them."
+    },
+    {
+      "name": "EnhancementContext",
+      "package": "dev.versatia",
+      "kind": "interface",
+      "artifact": "VersatiaAPI",
+      "signature": "interface EnhancementContext",
+      "summary": "Everything processors know about the plugin being enhanced; lives for one event of one plugin."
+    },
+    {
+      "name": "EnhancementException",
+      "package": "dev.versatia",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class EnhancementException : RuntimeException(message, cause)"
+    },
+    {
+      "name": "EnhancementProcessor",
+      "package": "dev.versatia",
+      "kind": "interface",
+      "artifact": "VersatiaAPI",
+      "signature": "interface EnhancementProcessor",
+      "summary": "Interprets the descriptor elements that name it."
+    },
+    {
+      "name": "FriendlyName",
+      "package": "dev.versatia",
+      "kind": "annotation",
+      "artifact": "VersatiaAPI",
+      "signature": "@FriendlyName(value: String)",
+      "summary": "The name under which the runtime registers the plugin, used wherever a plugin is addressed by name, such as `/versatia reload <name>`."
+    },
+    {
+      "name": "LifecycleEvent",
+      "package": "dev.versatia",
+      "kind": "enum",
+      "artifact": "VersatiaAPI",
+      "signature": "enum class LifecycleEvent",
+      "entries": [
+        {
+          "name": "START"
+        },
+        {
+          "name": "RELOAD"
+        },
+        {
+          "name": "STOP"
+        }
+      ],
+      "summary": "A moment in a plugin's life at which the runtime walks its descriptor."
+    },
+    {
+      "name": "Phase",
+      "package": "dev.versatia",
+      "kind": "enum",
+      "artifact": "VersatiaAPI",
+      "signature": "enum class Phase",
+      "entries": [
+        {
+          "name": "UNSET",
+          "summary": "Technical \"no value\": annotations cannot hold `null`."
+        },
+        {
+          "name": "PLUGIN_RELOAD_OR_START"
+        },
+        {
+          "name": "PLUGIN_START_ONLY"
+        },
+        {
+          "name": "PLUGIN_RELOAD_ONLY"
+        },
+        {
+          "name": "PLUGIN_STOP"
+        }
+      ],
+      "summary": "When an enhancement is executed."
+    },
+    {
+      "name": "PluginRegistry",
+      "package": "dev.versatia",
+      "kind": "interface",
+      "artifact": "VersatiaAPI",
+      "signature": "interface PluginRegistry",
+      "summary": "The Versatia plugins running on the server, by the name the runtime registered them under: their `@FriendlyName`, or the `name:` of their `plugin.yml`."
+    },
+    {
+      "name": "ServiceNotRegisteredException",
+      "package": "dev.versatia",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class ServiceNotRegisteredException",
+      "summary": "Thrown by `VersatiaEngine.loadService` when no plugin provides the service."
+    },
+    {
+      "name": "StateKey",
+      "package": "dev.versatia",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class StateKey<T : Any>",
+      "summary": "Identifies one entry of a `StateStore`; the type parameter is the entry's type."
+    },
+    {
+      "name": "StateStore",
+      "package": "dev.versatia",
+      "kind": "interface",
+      "artifact": "VersatiaAPI",
+      "signature": "interface StateStore",
+      "summary": "State shared between processors: an entry is created on first use and kept until the store is dropped, when entries implementing `AutoCloseable` are closed, last created first."
+    },
+    {
+      "name": "VersatiaAttribute",
+      "package": "dev.versatia",
+      "kind": "annotation",
+      "artifact": "VersatiaAPI",
+      "signature": "@VersatiaAttribute",
+      "summary": "Marks an annotation whose occurrences are recorded in the descriptor, with their arguments, next to the element they decorate: an enhanced class and its constructor parameters, an enhanced function and its parameters."
+    },
+    {
+      "name": "VersatiaDisabler",
+      "package": "dev.versatia",
+      "kind": "annotation",
+      "artifact": "VersatiaAPI",
+      "signature": "@VersatiaDisabler(enhancement: KClass<out Annotation>)",
+      "summary": "Marks a `Boolean` parameter of an annotation as a switch: when the parameter is `true` on a plugin's main class or on one of its base classes, the enhancement annotation `enhancement` written on that class or on a class above it is left out of the descriptor."
+    },
+    {
+      "name": "VersatiaEngine",
+      "package": "dev.versatia",
+      "kind": "interface",
+      "artifact": "VersatiaAPI",
+      "signature": "interface VersatiaEngine",
+      "summary": "Implemented by VersatiaCore and published through Bukkit's `ServicesManager`; see `instance`."
+    },
+    {
+      "name": "VersatiaEnhancement",
+      "package": "dev.versatia",
+      "kind": "annotation",
+      "artifact": "VersatiaAPI",
+      "signature": "@VersatiaEnhancement(processorClass: String, enhancementPhase: Phase = Phase.UNSET, enhancementPhaseParamRefName: String = \"\")",
+      "summary": "Marks an annotation as an enhancement: names the processor that interprets its occurrences and says when."
+    },
+    {
+      "name": "VersatiaInternalApi",
+      "package": "dev.versatia",
+      "kind": "annotation",
+      "artifact": "VersatiaAPI",
+      "signature": "@VersatiaInternalApi",
+      "summary": "Marks the plumbing between the compile-time step, the generated descriptor and VersatiaCore: public only because those live in other modules."
+    },
+    {
+      "name": "VersatiaPlugin",
+      "package": "dev.versatia",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "abstract class VersatiaPlugin : JavaPlugin()",
+      "summary": "Base class of Versatia plugins."
+    },
+    {
+      "name": "VersatiaSubclassEnhancement",
+      "package": "dev.versatia",
+      "kind": "annotation",
+      "artifact": "VersatiaAPI",
+      "signature": "@VersatiaSubclassEnhancement(processorClass: String, subclassOf: KClass<*>, enhancementPhase: Phase)",
+      "summary": "Marks an annotation as an enhancement of every class in the plugin's sources that is assignable to `subclassOf`: each such class is recorded as if the annotation had been written on it."
+    },
+    {
+      "name": "broadcast",
+      "package": "dev.versatia",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "VersatiaEngine.Companion",
+      "signature": "fun VersatiaEngine.Companion.broadcast(message: Component, permission: String = Server.BROADCAST_CHANNEL_USERS)",
+      "bukkit": [
+        "Bukkit.broadcast(...)"
+      ],
+      "summary": "Sends `message` to everyone holding `permission`, by default every player and the console; returns the number of recipients."
+    },
+    {
+      "name": "checkNotPrimaryThread",
+      "package": "dev.versatia",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "VersatiaEngine.Companion",
+      "signature": "fun VersatiaEngine.Companion.checkNotPrimaryThread(action: String = \"This code\")",
+      "summary": "Throws an `IllegalStateException` naming `action` and how to move it when called on the server's main thread."
+    },
+    {
+      "name": "checkPrimaryThread",
+      "package": "dev.versatia",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "VersatiaEngine.Companion",
+      "signature": "fun VersatiaEngine.Companion.checkPrimaryThread(action: String = \"This code\")",
+      "summary": "Throws an `IllegalStateException` naming `action` and how to move it when called off the server's main thread."
+    },
+    {
+      "name": "classLoader",
+      "package": "dev.versatia",
+      "kind": "property",
+      "artifact": "VersatiaAPI",
+      "receiver": "EnhancementContext",
+      "signature": "val EnhancementContext.classLoader: ClassLoader",
+      "summary": "The loader that defines the plugin's classes, including its generated descriptor."
+    },
+    {
+      "name": "dispatchConsoleCommand",
+      "package": "dev.versatia",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "VersatiaEngine.Companion",
+      "signature": "fun VersatiaEngine.Companion.dispatchConsoleCommand(commandLine: String): Boolean",
+      "bukkit": [
+        "Bukkit.dispatchCommand(...)"
+      ],
+      "summary": "Runs `commandLine`, without the slash, as the console; false when no command handles it."
+    },
+    {
+      "name": "failure",
+      "package": "dev.versatia",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "EnhancementContext",
+      "signature": "fun EnhancementContext.failure(message: String, cause: Throwable? = null)",
+      "summary": "An `EnhancementException` whose message starts with the plugin being enhanced: `Plugin X: message`."
+    },
+    {
+      "name": "inject",
+      "package": "dev.versatia",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "EnhancementContext",
+      "signature": "fun EnhancementContext.inject(requester: String, parameters: List<Parameter>): List<Any?>",
+      "summary": "The arguments for `parameters`, injected from the plugin's beans with the rules of bean constructor dependencies; `requester` names who asks in errors, such as `MemberTarget.description`."
+    },
+    {
+      "name": "isPrimaryThread",
+      "package": "dev.versatia",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "VersatiaEngine.Companion",
+      "signature": "fun VersatiaEngine.Companion.isPrimaryThread()",
+      "bukkit": [
+        "Bukkit.isPrimaryThread()"
+      ]
+    },
+    {
+      "name": "loadService",
+      "package": "dev.versatia",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "VersatiaEngine.Companion",
+      "signature": "inline fun <reified T : Any> VersatiaEngine.Companion.loadService()",
+      "summary": "The provider registered for `T` in Bukkit's `ServicesManager`; a `ServiceNotRegisteredException` names the service when none is."
+    },
+    {
+      "name": "loadServiceOrNull",
+      "package": "dev.versatia",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "VersatiaEngine.Companion",
+      "signature": "inline fun <reified T : Any> VersatiaEngine.Companion.loadServiceOrNull()",
+      "bukkit": [
+        "Bukkit.getServicesManager().load(...)"
+      ],
+      "summary": "The provider registered for `T` in Bukkit's `ServicesManager`, or null when none is."
+    },
+    {
+      "name": "offlinePlayer",
+      "package": "dev.versatia",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "VersatiaEngine.Companion",
+      "signature": "fun VersatiaEngine.Companion.offlinePlayer(id: UUID)",
+      "bukkit": [
+        "Bukkit.getOfflinePlayer(...)"
+      ],
+      "summary": "The player behind `id`, online or not."
+    },
+    {
+      "name": "onlinePlayers",
+      "package": "dev.versatia",
+      "kind": "property",
+      "artifact": "VersatiaAPI",
+      "receiver": "VersatiaEngine.Companion",
+      "signature": "val VersatiaEngine.Companion.onlinePlayers: Collection<Player>",
+      "bukkit": [
+        "Bukkit.getOnlinePlayers()"
+      ]
+    },
+    {
+      "name": "playerOrNull",
+      "package": "dev.versatia",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "VersatiaEngine.Companion",
+      "signature": "fun VersatiaEngine.Companion.playerOrNull(name: String)",
+      "bukkit": [
+        "Bukkit.getPlayerExact(...)",
+        "Bukkit.getPlayer(...)"
+      ],
+      "summary": "The online player with exactly this name, ignoring case; unlike `Bukkit.getPlayer(String)`, never one whose name merely starts with it.",
+      "overloads": 2
+    },
+    {
+      "name": "receiverOf",
+      "package": "dev.versatia",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "EnhancementContext",
+      "signature": "fun EnhancementContext.receiverOf(target: MemberTarget): Any",
+      "summary": "The instance `target` is called or set on, by its owner: the plugin being enhanced, the instance of a Kotlin `object`, or the plugin's bean of the declaring class; fails when that class cannot be loaded, is not an `object` or has no bean, and for a class a subclass enhancement creates, whose instance only the runtime holds."
+    },
+    {
+      "name": "registry",
+      "package": "dev.versatia",
+      "kind": "property",
+      "artifact": "VersatiaAPI",
+      "receiver": "VersatiaEngine.Companion",
+      "signature": "val VersatiaEngine.Companion.registry",
+      "summary": "The running Versatia plugins by friendly name."
+    },
+    {
+      "name": "reload",
+      "package": "dev.versatia",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "VersatiaEngine.Companion",
+      "signature": "fun VersatiaEngine.Companion.reload(friendlyName: String)",
+      "summary": "Runs the reload event of the plugin registered as `friendlyName`, and then of the plugins using its beans, as `/versatia reload <name>` does; see `VersatiaEngine.reload`."
+    },
+    {
+      "name": "targetAs",
+      "package": "dev.versatia",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "EnhancedElement",
+      "signature": "inline fun <reified T : ElementTarget> EnhancedElement.targetAs(processor: EnhancementProcessor)",
+      "summary": "The target of this element as `T`, such as `element.targetAs<FunctionTarget>(this)` in a processor; an element of another kind fails naming `processor`, the kind it accepts and the element it got."
+    },
+    {
+      "name": "worldOrNull",
+      "package": "dev.versatia",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "VersatiaEngine.Companion",
+      "signature": "fun VersatiaEngine.Companion.worldOrNull(name: String)",
+      "bukkit": [
+        "Bukkit.getWorld(...)"
+      ]
+    },
+    {
+      "name": "NoMapper",
+      "package": "dev.versatia.config",
+      "kind": "object",
+      "artifact": "VersatiaAPI",
+      "signature": "object NoMapper : ValueMapper<Nothing>",
+      "summary": "Stands for \"no mapper\" in `@Value`, because annotations cannot hold `null`."
+    },
+    {
+      "name": "PreviousValueTracking",
+      "package": "dev.versatia.config",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class PreviousValueTracking<T>",
+      "summary": "Holds a `@Value` together with the value it replaced, for code that reacts to a change at a reload: `@Value(\"interval\") val interval = PreviousValueTracking<Int>()`."
+    },
+    {
+      "name": "SectionMapper",
+      "package": "dev.versatia.config",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "abstract class SectionMapper<out T> : ValueMapper<T>",
+      "summary": "A `ValueMapper` for a value written as a section of its own, the usual shape of a data class: `object Mapper : SectionMapper<PriceRange>() { override fun map(section: ConfigurationSection) = PriceRange(...) }`."
+    },
+    {
+      "name": "Value",
+      "package": "dev.versatia.config",
+      "kind": "annotation",
+      "artifact": "VersatiaAPI",
+      "signature": "@Value(key: String, file: String = DEFAULT_FILE, mapper: KClass<out ValueMapper<*>> = NoMapper::class)",
+      "summary": "Sets the annotated property from a YAML file in the plugin's data folder: the value at `key`, a non-empty dotted path, of `file`, a path relative to the data folder, `config.yml` unless given."
+    },
+    {
+      "name": "ValueMapper",
+      "package": "dev.versatia.config",
+      "kind": "fun interface",
+      "artifact": "VersatiaAPI",
+      "signature": "interface ValueMapper<out T>",
+      "summary": "Reads a `@Value` property of a type the runtime does not read by itself: a data class from a section, a list of definitions from the children of one, ticks from seconds."
+    },
+    {
+      "name": "Bean",
+      "package": "dev.versatia.di",
+      "kind": "annotation",
+      "artifact": "VersatiaAPI",
+      "signature": "@Bean",
+      "summary": "Marks an annotation as a bean scope."
+    },
+    {
+      "name": "BeanNames",
+      "package": "dev.versatia.di",
+      "kind": "object",
+      "artifact": "VersatiaAPI",
+      "signature": "object BeanNames"
+    },
+    {
+      "name": "BeanResolver",
+      "package": "dev.versatia.di",
+      "kind": "interface",
+      "artifact": "VersatiaAPI",
+      "signature": "interface BeanResolver",
+      "summary": "The beans of the plugin being enhanced, for any processor that injects."
+    },
+    {
+      "name": "ExposePrototype",
+      "package": "dev.versatia.di",
+      "kind": "annotation",
+      "artifact": "VersatiaAPI",
+      "signature": "@ExposePrototype",
+      "summary": "A fresh instance for every plugin loaded afterward that depends on it."
+    },
+    {
+      "name": "ExposeSingleton",
+      "package": "dev.versatia.di",
+      "kind": "annotation",
+      "artifact": "VersatiaAPI",
+      "signature": "@ExposeSingleton",
+      "summary": "One instance, shared with every plugin loaded afterward."
+    },
+    {
+      "name": "LocalBean",
+      "package": "dev.versatia.di",
+      "kind": "annotation",
+      "artifact": "VersatiaAPI",
+      "signature": "@LocalBean",
+      "summary": "Injectable only inside the plugin that declares it."
+    },
+    {
+      "name": "PluginBean",
+      "package": "dev.versatia.di",
+      "kind": "annotation",
+      "artifact": "VersatiaAPI",
+      "signature": "@PluginBean",
+      "summary": "Makes the plugin's main class a local bean of its own plugin, always named `BeanNames.PLUGIN`."
+    },
+    {
+      "name": "Primary",
+      "package": "dev.versatia.di",
+      "kind": "annotation",
+      "artifact": "VersatiaAPI",
+      "signature": "@Primary",
+      "summary": "Among several beans providing a requested type, the one to inject when no `@Qualifier` decides."
+    },
+    {
+      "name": "Qualifier",
+      "package": "dev.versatia.di",
+      "kind": "annotation",
+      "artifact": "VersatiaAPI",
+      "signature": "@Qualifier(value: String)",
+      "summary": "On a bean class: the bean's name instead of the default (its simple class name with a lower-case first letter)."
+    },
+    {
+      "name": "Reloadable",
+      "package": "dev.versatia.di",
+      "kind": "interface",
+      "artifact": "VersatiaAPI",
+      "signature": "interface Reloadable",
+      "summary": "A bean whose contents derive from something that may change at runtime, such as files in the plugin's data folder."
+    },
+    {
+      "name": "AnnotationOccurrence",
+      "package": "dev.versatia.engine.descriptor",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "data class AnnotationOccurrence",
+      "summary": "An annotation as written at one place."
+    },
+    {
+      "name": "ClassTarget",
+      "package": "dev.versatia.engine.descriptor",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "data class ClassTarget : ElementTarget",
+      "summary": "A class whose instances the runtime may create."
+    },
+    {
+      "name": "DefaultArgument",
+      "package": "dev.versatia.engine.descriptor",
+      "kind": "object",
+      "artifact": "VersatiaAPI",
+      "signature": "data object DefaultArgument",
+      "summary": "Stands in the arguments of `Instantiator.create` for an optional constructor parameter that no bean provides, so that it keeps its default value; only `Instantiator.WithDefaults` accepts it."
+    },
+    {
+      "name": "ElementTarget",
+      "package": "dev.versatia.engine.descriptor",
+      "kind": "interface",
+      "artifact": "VersatiaAPI",
+      "signature": "sealed interface ElementTarget"
+    },
+    {
+      "name": "EnhancedElement",
+      "package": "dev.versatia.engine.descriptor",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "data class EnhancedElement",
+      "summary": "One recorded occurrence of an enhancement: who interprets it, when, what was annotated and where."
+    },
+    {
+      "name": "FunctionTarget",
+      "package": "dev.versatia.engine.descriptor",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "data class FunctionTarget : MemberTarget",
+      "summary": "A function the runtime may call."
+    },
+    {
+      "name": "Instantiator",
+      "package": "dev.versatia.engine.descriptor",
+      "kind": "interface",
+      "artifact": "VersatiaAPI",
+      "signature": "sealed interface Instantiator"
+    },
+    {
+      "name": "Invoker",
+      "package": "dev.versatia.engine.descriptor",
+      "kind": "interface",
+      "artifact": "VersatiaAPI",
+      "signature": "sealed interface Invoker"
+    },
+    {
+      "name": "MemberOwner",
+      "package": "dev.versatia.engine.descriptor",
+      "kind": "enum",
+      "artifact": "VersatiaAPI",
+      "signature": "enum class MemberOwner",
+      "entries": [
+        {
+          "name": "PLUGIN",
+          "summary": "The plugin's main class; the instance is the plugin itself."
+        },
+        {
+          "name": "OBJECT",
+          "summary": "A Kotlin `object`."
+        },
+        {
+          "name": "INSTANCE",
+          "summary": "Any other class; the processor has to obtain the instance itself."
+        },
+        {
+          "name": "SUBCLASS_INSTANCE",
+          "summary": "A class that is no bean but is created by a subclass enhancement, such as a plain `Listener` or `BackgroundTask`: one instance per plugin, shared by every feature enhancing the class."
+        }
+      ],
+      "summary": "Who holds the instance a `FunctionTarget` is called on or a `PropertyTarget` is set on."
+    },
+    {
+      "name": "MemberTarget",
+      "package": "dev.versatia.engine.descriptor",
+      "kind": "interface",
+      "artifact": "VersatiaAPI",
+      "signature": "sealed interface MemberTarget : ElementTarget",
+      "summary": "A function or property of a class: what a processor needs to find the instance it belongs to."
+    },
+    {
+      "name": "Parameter",
+      "package": "dev.versatia.engine.descriptor",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "data class Parameter",
+      "summary": "A constructor or function parameter: its type and the recorded annotations on it."
+    },
+    {
+      "name": "PluginTarget",
+      "package": "dev.versatia.engine.descriptor",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "data class PluginTarget : ElementTarget",
+      "summary": "The plugin's main class."
+    },
+    {
+      "name": "PropertyTarget",
+      "package": "dev.versatia.engine.descriptor",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "data class PropertyTarget : MemberTarget",
+      "summary": "A mutable property the runtime may set."
+    },
+    {
+      "name": "Setter",
+      "package": "dev.versatia.engine.descriptor",
+      "kind": "interface",
+      "artifact": "VersatiaAPI",
+      "signature": "sealed interface Setter"
+    },
+    {
+      "name": "TypeReference",
+      "package": "dev.versatia.engine.descriptor",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "data class TypeReference",
+      "summary": "A type as written on a property: a Kotlin qualified name, its type arguments and whether it accepts `null`."
+    },
+    {
+      "name": "occurrenceOf",
+      "package": "dev.versatia.engine.descriptor",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "List<AnnotationOccurrence>",
+      "signature": "fun List<AnnotationOccurrence>.occurrenceOf(annotationClass: String)",
+      "summary": "The occurrence of `annotationClass`, a Kotlin qualified name (`Outer.Inner`, not `Outer$Inner`), among these, if any.",
+      "overloads": 2
+    },
+    {
+      "name": "RegisterListeners",
+      "package": "dev.versatia.event",
+      "kind": "annotation",
+      "artifact": "VersatiaAPI",
+      "signature": "@RegisterListeners",
+      "summary": "Registers every class of the plugin implementing Bukkit's `Listener` when the plugin starts."
+    },
+    {
+      "name": "AutoInvoke",
+      "package": "dev.versatia.lifecycle",
+      "kind": "annotation",
+      "artifact": "VersatiaAPI",
+      "signature": "@AutoInvoke(phase: Phase)",
+      "summary": "Calls the annotated function at `phase`."
+    },
+    {
+      "name": "Message",
+      "package": "dev.versatia.messages",
+      "kind": "interface",
+      "artifact": "VersatiaAPI",
+      "signature": "interface Message",
+      "summary": "One message: MiniMessage text with runtime arguments in braces, parsed when it is used, never when the file is read, so tags registered later apply."
+    },
+    {
+      "name": "MessageRenderException",
+      "package": "dev.versatia.messages",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class MessageRenderException",
+      "summary": "A message could not be turned into a component; `cause` says why, usually a `TextException`."
+    },
+    {
+      "name": "Messages",
+      "package": "dev.versatia.messages",
+      "kind": "interface",
+      "artifact": "VersatiaAPI",
+      "signature": "interface Messages",
+      "summary": "The messages of one plugin, read from the YAML files under `messages/` in its data folder and reloaded with it."
+    },
+    {
+      "name": "MessagesException",
+      "package": "dev.versatia.messages",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "open class MessagesException : IllegalArgumentException(message, cause)"
+    },
+    {
+      "name": "MessagesLoadException",
+      "package": "dev.versatia.messages",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class MessagesLoadException : MessagesException(\"Plugin $plugin: $message\")",
+      "summary": "The messages could not be loaded: invalid YAML, a non-text value, a key defined twice or both a message and a group, or a message using a tag that does not exist."
+    },
+    {
+      "name": "MissingMessageException",
+      "package": "dev.versatia.messages",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class MissingMessageException",
+      "summary": "Thrown by `Messages.get`; lists the keys that start like the missing one, or how many there are."
+    },
+    {
+      "name": "messages",
+      "package": "dev.versatia.messages",
+      "kind": "property",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "val Plugin.messages",
+      "summary": "This plugin's `Messages`, the instance its beans are injected, so the main class writes `messages[\"shop.open\"]` with nothing injected."
+    },
+    {
+      "name": "ExtractResources",
+      "package": "dev.versatia.resources",
+      "kind": "annotation",
+      "artifact": "VersatiaAPI",
+      "signature": "@ExtractResources",
+      "summary": "Copies every file under the `DIRECTORY` directory of the plugin's JAR (`src/main/resources/resources/` in the build) into the plugin's data folder when the plugin starts and at every reload, keeping the directory layout."
+    },
+    {
+      "name": "BackgroundTask",
+      "package": "dev.versatia.task",
+      "kind": "interface",
+      "artifact": "VersatiaAPI",
+      "signature": "interface BackgroundTask",
+      "summary": "Work that runs as long as its plugin, found at compile time, never registered."
+    },
+    {
+      "name": "Condition",
+      "package": "dev.versatia.task",
+      "kind": "interface",
+      "artifact": "VersatiaAPI",
+      "signature": "interface Condition : StateFlow<Boolean>, AutoCloseable",
+      "summary": "The last result of a check, evaluated again only when a `RecheckTrigger` fires or `recheck` is called, never by polling, so the check may be expensive."
+    },
+    {
+      "name": "KeyedJobs",
+      "package": "dev.versatia.task",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class KeyedJobs<K : Any>",
+      "summary": "Jobs of a scope addressed by key, at most one per key: a combat tag per player, a countdown per arena."
+    },
+    {
+      "name": "PlayerValues",
+      "package": "dev.versatia.task",
+      "kind": "interface",
+      "artifact": "VersatiaAPI",
+      "signature": "interface PlayerValues<T : Any>",
+      "summary": "One value per player for state that lives only while the server runs, such as a combat tag, an open menu or a pending request."
+    },
+    {
+      "name": "PluginScope",
+      "package": "dev.versatia.task",
+      "kind": "interface",
+      "artifact": "VersatiaAPI",
+      "signature": "interface PluginScope : CoroutineScope",
+      "summary": "The coroutines of the plugin this is injected into, also as `CoroutineScope`: they run on the server thread, starting at once when launched from it, unless they switch with `withContext`; a reload leaves them alone, and the plugin's stop cancels them before its stop functions run."
+    },
+    {
+      "name": "RecheckTrigger",
+      "package": "dev.versatia.task",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class RecheckTrigger",
+      "summary": "A Bukkit event that makes a `Condition` evaluate its check again; built with `recheckOn`."
+    },
+    {
+      "name": "RunBackgroundTasks",
+      "package": "dev.versatia.task",
+      "kind": "annotation",
+      "artifact": "VersatiaAPI",
+      "signature": "@RunBackgroundTasks",
+      "summary": "Runs every class of the plugin implementing `BackgroundTask` in the plugin's `PluginScope`: started at the tick after the plugin started, cancelled and started again by every reload once the values are set, and cancelled before the plugin's stop functions run, together with every other coroutine of the scope."
+    },
+    {
+      "name": "awaitUntil",
+      "package": "dev.versatia.task",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "signature": "suspend fun awaitUntil(condition: Flow<Boolean>)",
+      "summary": "Suspends until `condition` is true; returns at once when it already is."
+    },
+    {
+      "name": "condition",
+      "package": "dev.versatia.task",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "signature": "suspend fun condition(vararg triggers: RecheckTrigger, check: () -> Boolean)",
+      "summary": "A condition of the plugin bound to the calling coroutine: `check` is evaluated on the server thread now, then again whenever one of `triggers` fires or `Condition.recheck` is called, and its listeners go when the coroutine completes."
+    },
+    {
+      "name": "delayTick",
+      "package": "dev.versatia.task",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "signature": "suspend fun delayTick()",
+      "summary": "Suspends until the next server tick; the same as `delayTicks(1)`."
+    },
+    {
+      "name": "delayTicks",
+      "package": "dev.versatia.task",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "signature": "suspend fun delayTicks(ticks: Long)",
+      "summary": "Suspends for `ticks` server ticks: game time, which a lagging server stretches; `delay` waits wall-clock time.",
+      "overloads": 2
+    },
+    {
+      "name": "every",
+      "package": "dev.versatia.task",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "signature": "suspend fun every(period: Duration, delay: Duration = period, action: suspend () -> Unit): Nothing",
+      "summary": "`everyTicks` in wall-clock time: every `period`, the first time after `delay`; slots missed during a freeze are skipped."
+    },
+    {
+      "name": "everyTicks",
+      "package": "dev.versatia.task",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "signature": "suspend fun everyTicks(periodTicks: Long, delayTicks: Long = periodTicks, action: suspend () -> Unit): Nothing",
+      "summary": "Runs `action` every `periodTicks` ticks at a fixed rate in server time, the first time after `delayTicks` ticks, until the coroutine is cancelled.",
+      "overloads": 2
+    },
+    {
+      "name": "keyedJobs",
+      "package": "dev.versatia.task",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "CoroutineScope",
+      "signature": "fun <K : Any> CoroutineScope.keyedJobs()",
+      "summary": "Jobs of this scope addressed by key, at most one per key; see `KeyedJobs`."
+    },
+    {
+      "name": "recheckOn",
+      "package": "dev.versatia.task",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "signature": "inline fun <reified E : Event> recheckOn(priority: EventPriority = EventPriority.MONITOR, ignoreCancelled: Boolean = true, immediately: Boolean = false, noinline filter: (E) -> Boolean = { true })",
+      "summary": "Evaluates a condition again after every event of type `E` passing `filter`.",
+      "overloads": 8
+    },
+    {
+      "name": "runOnceWhile",
+      "package": "dev.versatia.task",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "signature": "suspend fun runOnceWhile(condition: Flow<Boolean>, block: suspend CoroutineScope.() -> Unit): Boolean",
+      "summary": "Runs `block` once, cancelling it as soon as `condition` turns false; returns whether the block completed."
+    },
+    {
+      "name": "scope",
+      "package": "dev.versatia.task",
+      "kind": "property",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "val Plugin.scope",
+      "summary": "This plugin's `PluginScope`, the instance its beans are injected, so the main class writes `scope.launch { }` with nothing injected."
+    },
+    {
+      "name": "whenever",
+      "package": "dev.versatia.task",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "signature": "suspend fun whenever(condition: Flow<Boolean>, block: suspend CoroutineScope.() -> Unit)",
+      "summary": "Runs `block` whenever `condition` holds: started when it turns true, cancelled when it turns false, started again when it turns true once more."
+    },
+    {
+      "name": "Argument",
+      "package": "dev.versatia.text",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class Argument",
+      "summary": "A runtime argument of a text: `{name}` inserts `value` and `{name.property}` one of its properties, as its `Presentation` defines them."
+    },
+    {
+      "name": "ArgumentTag",
+      "package": "dev.versatia.text",
+      "kind": "fun interface",
+      "artifact": "VersatiaAPI",
+      "signature": "interface ArgumentTag",
+      "summary": "A tag registered with `Text.tag`: resolved like any MiniMessage tag, with the arguments of the call in hand, so `<papi:player:kills>` can look up the `player` argument."
+    },
+    {
+      "name": "ArgumentTypeException",
+      "package": "dev.versatia.text",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class ArgumentTypeException"
+    },
+    {
+      "name": "Arguments",
+      "package": "dev.versatia.text",
+      "kind": "interface",
+      "artifact": "VersatiaAPI",
+      "signature": "interface Arguments",
+      "summary": "The arguments of one `Text.parse` call, as a tag sees them."
+    },
+    {
+      "name": "DuplicateArgumentException",
+      "package": "dev.versatia.text",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class DuplicateArgumentException"
+    },
+    {
+      "name": "InvalidArgumentNameException",
+      "package": "dev.versatia.text",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class InvalidArgumentNameException"
+    },
+    {
+      "name": "InvalidStyleNameException",
+      "package": "dev.versatia.text",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class InvalidStyleNameException",
+      "summary": "A `Presentable` or a presentation registered with `Text.present` names a style that no server can define."
+    },
+    {
+      "name": "NoTextFormException",
+      "package": "dev.versatia.text",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class NoTextFormException"
+    },
+    {
+      "name": "NullValueException",
+      "package": "dev.versatia.text",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class NullValueException"
+    },
+    {
+      "name": "Presentable",
+      "package": "dev.versatia.text",
+      "kind": "fun interface",
+      "artifact": "VersatiaAPI",
+      "signature": "interface Presentable",
+      "summary": "A value that knows how it appears in text; takes precedence over any registered presentation."
+    },
+    {
+      "name": "Presentation",
+      "package": "dev.versatia.text",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class Presentation",
+      "summary": "How a value appears in text: `component` is what `{name}` inserts, `properties` what `{name.property}` reaches."
+    },
+    {
+      "name": "PresentationBuilder",
+      "package": "dev.versatia.text",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class PresentationBuilder"
+    },
+    {
+      "name": "PresentationException",
+      "package": "dev.versatia.text",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class PresentationException",
+      "summary": "A presentation, or the code it calls, threw while showing the brace; `cause` is what it threw."
+    },
+    {
+      "name": "ReservedTagNameException",
+      "package": "dev.versatia.text",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class ReservedTagNameException"
+    },
+    {
+      "name": "Text",
+      "package": "dev.versatia.text",
+      "kind": "interface",
+      "artifact": "VersatiaAPI",
+      "signature": "interface Text",
+      "summary": "Turns MiniMessage text with runtime `Argument`s into components: angle brackets are MiniMessage formatting, braces are data."
+    },
+    {
+      "name": "TextException",
+      "package": "dev.versatia.text",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "open class TextException : IllegalArgumentException(message, cause)"
+    },
+    {
+      "name": "UnknownArgumentException",
+      "package": "dev.versatia.text",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class UnknownArgumentException"
+    },
+    {
+      "name": "UnknownPropertyException",
+      "package": "dev.versatia.text",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class UnknownPropertyException"
+    },
+    {
+      "name": "UnknownTagException",
+      "package": "dev.versatia.text",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class UnknownTagException : TextException(message)",
+      "summary": "A text uses a tag that does not exist where it stands: it is neither a MiniMessage tag, a tag registered with `Text.tag`, nor a style the server defines there."
+    },
+    {
+      "name": "arg",
+      "package": "dev.versatia.text",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "signature": "fun arg(name: String, value: Any?)"
+    },
+    {
+      "name": "present",
+      "package": "dev.versatia.text",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Text",
+      "signature": "inline fun <reified T : Any> Text.present(style: String? = null, noinline presenter: (T) -> Presentation)"
+    },
+    {
+      "name": "presentation",
+      "package": "dev.versatia.text",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "signature": "fun presentation(build: PresentationBuilder.() -> Unit)"
+    },
+    {
+      "name": "require",
+      "package": "dev.versatia.text",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Arguments",
+      "signature": "inline fun <reified T : Any> Arguments.require(name: String): T",
+      "summary": "The argument `name` as a `T`; throws when it is missing or of another type."
+    },
+    {
+      "name": "text",
+      "package": "dev.versatia.text",
+      "kind": "property",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "val Plugin.text",
+      "summary": "This plugin's `Text`, the instance its beans are injected, so the main class writes `text.present<Duration> { }` with nothing injected."
+    },
+    {
+      "name": "DeepMergeMap",
+      "package": "dev.versatia.util.collection",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class DeepMergeMap<K> : MutableMap<K, Any?> by backing",
+      "summary": "A mutable map that merges other maps into itself recursively: nested maps are merged key by key, nested collections are concatenated, and every other clash is resolved by `conflictStrategy`."
+    },
+    {
+      "name": "MapConflict",
+      "package": "dev.versatia.util.collection",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "data class MapConflict<K, V>",
+      "summary": "A key that would be written twice: once with `existingValue`, once with `newValue`."
+    },
+    {
+      "name": "MergeConflictStrategy",
+      "package": "dev.versatia.util.collection",
+      "kind": "enum",
+      "artifact": "VersatiaAPI",
+      "signature": "enum class MergeConflictStrategy",
+      "entries": [
+        {
+          "name": "OVERRIDE",
+          "summary": "The incoming value replaces the existing one."
+        },
+        {
+          "name": "KEEP_EXISTING",
+          "summary": "The existing value stays."
+        },
+        {
+          "name": "COMBINE_INTO_LIST",
+          "summary": "Both values end up in a list; collections are flattened into it."
+        },
+        {
+          "name": "THROW",
+          "summary": "An `IllegalStateException` naming the key path is thrown."
+        }
+      ],
+      "summary": "What `DeepMergeMap` does when a key exists on both sides and the values cannot be merged structurally."
+    },
+    {
+      "name": "addAllOrThrow",
+      "package": "dev.versatia.util.collection",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "MutableSet<T>",
+      "signature": "fun <T> MutableSet<T>.addAllOrThrow(elements: Iterable<T>, exceptionGenerator: (duplicates: Collection<T>) -> Throwable = ::defaultAddAllException)",
+      "summary": "Adds all `elements` or throws when any of them is already in the set or appears more than once in `elements`.",
+      "overloads": 3
+    },
+    {
+      "name": "addOrThrow",
+      "package": "dev.versatia.util.collection",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "MutableSet<T>",
+      "signature": "fun <T> MutableSet<T>.addOrThrow(element: T, exceptionGenerator: () -> Throwable = { IllegalStateException(\"Element \\\"$element\\\" is already in the set\") })"
+    },
+    {
+      "name": "cycle",
+      "package": "dev.versatia.util.collection",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "List<T>",
+      "signature": "fun <T> List<T>.cycle(): Iterator<T>",
+      "summary": "An endless iterator going round this list: its elements in order, then from the first again, such as lines broadcast in turn."
+    },
+    {
+      "name": "getOrThrow",
+      "package": "dev.versatia.util.collection",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Map<K, V>",
+      "signature": "fun <K, V> Map<K, V>.getOrThrow(key: K, exceptionGenerator: () -> Throwable = { NoSuchElementException(\"No value assigned to key \\\"$key\\\"\") })"
+    },
+    {
+      "name": "mergeOrThrow",
+      "package": "dev.versatia.util.collection",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Iterable<Map<K, V>>",
+      "signature": "fun <K, V> Iterable<Map<K, V>>.mergeOrThrow(exceptionGenerator: (conflicts: List<MapConflict<K, V>>) -> Throwable = ::defaultConflictException): Map<K, V>",
+      "summary": "Merges all maps into one or throws when the same key occurs in more than one of them."
+    },
+    {
+      "name": "putAllOrThrow",
+      "package": "dev.versatia.util.collection",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "MutableMap<K, V>",
+      "signature": "fun <K, V> MutableMap<K, V>.putAllOrThrow(entries: Iterable<Pair<K, V>>, exceptionGenerator: (conflicts: List<MapConflict<K, V>>) -> Throwable = ::defaultConflictException)",
+      "summary": "Puts all `entries` or throws when a key is already present in the map or appears more than once in `entries`.",
+      "overloads": 4
+    },
+    {
+      "name": "putOrThrow",
+      "package": "dev.versatia.util.collection",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "MutableMap<K, V>",
+      "signature": "fun <K, V> MutableMap<K, V>.putOrThrow(key: K, value: V, exceptionGenerator: (existingValue: V) -> Throwable = { IllegalStateException(\"Key \\\"$key\\\" already has a value ($it)\") })"
+    },
+    {
+      "name": "ConfigurationValueException",
+      "package": "dev.versatia.util.config",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "class ConfigurationValueException : RuntimeException(message)",
+      "summary": "A required configuration value is missing or has the wrong shape."
+    },
+    {
+      "name": "YAML_EXTENSIONS",
+      "package": "dev.versatia.util.config",
+      "kind": "property",
+      "artifact": "VersatiaAPI",
+      "signature": "val YAML_EXTENSIONS"
+    },
+    {
+      "name": "asStringsMap",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.asStringsMap()",
+      "summary": "Direct children as strings; throws when a child is a section or a list."
+    },
+    {
+      "name": "forEachYamlFile",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "fun Plugin.forEachYamlFile(pluginRelativePath: String, action: (Path, YamlConfiguration) -> Unit)",
+      "summary": "Runs `action` for every `.yml`/`.yaml` file under `<data folder>/<pluginRelativePath>`, recursively, in path order."
+    },
+    {
+      "name": "getBooleanListOrNull",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getBooleanListOrNull(key: String)"
+    },
+    {
+      "name": "getBooleanListOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getBooleanListOrThrow(key: String, exceptionMessage: String? = null)"
+    },
+    {
+      "name": "getBooleanOrNull",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getBooleanOrNull(key: String)"
+    },
+    {
+      "name": "getBooleanOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getBooleanOrThrow(key: String, exceptionMessage: String? = null)"
+    },
+    {
+      "name": "getColorOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getColorOrThrow(key: String, exceptionMessage: String? = null): Color"
+    },
+    {
+      "name": "getConfigurationSectionOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getConfigurationSectionOrThrow(key: String, exceptionMessage: String? = null): ConfigurationSection"
+    },
+    {
+      "name": "getDoubleListOrNull",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getDoubleListOrNull(key: String)"
+    },
+    {
+      "name": "getDoubleListOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getDoubleListOrThrow(key: String, exceptionMessage: String? = null)"
+    },
+    {
+      "name": "getDoubleOrNull",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getDoubleOrNull(key: String)"
+    },
+    {
+      "name": "getDoubleOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getDoubleOrThrow(key: String, exceptionMessage: String? = null)"
+    },
+    {
+      "name": "getDuration",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getDuration(key: String, def: Duration)"
+    },
+    {
+      "name": "getDurationList",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getDurationList(key: String)"
+    },
+    {
+      "name": "getDurationOrNull",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getDurationOrNull(key: String)"
+    },
+    {
+      "name": "getDurationOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getDurationOrThrow(key: String, exceptionMessage: String? = null)"
+    },
+    {
+      "name": "getEnumElement",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun <reified T : Enum<T>> ConfigurationSection.getEnumElement(key: String, def: T)"
+    },
+    {
+      "name": "getEnumElementList",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun <reified T : Enum<T>> ConfigurationSection.getEnumElementList(key: String)",
+      "overloads": 2
+    },
+    {
+      "name": "getEnumElementOrNull",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun <reified T : Enum<T>> ConfigurationSection.getEnumElementOrNull(key: String)"
+    },
+    {
+      "name": "getEnumElementOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun <reified T : Enum<T>> ConfigurationSection.getEnumElementOrThrow(key: String, exceptionMessage: String? = null)",
+      "overloads": 2
+    },
+    {
+      "name": "getFloatListOrNull",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getFloatListOrNull(key: String)"
+    },
+    {
+      "name": "getFloatListOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getFloatListOrThrow(key: String, exceptionMessage: String? = null)"
+    },
+    {
+      "name": "getFloatOrNull",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getFloatOrNull(key: String)"
+    },
+    {
+      "name": "getFloatOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getFloatOrThrow(key: String, exceptionMessage: String? = null)"
+    },
+    {
+      "name": "getIntListOrNull",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getIntListOrNull(key: String)"
+    },
+    {
+      "name": "getIntListOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getIntListOrThrow(key: String, exceptionMessage: String? = null)"
+    },
+    {
+      "name": "getIntOrNull",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getIntOrNull(key: String)"
+    },
+    {
+      "name": "getIntOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getIntOrThrow(key: String, exceptionMessage: String? = null)"
+    },
+    {
+      "name": "getItemStackOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getItemStackOrThrow(key: String, exceptionMessage: String? = null): ItemStack"
+    },
+    {
+      "name": "getLocationOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getLocationOrThrow(key: String, exceptionMessage: String? = null): Location"
+    },
+    {
+      "name": "getLongListOrNull",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getLongListOrNull(key: String)"
+    },
+    {
+      "name": "getLongListOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getLongListOrThrow(key: String, exceptionMessage: String? = null)"
+    },
+    {
+      "name": "getLongOrNull",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getLongOrNull(key: String)"
+    },
+    {
+      "name": "getLongOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getLongOrThrow(key: String, exceptionMessage: String? = null)"
+    },
+    {
+      "name": "getOfflinePlayerOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getOfflinePlayerOrThrow(key: String, exceptionMessage: String? = null): OfflinePlayer"
+    },
+    {
+      "name": "getOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun <T : Any> ConfigurationSection.getOrThrow(key: String, expectedType: String, exceptionMessage: String? = null, fetch: (String) -> T?)",
+      "summary": "Throws `ConfigurationValueException` when `key` is absent or when `fetch` returns null for it."
+    },
+    {
+      "name": "getPercent",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getPercent(key: String, def: Percent)"
+    },
+    {
+      "name": "getPercentList",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getPercentList(key: String)"
+    },
+    {
+      "name": "getPercentOrNull",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getPercentOrNull(key: String)"
+    },
+    {
+      "name": "getPercentOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getPercentOrThrow(key: String, exceptionMessage: String? = null)"
+    },
+    {
+      "name": "getSecret",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getSecret(key: String, def: Secret)"
+    },
+    {
+      "name": "getSecretList",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getSecretList(key: String): List<Secret>"
+    },
+    {
+      "name": "getSecretOrNull",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getSecretOrNull(key: String)"
+    },
+    {
+      "name": "getSecretOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getSecretOrThrow(key: String, exceptionMessage: String? = null)"
+    },
+    {
+      "name": "getStringListOrNull",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getStringListOrNull(key: String)"
+    },
+    {
+      "name": "getStringListOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getStringListOrThrow(key: String, exceptionMessage: String? = null)"
+    },
+    {
+      "name": "getStringOrNull",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getStringOrNull(key: String)"
+    },
+    {
+      "name": "getStringOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getStringOrThrow(key: String, exceptionMessage: String? = null)"
+    },
+    {
+      "name": "getUByteList",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getUByteList(key: String)"
+    },
+    {
+      "name": "getUInt",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getUInt(key: String, def: UInt)"
+    },
+    {
+      "name": "getUIntList",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getUIntList(key: String)"
+    },
+    {
+      "name": "getUIntOrNull",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getUIntOrNull(key: String)"
+    },
+    {
+      "name": "getUIntOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getUIntOrThrow(key: String, exceptionMessage: String? = null)"
+    },
+    {
+      "name": "getULong",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getULong(key: String, def: ULong)"
+    },
+    {
+      "name": "getULongList",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getULongList(key: String)"
+    },
+    {
+      "name": "getULongOrNull",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getULongOrNull(key: String)"
+    },
+    {
+      "name": "getULongOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getULongOrThrow(key: String, exceptionMessage: String? = null)"
+    },
+    {
+      "name": "getUShortList",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getUShortList(key: String)"
+    },
+    {
+      "name": "getVectorOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.getVectorOrThrow(key: String, exceptionMessage: String? = null): Vector"
+    },
+    {
+      "name": "ifBooleanPresent",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun ConfigurationSection.ifBooleanPresent(key: String, action: (Boolean) -> Unit)"
+    },
+    {
+      "name": "ifColorPresent",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun ConfigurationSection.ifColorPresent(key: String, action: (Color) -> Unit)"
+    },
+    {
+      "name": "ifDoublePresent",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun ConfigurationSection.ifDoublePresent(key: String, action: (Double) -> Unit)"
+    },
+    {
+      "name": "ifDurationPresent",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun ConfigurationSection.ifDurationPresent(key: String, action: (Duration) -> Unit)"
+    },
+    {
+      "name": "ifEnumElementPresent",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun <reified T : Enum<T>> ConfigurationSection.ifEnumElementPresent(key: String, action: (T) -> Unit)"
+    },
+    {
+      "name": "ifFloatPresent",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun ConfigurationSection.ifFloatPresent(key: String, action: (Float) -> Unit)"
+    },
+    {
+      "name": "ifIntPresent",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun ConfigurationSection.ifIntPresent(key: String, action: (Int) -> Unit)"
+    },
+    {
+      "name": "ifItemStackPresent",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun ConfigurationSection.ifItemStackPresent(key: String, action: (ItemStack) -> Unit)"
+    },
+    {
+      "name": "ifLocationPresent",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun ConfigurationSection.ifLocationPresent(key: String, action: (Location) -> Unit)"
+    },
+    {
+      "name": "ifLongPresent",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun ConfigurationSection.ifLongPresent(key: String, action: (Long) -> Unit)"
+    },
+    {
+      "name": "ifOfflinePlayerPresent",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun ConfigurationSection.ifOfflinePlayerPresent(key: String, action: (OfflinePlayer) -> Unit)"
+    },
+    {
+      "name": "ifPercentPresent",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun ConfigurationSection.ifPercentPresent(key: String, action: (Percent) -> Unit)"
+    },
+    {
+      "name": "ifSecretPresent",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun ConfigurationSection.ifSecretPresent(key: String, action: (Secret) -> Unit)"
+    },
+    {
+      "name": "ifSectionPresent",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun ConfigurationSection.ifSectionPresent(key: String, action: (ConfigurationSection) -> Unit)"
+    },
+    {
+      "name": "ifStringPresent",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun ConfigurationSection.ifStringPresent(key: String, action: (String) -> Unit)"
+    },
+    {
+      "name": "ifUIntPresent",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun ConfigurationSection.ifUIntPresent(key: String, action: (UInt) -> Unit)"
+    },
+    {
+      "name": "ifULongPresent",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun ConfigurationSection.ifULongPresent(key: String, action: (ULong) -> Unit)"
+    },
+    {
+      "name": "ifVectorPresent",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun ConfigurationSection.ifVectorPresent(key: String, action: (Vector) -> Unit)"
+    },
+    {
+      "name": "isDuration",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.isDuration(key: String)"
+    },
+    {
+      "name": "isEnumElement",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "inline fun <reified T : Enum<T>> ConfigurationSection.isEnumElement(key: String)"
+    },
+    {
+      "name": "isPercent",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.isPercent(key: String)"
+    },
+    {
+      "name": "isSecret",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.isSecret(key: String)"
+    },
+    {
+      "name": "isUInt",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.isUInt(key: String)"
+    },
+    {
+      "name": "isULong",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.isULong(key: String)"
+    },
+    {
+      "name": "loadYamlOrThrow",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "signature": "fun loadYamlOrThrow(file: File): YamlConfiguration",
+      "summary": "Loads a YAML file, propagating parse errors.",
+      "overloads": 3
+    },
+    {
+      "name": "mapChildren",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun <T> ConfigurationSection.mapChildren(mapping: (key: String, section: ConfigurationSection) -> T)",
+      "summary": "Maps every direct child section; throws when a child is not a section."
+    },
+    {
+      "name": "mapYamlFiles",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "fun <T> Plugin.mapYamlFiles(pluginRelativePath: String, action: (Path, YamlConfiguration) -> T): Map<Path, T>"
+    },
+    {
+      "name": "pathOf",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ConfigurationSection",
+      "signature": "fun ConfigurationSection.pathOf(key: String): String",
+      "summary": "Full path of `key` inside this section, as it appears in the file, joined with the configuration's path separator."
+    },
+    {
+      "name": "yamlFiles",
+      "package": "dev.versatia.util.config",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "File",
+      "signature": "fun File.yamlFiles()",
+      "summary": "Every `.yml`/`.yaml` file under this directory, recursively, ordered by the path relative to it with `/` separators, so the order is the same on every platform; empty when this is not a directory."
+    },
+    {
+      "name": "PlayerInventorySlots",
+      "package": "dev.versatia.util.inventory",
+      "kind": "object",
+      "artifact": "VersatiaAPI",
+      "signature": "object PlayerInventorySlots",
+      "summary": "`PlayerInventory` indices of the armor and off-hand slots, as `PlayerInventory.getItem(Int)` and `InventoryClickEvent.slot` use them; not raw slots (`InventoryClickEvent.rawSlot`), which number the whole view and put the armor at 5-8 and the off hand at 45 in the player's own inventory."
+    },
+    {
+      "name": "getAmountOfSimilarItems",
+      "package": "dev.versatia.util.inventory",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Array<out ItemStack?>",
+      "signature": "fun Array<out ItemStack?>.getAmountOfSimilarItems(item: ItemStack)"
+    },
+    {
+      "name": "getAmountOfSimilarItems",
+      "package": "dev.versatia.util.inventory",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Inventory",
+      "signature": "fun Inventory.getAmountOfSimilarItems(item: ItemStack)",
+      "summary": "Total amount of items that are `ItemStack.isSimilar` to `item`."
+    },
+    {
+      "name": "isNullOrAir",
+      "package": "dev.versatia.util.inventory",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ItemStack?",
+      "signature": "fun ItemStack?.isNullOrAir(): Boolean",
+      "summary": "True for null, any kind of air (`AIR`, `CAVE_AIR`, `VOID_AIR`) and empty stacks."
+    },
+    {
+      "name": "loreWithoutDefaultFormat",
+      "package": "dev.versatia.util.inventory",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ItemMeta",
+      "signature": "fun ItemMeta.loreWithoutDefaultFormat(lore: List<Component>?)",
+      "summary": "Sets `lore` without the client's default lore styling; see `withoutDefaultItemFormat`."
+    },
+    {
+      "name": "loreWithoutDefaultFormat",
+      "package": "dev.versatia.util.inventory",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ItemStack",
+      "signature": "fun ItemStack.loreWithoutDefaultFormat(lore: List<Component>?)",
+      "summary": "Sets `lore` without the client's default lore styling; see `withoutDefaultItemFormat`."
+    },
+    {
+      "name": "toEquipmentSlotOrNull",
+      "package": "dev.versatia.util.inventory",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Int",
+      "signature": "fun Int.toEquipmentSlotOrNull()",
+      "summary": "Maps a `PlayerInventory` index (see `PlayerInventorySlots`) to the equipment slot it holds, or null for storage and hotbar slots."
+    },
+    {
+      "name": "withoutDefaultItemFormat",
+      "package": "dev.versatia.util.inventory",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "List<Component>",
+      "signature": "fun List<Component>.withoutDefaultItemFormat()",
+      "summary": "Removes the client's default item lore styling (italic, purple) by forcing non-italic white where no style is set."
+    },
+    {
+      "name": "asEnumIgnoreCase",
+      "package": "dev.versatia.util.lang",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "signature": "inline fun <reified T : Enum<T>> asEnumIgnoreCase(name: String)",
+      "summary": "Like `asEnumIgnoreCase` for an enum class known only at runtime.",
+      "overloads": 2
+    },
+    {
+      "name": "asEnumIgnoreCaseOrThrow",
+      "package": "dev.versatia.util.lang",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "signature": "inline fun <reified T : Enum<T>> asEnumIgnoreCaseOrThrow(name: String)"
+    },
+    {
+      "name": "isEnumIgnoreCase",
+      "package": "dev.versatia.util.lang",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "signature": "inline fun <reified T : Enum<T>> isEnumIgnoreCase(name: String)"
+    },
+    {
+      "name": "log",
+      "package": "dev.versatia.util.plugin",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "fun Plugin.log(message: String)",
+      "summary": "Logs through the plugin's own logger, so the line carries the plugin's name.",
+      "overloads": 3
+    },
+    {
+      "name": "logSevere",
+      "package": "dev.versatia.util.plugin",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "fun Plugin.logSevere(message: String, cause: Throwable? = null)"
+    },
+    {
+      "name": "logWarning",
+      "package": "dev.versatia.util.plugin",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "fun Plugin.logWarning(message: String)"
+    },
+    {
+      "name": "forceAccessible",
+      "package": "dev.versatia.util.reflect",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "T",
+      "signature": "fun <T : AccessibleObject> T.forceAccessible()",
+      "summary": "Makes this member accessible and returns it."
+    },
+    {
+      "name": "forceGetObjectInstance",
+      "package": "dev.versatia.util.reflect",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "KClass<T>",
+      "signature": "fun <T : Any> KClass<T>.forceGetObjectInstance()",
+      "summary": "Like `KClass.objectInstance`, but also works for private nested objects."
+    },
+    {
+      "name": "forceGetValue",
+      "package": "dev.versatia.util.reflect",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "KProperty1<T, V>",
+      "signature": "fun <T, V> KProperty1<T, V>.forceGetValue(instance: T): V",
+      "summary": "Reads the property through its getter, or through its field for a property of a Kotlin object."
+    },
+    {
+      "name": "forceInvoke",
+      "package": "dev.versatia.util.reflect",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "KFunction<*>",
+      "signature": "fun KFunction<*>.forceInvoke(vararg args: Any?)"
+    },
+    {
+      "name": "forceSetValue",
+      "package": "dev.versatia.util.reflect",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "KMutableProperty1<T, V>",
+      "signature": "fun <T, V> KMutableProperty1<T, V>.forceSetValue(instance: T, value: V)",
+      "summary": "Sets the property through its setter, private or not, so a custom setter runs; a property without one is set through its field."
+    },
+    {
+      "name": "getObjectInstanceOrThrow",
+      "package": "dev.versatia.util.reflect",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "KClass<T>",
+      "signature": "fun <T : Any> KClass<T>.getObjectInstanceOrThrow()"
+    },
+    {
+      "name": "isClassInClasspath",
+      "package": "dev.versatia.util.reflect",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "signature": "fun isClassInClasspath(qualifiedClassName: String, classLoader: ClassLoader)",
+      "summary": "Whether `classLoader` can see a class named `qualifiedClassName`."
+    },
+    {
+      "name": "objectInstanceOrNull",
+      "package": "dev.versatia.util.reflect",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Class<*>",
+      "signature": "fun Class<*>.objectInstanceOrNull(): Any?",
+      "summary": "The instance of this Kotlin `object`, read from its static `INSTANCE` field even when the object is private; null for any other class."
+    },
+    {
+      "name": "objectOrNewInstance",
+      "package": "dev.versatia.util.reflect",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Class<*>",
+      "signature": "fun Class<*>.objectOrNewInstance(): Any",
+      "summary": "`objectInstanceOrNull`, or else a new instance from the no-argument constructor, private or not."
+    },
+    {
+      "name": "callSyncMethod",
+      "package": "dev.versatia.util.scheduler",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "fun <T> Plugin.callSyncMethod(task: Callable<T>): Future<T>"
+    },
+    {
+      "name": "cancelAllTasks",
+      "package": "dev.versatia.util.scheduler",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "fun Plugin.cancelAllTasks()"
+    },
+    {
+      "name": "runTask",
+      "package": "dev.versatia.util.scheduler",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "fun Plugin.runTask(task: Runnable)"
+    },
+    {
+      "name": "runTaskAsynchronously",
+      "package": "dev.versatia.util.scheduler",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "fun Plugin.runTaskAsynchronously(task: Runnable)"
+    },
+    {
+      "name": "runTaskAsynchronouslyWithContext",
+      "package": "dev.versatia.util.scheduler",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "fun Plugin.runTaskAsynchronouslyWithContext(task: Consumer<in BukkitTask>)"
+    },
+    {
+      "name": "runTaskLater",
+      "package": "dev.versatia.util.scheduler",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "fun Plugin.runTaskLater(delayTicks: Long, task: Runnable)"
+    },
+    {
+      "name": "runTaskLaterAsynchronously",
+      "package": "dev.versatia.util.scheduler",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "fun Plugin.runTaskLaterAsynchronously(delayTicks: Long, task: Runnable)"
+    },
+    {
+      "name": "runTaskLaterAsynchronouslyWithContext",
+      "package": "dev.versatia.util.scheduler",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "fun Plugin.runTaskLaterAsynchronouslyWithContext(delayTicks: Long, task: Consumer<in BukkitTask>)"
+    },
+    {
+      "name": "runTaskLaterWithContext",
+      "package": "dev.versatia.util.scheduler",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "fun Plugin.runTaskLaterWithContext(delayTicks: Long, task: Consumer<in BukkitTask>)"
+    },
+    {
+      "name": "runTaskTimer",
+      "package": "dev.versatia.util.scheduler",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "fun Plugin.runTaskTimer(periodTicks: Long, delayTicks: Long = 0, task: Runnable)"
+    },
+    {
+      "name": "runTaskTimerAsynchronously",
+      "package": "dev.versatia.util.scheduler",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "fun Plugin.runTaskTimerAsynchronously(periodTicks: Long, delayTicks: Long = 0, task: Runnable)"
+    },
+    {
+      "name": "runTaskTimerAsynchronouslyWithContext",
+      "package": "dev.versatia.util.scheduler",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "fun Plugin.runTaskTimerAsynchronouslyWithContext(periodTicks: Long, delayTicks: Long = 0, task: Consumer<in BukkitTask>)"
+    },
+    {
+      "name": "runTaskTimerWithContext",
+      "package": "dev.versatia.util.scheduler",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "fun Plugin.runTaskTimerWithContext(periodTicks: Long, delayTicks: Long = 0, task: Consumer<in BukkitTask>)"
+    },
+    {
+      "name": "runTaskWithContext",
+      "package": "dev.versatia.util.scheduler",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Plugin",
+      "signature": "fun Plugin.runTaskWithContext(task: Consumer<in BukkitTask>)"
+    },
+    {
+      "name": "toSubscript",
+      "package": "dev.versatia.util.text",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Int",
+      "signature": "fun Int.toSubscript()"
+    },
+    {
+      "name": "toSubscript",
+      "package": "dev.versatia.util.text",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Long",
+      "signature": "fun Long.toSubscript()"
+    },
+    {
+      "name": "toSubscript",
+      "package": "dev.versatia.util.text",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "String",
+      "signature": "fun String.toSubscript()",
+      "summary": "Converts a string of ASCII digits with an optional leading minus sign to its subscript form."
+    },
+    {
+      "name": "toSubscript",
+      "package": "dev.versatia.util.text",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "UInt",
+      "signature": "fun UInt.toSubscript()"
+    },
+    {
+      "name": "toSubscript",
+      "package": "dev.versatia.util.text",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ULong",
+      "signature": "fun ULong.toSubscript()"
+    },
+    {
+      "name": "toSuperscript",
+      "package": "dev.versatia.util.text",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Int",
+      "signature": "fun Int.toSuperscript()"
+    },
+    {
+      "name": "toSuperscript",
+      "package": "dev.versatia.util.text",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Long",
+      "signature": "fun Long.toSuperscript()"
+    },
+    {
+      "name": "toSuperscript",
+      "package": "dev.versatia.util.text",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "String",
+      "signature": "fun String.toSuperscript()",
+      "summary": "Converts a string of ASCII digits with an optional leading minus sign to its superscript form."
+    },
+    {
+      "name": "toSuperscript",
+      "package": "dev.versatia.util.text",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "UInt",
+      "signature": "fun UInt.toSuperscript()"
+    },
+    {
+      "name": "toSuperscript",
+      "package": "dev.versatia.util.text",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "ULong",
+      "signature": "fun ULong.toSuperscript()"
+    },
+    {
+      "name": "Percent",
+      "package": "dev.versatia.util.type",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "value class Percent : Comparable<Percent>",
+      "summary": "A percentage in the closed range 0..100."
+    },
+    {
+      "name": "Secret",
+      "package": "dev.versatia.util.type",
+      "kind": "class",
+      "artifact": "VersatiaAPI",
+      "signature": "value class Secret",
+      "summary": "A secret from the configuration, such as a password or a token."
+    },
+    {
+      "name": "validate",
+      "package": "dev.versatia.util.validation",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "T",
+      "signature": "inline fun <T> T.validate(predicate: (T) -> Boolean, lazyMessage: () -> Any = { \"$this does not match the predicate\" }): T"
+    },
+    {
+      "name": "validateAtLeast",
+      "package": "dev.versatia.util.validation",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "T",
+      "signature": "inline fun <T : Comparable<T>> T.validateAtLeast(least: T, lazyMessage: () -> Any = { \"Should be at least '$least' but was '$this'\" })"
+    },
+    {
+      "name": "validateAtMost",
+      "package": "dev.versatia.util.validation",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "T",
+      "signature": "inline fun <T : Comparable<T>> T.validateAtMost(most: T, lazyMessage: () -> Any = { \"Should be at most '$most' but was '$this'\" })"
+    },
+    {
+      "name": "validateBetween",
+      "package": "dev.versatia.util.validation",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "T",
+      "signature": "inline fun <T : Comparable<T>> T.validateBetween(least: T, most: T, lazyMessage: () -> Any = { \"Should be between '$least' and '$most' but was '$this'\" })"
+    },
+    {
+      "name": "validateGreaterThan",
+      "package": "dev.versatia.util.validation",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "T",
+      "signature": "inline fun <T : Comparable<T>> T.validateGreaterThan(bound: T, lazyMessage: () -> Any = { \"Should be greater than '$bound' but was '$this'\" })"
+    },
+    {
+      "name": "validateIn",
+      "package": "dev.versatia.util.validation",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "T",
+      "signature": "inline fun <T : Comparable<T>> T.validateIn(range: ClosedRange<T>, lazyMessage: () -> Any = { \"Should be in $range but was '$this'\" })"
+    },
+    {
+      "name": "validateLessThan",
+      "package": "dev.versatia.util.validation",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "T",
+      "signature": "inline fun <T : Comparable<T>> T.validateLessThan(bound: T, lazyMessage: () -> Any = { \"Should be less than '$bound' but was '$this'\" })"
+    },
+    {
+      "name": "validateNotZero",
+      "package": "dev.versatia.util.validation",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "T",
+      "signature": "inline fun <T : Number> T.validateNotZero(lazyMessage: () -> Any = { \"Should not be zero\" })"
+    },
+    {
+      "name": "validateZero",
+      "package": "dev.versatia.util.validation",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "T",
+      "signature": "inline fun <T : Number> T.validateZero(lazyMessage: () -> Any = { \"Should be zero but was '$this'\" })"
+    },
+    {
+      "name": "getCircleAround",
+      "package": "dev.versatia.util.world",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Location",
+      "signature": "fun Location.getCircleAround(radius: Double, points: Int = 100)",
+      "summary": "`points` locations evenly spaced on a horizontal circle of `radius` around this location, in its world; throws when that world has been unloaded."
+    },
+    {
+      "name": "isWithin",
+      "package": "dev.versatia.util.world",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Location",
+      "signature": "fun Location.isWithin(distance: Double, other: Location)",
+      "summary": "Whether `other` is in this location's world and at most `distance` blocks away; false, not an exception, when the worlds differ or either is not set."
+    },
+    {
+      "name": "spawnParticle",
+      "package": "dev.versatia.util.world",
+      "kind": "function",
+      "artifact": "VersatiaAPI",
+      "receiver": "Location",
+      "signature": "fun Location.spawnParticle(particle: Particle, count: Int = 1, offsetX: Double = 0.0, offsetY: Double = 0.0, offsetZ: Double = 0.0, extra: Double = 1.0, data: Any? = null, force: Boolean = false)",
+      "summary": "Spawns a particle at this location; does nothing when its world is not set or no longer loaded."
+    },
+    {
+      "name": "Database",
+      "package": "dev.versatia.database",
+      "kind": "interface",
+      "artifact": "VersatiaModule-Database",
+      "signature": "interface Database : SqlScope",
+      "summary": "The database of the plugin that injects it, configured by that plugin's `database.yml` (a SQLite file in its data folder when there is none), with the migrations from its JAR applied."
+    },
+    {
+      "name": "DatabaseBusyException",
+      "package": "dev.versatia.database",
+      "kind": "class",
+      "artifact": "VersatiaModule-Database",
+      "signature": "class DatabaseBusyException : DatabaseException(message)",
+      "summary": "More background tasks are waiting than `queue-limit` allows."
+    },
+    {
+      "name": "DatabaseClosedException",
+      "package": "dev.versatia.database",
+      "kind": "class",
+      "artifact": "VersatiaModule-Database",
+      "signature": "class DatabaseClosedException : DatabaseException(message)",
+      "summary": "The plugin, or the module, is disabling or disabled."
+    },
+    {
+      "name": "DatabaseConfigException",
+      "package": "dev.versatia.database",
+      "kind": "class",
+      "artifact": "VersatiaModule-Database",
+      "signature": "class DatabaseConfigException : DatabaseException(message, cause)",
+      "summary": "`database.yml` or `connections.yml` is invalid, an SQL file in the JAR is malformed, or the server is too old; names the file and the key."
+    },
+    {
+      "name": "DatabaseException",
+      "package": "dev.versatia.database",
+      "kind": "class",
+      "artifact": "VersatiaModule-Database",
+      "signature": "open class DatabaseException : RuntimeException(message, cause)",
+      "summary": "Every failure of the module; messages start with `Plugin <name>:` and say what to do."
+    },
+    {
+      "name": "DatabaseFuture",
+      "package": "dev.versatia.database",
+      "kind": "interface",
+      "artifact": "VersatiaModule-Database",
+      "signature": "interface DatabaseFuture<T>",
+      "summary": "The result of database work off the server thread."
+    },
+    {
+      "name": "DatabaseStatus",
+      "package": "dev.versatia.database",
+      "kind": "class",
+      "artifact": "VersatiaModule-Database",
+      "signature": "data class DatabaseStatus",
+      "summary": "A snapshot of one plugin's database: `plugin` is its friendly name, `target` a file path or `host:port/database`, never credentials, and `schemaVersion` the highest applied migration (0 without migrations or before the database opens)."
+    },
+    {
+      "name": "DatabaseUnavailableException",
+      "package": "dev.versatia.database",
+      "kind": "class",
+      "artifact": "VersatiaModule-Database",
+      "signature": "class DatabaseUnavailableException : DatabaseException(message, cause)",
+      "summary": "No connection could be made or borrowed in time; the message carries the fix for the admin."
+    },
+    {
+      "name": "DuplicateKeyException",
+      "package": "dev.versatia.database",
+      "kind": "class",
+      "artifact": "VersatiaModule-Database",
+      "signature": "class DuplicateKeyException",
+      "summary": "A primary key or unique constraint was violated, recognised the same way on every engine."
+    },
+    {
+      "name": "Engine",
+      "package": "dev.versatia.database",
+      "kind": "enum",
+      "artifact": "VersatiaModule-Database",
+      "signature": "enum class Engine",
+      "entries": [
+        {
+          "name": "SQLITE"
+        },
+        {
+          "name": "H2"
+        },
+        {
+          "name": "MYSQL"
+        },
+        {
+          "name": "MARIADB"
+        },
+        {
+          "name": "POSTGRESQL"
+        }
+      ],
+      "summary": "The engines the module speaks, as `engine:` names them (case-insensitive); `embedded` ones are a file in the plugin's data folder."
+    },
+    {
+      "name": "FailureKind",
+      "package": "dev.versatia.database",
+      "kind": "enum",
+      "artifact": "VersatiaModule-Database",
+      "signature": "enum class FailureKind",
+      "entries": [
+        {
+          "name": "DUPLICATE_KEY"
+        },
+        {
+          "name": "FOREIGN_KEY"
+        },
+        {
+          "name": "NOT_NULL"
+        },
+        {
+          "name": "CHECK"
+        },
+        {
+          "name": "DEADLOCK"
+        },
+        {
+          "name": "LOCK_TIMEOUT"
+        },
+        {
+          "name": "TIMEOUT"
+        },
+        {
+          "name": "CONNECTION"
+        },
+        {
+          "name": "OTHER"
+        }
+      ],
+      "summary": "Portable classification of a statement failure; `retryable` ones are rerun by `transaction(retries = n)`."
+    },
+    {
+      "name": "Json",
+      "package": "dev.versatia.database",
+      "kind": "class",
+      "artifact": "VersatiaModule-Database",
+      "signature": "value class Json",
+      "summary": "JSON text for a `{json}` column; bound so that PostgreSQL's JSONB accepts it, plain text elsewhere."
+    },
+    {
+      "name": "MainThreadException",
+      "package": "dev.versatia.database",
+      "kind": "class",
+      "artifact": "VersatiaModule-Database",
+      "signature": "class MainThreadException : DatabaseException(message)",
+      "summary": "A blocking call on the server thread while `main-thread: throw`."
+    },
+    {
+      "name": "MappingException",
+      "package": "dev.versatia.database",
+      "kind": "class",
+      "artifact": "VersatiaModule-Database",
+      "signature": "class MappingException : DatabaseException(message)",
+      "summary": "A row could not become the requested type, or a single-row call found none or several."
+    },
+    {
+      "name": "MigrationException",
+      "package": "dev.versatia.database",
+      "kind": "class",
+      "artifact": "VersatiaModule-Database",
+      "signature": "class MigrationException : DatabaseException(message, cause)",
+      "summary": "A migration or an import failed, was changed after it was applied, or the schema does not match a store's class."
+    },
+    {
+      "name": "PoolStatus",
+      "package": "dev.versatia.database",
+      "kind": "class",
+      "artifact": "VersatiaModule-Database",
+      "signature": "data class PoolStatus",
+      "summary": "Pool figures; `shared` when the pool belongs to a connection from `connections.yml`."
+    },
+    {
+      "name": "QueryException",
+      "package": "dev.versatia.database",
+      "kind": "class",
+      "artifact": "VersatiaModule-Database",
+      "signature": "open class QueryException : DatabaseException(message, cause)",
+      "summary": "The database rejected a statement; `sql` is the statement as written, without values."
+    },
+    {
+      "name": "Row",
+      "package": "dev.versatia.database",
+      "kind": "interface",
+      "artifact": "VersatiaModule-Database",
+      "signature": "interface Row",
+      "summary": "The current row of a result, valid only inside the mapper it was passed to; columns are matched by label, ignoring case."
+    },
+    {
+      "name": "SqlScope",
+      "package": "dev.versatia.database",
+      "kind": "interface",
+      "artifact": "VersatiaModule-Database",
+      "signature": "interface SqlScope",
+      "summary": "What runs SQL: the database, or a transaction."
+    },
+    {
+      "name": "SqlTemplateException",
+      "package": "dev.versatia.database",
+      "kind": "class",
+      "artifact": "VersatiaModule-Database",
+      "signature": "class SqlTemplateException : DatabaseException(message)",
+      "summary": "A placeholder or parameter problem: an unknown `{token}`, an unbound or unknown `:name`, an empty `IN` collection."
+    },
+    {
+      "name": "Statement",
+      "package": "dev.versatia.database",
+      "kind": "interface",
+      "artifact": "VersatiaModule-Database",
+      "signature": "interface Statement",
+      "summary": "One SQL statement: bind parameters, then call one terminal function, which blocks."
+    },
+    {
+      "name": "StoreStatus",
+      "package": "dev.versatia.database",
+      "kind": "class",
+      "artifact": "VersatiaModule-Database",
+      "signature": "data class StoreStatus",
+      "summary": "One store's entries and save state."
+    },
+    {
+      "name": "Transaction",
+      "package": "dev.versatia.database",
+      "kind": "interface",
+      "artifact": "VersatiaModule-Database",
+      "signature": "interface Transaction : SqlScope",
+      "summary": "A running transaction; every call through it, or through its database on the same thread, uses one connection."
+    },
+    {
+      "name": "UnknownQueryException",
+      "package": "dev.versatia.database",
+      "kind": "class",
+      "artifact": "VersatiaModule-Database",
+      "signature": "class UnknownQueryException : DatabaseException(message)",
+      "summary": "`SqlScope.named` got a name no `database/queries` file defines; lists close names."
+    },
+    {
+      "name": "await",
+      "package": "dev.versatia.database",
+      "kind": "function",
+      "artifact": "VersatiaModule-Database",
+      "receiver": "DatabaseFuture<T>",
+      "signature": "suspend fun <T> DatabaseFuture<T>.await()",
+      "summary": "Suspends until the database work is done, without blocking the thread: `val top = database.async { ..."
+    },
+    {
+      "name": "bind",
+      "package": "dev.versatia.database",
+      "kind": "function",
+      "artifact": "VersatiaModule-Database",
+      "receiver": "Statement",
+      "signature": "inline fun <reified T> Statement.bind(name: String, value: T)",
+      "summary": "Binds with the static type of `value`, so a null `UUID?` is still bound as a UUID."
+    },
+    {
+      "name": "get",
+      "package": "dev.versatia.database",
+      "kind": "function",
+      "artifact": "VersatiaModule-Database",
+      "receiver": "Row",
+      "signature": "inline operator fun <reified T> Row.get(column: String): T",
+      "summary": "`val coins: Long = row[\"coins\"]`: the type, nullability included, comes from where the value goes."
+    },
+    {
+      "name": "into",
+      "package": "dev.versatia.database",
+      "kind": "function",
+      "artifact": "VersatiaModule-Database",
+      "receiver": "Row",
+      "signature": "inline fun <reified T> Row.into(): T",
+      "summary": "`row.into<Profile>()`."
+    },
+    {
+      "name": "list",
+      "package": "dev.versatia.database",
+      "kind": "function",
+      "artifact": "VersatiaModule-Database",
+      "receiver": "Statement",
+      "signature": "inline fun <reified T> Statement.list(): List<T>",
+      "summary": "`sql(...).list<TopEntry>()`; nullability and type arguments of `T` are honoured."
+    },
+    {
+      "name": "playerStore",
+      "package": "dev.versatia.database",
+      "kind": "function",
+      "artifact": "VersatiaModule-Database",
+      "receiver": "Database",
+      "signature": "inline fun <reified V : Any> Database.playerStore(table: String, key: KProperty1<V, UUID>, noinline onJoin: ((Player, V) -> V)? = null, noinline onLeave: ((Player, V) -> V)? = null, noinline create: (UUID) -> V)",
+      "summary": "`database.playerStore(\"profiles\", Profile::uuid) { Profile(it) }`."
+    },
+    {
+      "name": "registerType",
+      "package": "dev.versatia.database",
+      "kind": "function",
+      "artifact": "VersatiaModule-Database",
+      "receiver": "Database",
+      "signature": "inline fun <reified T : Any> Database.registerType(codec: ColumnCodec<T, *>)",
+      "summary": "`database.registerType(LocationText)`."
+    },
+    {
+      "name": "single",
+      "package": "dev.versatia.database",
+      "kind": "function",
+      "artifact": "VersatiaModule-Database",
+      "receiver": "Statement",
+      "signature": "inline fun <reified T> Statement.single(): T",
+      "summary": "`sql(\"SELECT COUNT(*) ...\").single<Long>()`."
+    },
+    {
+      "name": "singleOrNull",
+      "package": "dev.versatia.database",
+      "kind": "function",
+      "artifact": "VersatiaModule-Database",
+      "receiver": "Statement",
+      "signature": "inline fun <reified T : Any> Statement.singleOrNull(): T?"
+    },
+    {
+      "name": "store",
+      "package": "dev.versatia.database",
+      "kind": "function",
+      "artifact": "VersatiaModule-Database",
+      "receiver": "Database",
+      "signature": "inline fun <K : Any, reified V : Any> Database.store(table: String, key: KProperty1<V, K>, noinline create: (K) -> V)",
+      "summary": "`database.store(\"guilds\", Guild::id) { Guild(it) }`."
+    },
+    {
+      "name": "Column",
+      "package": "dev.versatia.database.mapping",
+      "kind": "annotation",
+      "artifact": "VersatiaModule-Database",
+      "signature": "@Column(name: String = \"\", codec: KClass<out ColumnCodec<*, *>> = NoCodec::class)",
+      "summary": "The column a constructor parameter maps to, when it is not the parameter name in snake_case, and/or the `codec` that stores its type."
+    },
+    {
+      "name": "ColumnCodec",
+      "package": "dev.versatia.database.mapping",
+      "kind": "interface",
+      "artifact": "VersatiaModule-Database",
+      "signature": "interface ColumnCodec<T : Any, S : Any>",
+      "summary": "Stores `T` as `S`, a type the module binds itself: `String`, `Int`, `Long`, `Double`, `Boolean`, `ByteArray`, `UUID`, `Instant` or `Json`."
+    },
+    {
+      "name": "NoCodec",
+      "package": "dev.versatia.database.mapping",
+      "kind": "object",
+      "artifact": "VersatiaModule-Database",
+      "signature": "object NoCodec : ColumnCodec<Any, Any>",
+      "summary": "The \"no codec\" default of `Column.codec`."
+    },
+    {
+      "name": "EntryNotLoadedException",
+      "package": "dev.versatia.database.store",
+      "kind": "class",
+      "artifact": "VersatiaModule-Database",
+      "signature": "class EntryNotLoadedException : DatabaseException(message)",
+      "summary": "A value was read from a store that has not loaded its key."
+    },
+    {
+      "name": "KeyedStore",
+      "package": "dev.versatia.database.store",
+      "kind": "interface",
+      "artifact": "VersatiaModule-Database",
+      "signature": "interface KeyedStore<K : Any, V : Any>",
+      "summary": "A write-behind cache of immutable values: replacing a value marks it changed, and saves write only the changed columns."
+    },
+    {
+      "name": "PlayerStore",
+      "package": "dev.versatia.database.store",
+      "kind": "interface",
+      "artifact": "VersatiaModule-Database",
+      "signature": "interface PlayerStore<V : Any> : KeyedStore<UUID, V>",
+      "summary": "A store keyed by player UUID: loaded before join (the login is refused when that fails), saved on quit, flushed at disable."
+    },
+    {
+      "name": "StoreAutosaveEndEvent",
+      "package": "dev.versatia.database.store",
+      "kind": "class",
+      "artifact": "VersatiaModule-Database",
+      "signature": "class StoreAutosaveEndEvent : Event()",
+      "summary": "The autosave announced by `StoreAutosaveStartEvent` ended after `duration`: `saved` entries were written and `failed` stay changed for the next one, the first `failure` says why."
+    },
+    {
+      "name": "StoreAutosaveStartEvent",
+      "package": "dev.versatia.database.store",
+      "kind": "class",
+      "artifact": "VersatiaModule-Database",
+      "signature": "class StoreAutosaveStartEvent : Event()",
+      "summary": "An autosave of `plugin`'s stores is about to write `dirty` changed entries of `stores`; called on the server thread, only when something changed, and never once `plugin` is disabled."
+    },
+    {
+      "name": "StoreChange",
+      "package": "dev.versatia.database.store",
+      "kind": "class",
+      "artifact": "VersatiaModule-Database",
+      "signature": "data class StoreChange<K : Any, V : Any>",
+      "summary": "One changed entry: its key, the value to write and the last persisted value."
+    },
+    {
+      "name": "StoreSchema",
+      "package": "dev.versatia.database.store",
+      "kind": "interface",
+      "artifact": "VersatiaModule-Database",
+      "signature": "interface StoreSchema<K : Any, V : Any>",
+      "summary": "How a store reads and writes values when a table store does not fit (several tables, a custom layout)."
+    },
+    {
+      "name": "StoreTransaction",
+      "package": "dev.versatia.database.store",
+      "kind": "interface",
+      "artifact": "VersatiaModule-Database",
+      "signature": "interface StoreTransaction<K : Any, V : Any> : Transaction",
+      "summary": "A transaction that also holds store entries."
+    },
+    {
+      "name": "get",
+      "package": "dev.versatia.database.store",
+      "kind": "function",
+      "artifact": "VersatiaModule-Database",
+      "receiver": "StoreTransaction<UUID, V>",
+      "signature": "operator fun <V : Any> StoreTransaction<UUID, V>.get(player: OfflinePlayer)",
+      "summary": "`this`victim`` in a player store's transaction."
+    },
+    {
+      "name": "set",
+      "package": "dev.versatia.database.store",
+      "kind": "function",
+      "artifact": "VersatiaModule-Database",
+      "receiver": "StoreTransaction<UUID, V>",
+      "signature": "operator fun <V : Any> StoreTransaction<UUID, V>.set(player: OfflinePlayer, value: V)",
+      "summary": "`this`victim` = value` in a player store's transaction."
+    },
+    {
+      "name": "update",
+      "package": "dev.versatia.database.store",
+      "kind": "function",
+      "artifact": "VersatiaModule-Database",
+      "receiver": "StoreTransaction<UUID, V>",
+      "signature": "fun <V : Any> StoreTransaction<UUID, V>.update(player: OfflinePlayer, change: (V) -> V)",
+      "summary": "`update(killer) { it.copy(coins = it.coins + bounty) }` in a player store's transaction."
+    }
+  ]
+}

@@ -1,3 +1,7 @@
+---
+description: 'Building the framework itself: its repositories, the build order, plugin build scripts, copying plugins to a server and versions.'
+---
+
 # Building the framework
 
 Versatia is developed in independent repositories that share nothing but published artifacts. This

@@ -1,3 +1,7 @@
+---
+description: 'The smaller helper packages: logging, scheduler, validation, reflection, inventory, world, enums, text and value types.'
+---
+
 # Scheduler, logging and more
 
 The smaller helper packages under `dev.versatia.util`. Server-wide calls, such as

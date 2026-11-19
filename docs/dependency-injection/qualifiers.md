@@ -1,3 +1,7 @@
+---
+description: Choosing between beans of the same type with bean names, @Qualifier and @Primary, and the rules that resolve an injection.
+---
+
 # Names, qualifiers and primary beans
 
 import ExampleCard from '@site/src/components/ExampleCard';

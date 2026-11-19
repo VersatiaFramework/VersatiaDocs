@@ -1,3 +1,7 @@
+---
+description: 'Named queries in database/queries/*.sql: the file format, names, engine overrides and the checks at start.'
+---
+
 # Named queries
 
 Longer queries live in `database/queries/*.sql`, each under a `-- name:` line, and run by name with

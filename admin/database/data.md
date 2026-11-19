@@ -1,6 +1,7 @@
 ---
 title: Moving and backing up data
 counterpart: /docs/modules/database/migrations
+description: Moving a plugin's data to another database, backing it up, the migration lock and what happens when a plugin updates.
 ---
 
 # Moving and backing up data

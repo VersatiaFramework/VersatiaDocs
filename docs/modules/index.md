@@ -1,6 +1,7 @@
 ---
 sidebar_label: Overview
 pagination_label: Modules
+description: What a module is, how a plugin uses one, why each plugin gets its own instance, and how to write a module.
 ---
 # Modules
 

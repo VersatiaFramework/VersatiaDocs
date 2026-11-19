@@ -1,3 +1,7 @@
+---
+description: The rules that keep a plugin, or an extension of the framework, working with Versatia rather than around it.
+---
+
 # Best practices
 
 The rules that keep a plugin built on Versatia, or an extension of the framework, working with it

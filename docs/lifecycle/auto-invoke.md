@@ -1,3 +1,7 @@
+---
+description: Functions the runtime calls at start, reload or stop with their parameters injected, in place of onEnable and onDisable.
+---
+
 # Auto-invoked functions
 
 import ExampleCard from '@site/src/components/ExampleCard';

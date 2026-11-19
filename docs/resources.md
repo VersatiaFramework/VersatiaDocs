@@ -1,3 +1,7 @@
+---
+description: Files shipped under resources/ in the JAR, extracted into the data folder at start and reload without overwriting existing ones.
+---
+
 # Plugin resources
 
 import ExampleCard from '@site/src/components/ExampleCard';

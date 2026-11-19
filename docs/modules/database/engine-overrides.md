@@ -1,3 +1,7 @@
+---
+description: Engine directories that replace a migration or a named query for one database engine.
+---
+
 # Engine overrides
 
 import Audience from '@site/src/components/Audience';

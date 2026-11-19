@@ -1,3 +1,7 @@
+---
+description: 'A minimal plugin step by step: a main class, two beans, a configuration value and lifecycle functions, built, run, reloaded and broken on purpose.'
+---
+
 # Your first plugin
 
 import CodeCards, {CodeCard} from '@site/src/components/CodeCards';

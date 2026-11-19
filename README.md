@@ -47,7 +47,8 @@ diagrams in ```` ```mermaid ```` fences and code blocks with a `title="..."`.
 Wherever a mistake is easy to make (a convention, a pitfall, a corner case), show the wrong code
 and the right code as two consecutive code blocks, not tabs, so both are visible at once. Title
 them `Wrong` and `Right`, or a short description starting with these words, and mark the lines
-with magic comments, which do not appear on the page:
+with magic comments, which do not appear on the page (the Markdown twins below turn them into
+`✗ wrong` and `✓ fix` comments):
 
 ````md
 ```kotlin title="Wrong: stops every coroutine of the plugin"
@@ -67,6 +68,21 @@ and `#` comments, so in Kotlin, YAML and properties alike; `highlight-next-line`
 meaning. The comments are defined in `docusaurus.config.ts` (`prism.magicComments`) and coloured
 in `src/css/custom.css`. Keep the snippets short and add one sentence on why the first is wrong,
 with the real error message when there is one.
+
+## For AI assistants
+
+Every build also writes the documentation as AI assistants read it, through `plugins/llms.ts`:
+each page as Markdown at its address plus `.md`, `llms.txt`, `llms-full.txt`,
+`admin/llms-full.txt` and `symbols.md` (see
+[Writing plugins with an AI assistant](https://versatia.dev/docs/getting-started/ai-assistants)).
+A component or magic comment added to the pages gets its Markdown rendering there in the same
+change, and the build fails when a section these files quote is missing. `npm start` does not
+write them; `npm run build` followed by `npm run serve` shows them.
+
+`symbols.md` comes from `plugins/symbols.json`, the public declarations of VersatiaAPI and the
+module APIs, which `npm run symbols` generates from their sources JARs in the local Maven
+repository (after `./gradlew publishToMavenLocal` in each). Commit the regenerated file with every
+change to the public API; `npm run symbols -- --check` fails while it is stale.
 
 ## Publishing
 

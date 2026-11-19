@@ -1,3 +1,7 @@
+---
+description: What /versatia reload does, friendly names, reloadable beans, designing a plugin for reload and reloading from code.
+---
+
 # Reloading plugins
 
 import ExampleCard from '@site/src/components/ExampleCard';

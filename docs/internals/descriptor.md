@@ -1,3 +1,7 @@
+---
+description: 'The generated VersatiaDescriptor: its shape, direct access versus reflection, and its format version.'
+---
+
 # The descriptor
 
 import ExampleCard from '@site/src/components/ExampleCard';

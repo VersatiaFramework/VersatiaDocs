@@ -1,3 +1,7 @@
+---
+description: Every check the KSP processor runs on a plugin's beans, functions, values and annotations, with the error it reports.
+---
+
 # Compile-time checks
 
 The KSP processor validates the plugin's beans, functions and properties and stops the build with an error

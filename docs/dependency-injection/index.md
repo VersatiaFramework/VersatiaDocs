@@ -1,3 +1,7 @@
+---
+description: 'Constructor injection: declaring a bean, the three scopes, the beans every plugin has, and optional and conditional dependencies.'
+---
+
 # Beans
 
 import ExampleCard from '@site/src/components/ExampleCard';

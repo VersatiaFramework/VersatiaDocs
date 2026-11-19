@@ -1,6 +1,7 @@
 ---
 title: Running the database
 counterpart: /docs/modules/database/operations
+description: Reloading a plugin's database settings, checking its status, reading its logs, handling player data and fixing common problems.
 ---
 
 # Running the database

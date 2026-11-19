@@ -31,3 +31,43 @@
   --versatia-audience: var(--versatia-admin);
   --versatia-audience-bg: var(--versatia-admin-bg);
 }
+
+/* The Markdown twin's buttons sit beside the title on wide screens and above it on narrow ones */
+.twin {
+  float: right;
+  display: flex;
+  gap: 0.4rem;
+  margin: 0.4rem 0 0.5rem 1rem;
+}
+
+.twinButton {
+  padding: 0.15rem 0.6rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 0.4rem;
+  background: transparent;
+  color: var(--ifm-color-emphasis-700);
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.twinButton:hover {
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+
+@media (max-width: 996px) {
+  .twin {
+    float: none;
+    justify-content: flex-end;
+    margin: 0 0 0.75rem;
+  }
+}
+
+@media print {
+  .twin {
+    display: none;
+  }
+}

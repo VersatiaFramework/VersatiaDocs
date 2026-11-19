@@ -150,6 +150,11 @@ function Hero() {
               server.
             </p>
             <Paths />
+            <p className={styles.aiNote}>
+              <span className={styles.aiBadge}>AI-friendly</span>
+              Every page also as Markdown, an <a href="/llms.txt">llms.txt</a> index and a symbol index for coding
+              assistants. <Link to="/docs/getting-started/ai-assistants">Writing plugins with AI →</Link>
+            </p>
           </div>
           <div className={clsx('col col--6', styles.heroCode)}>
             <div>

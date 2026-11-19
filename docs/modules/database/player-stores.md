@@ -1,3 +1,7 @@
+---
+description: Stores keyed by player UUID that load before a player joins and save when they quit, with failures, autosave events and the stop.
+---
+
 # Player stores
 
 import Audience from '@site/src/components/Audience';
@@ -138,8 +142,8 @@ Which action suits a server is explained to the server admin in
 
 ## Unsaved values at a stop {/* #unsaved-values-at-a-stop */}
 
-When the server stops while the database does not take a value, `/stop` during an outage or a
-`shutdown` above, the final save fails too. The values it could not write are then kept in a file
+When the server stops while the database does not take a value, `/stop` during an outage or the
+[`shutdown` action](#when-a-save-fails), the final save fails too. The values it could not write are then kept in a file
 of the plugin's folder, `plugins/Shop/unsaved/2026-10-30_12-01-00.yml`, and written to the database
 at the next start, before any player can join:
 

@@ -1,5 +1,6 @@
 ---
 counterpart: /docs/reference/troubleshooting
+description: Messages a server log or /versatia may show at start-up, about configuration and at a reload, what they mean and what to do.
 ---
 
 # Troubleshooting

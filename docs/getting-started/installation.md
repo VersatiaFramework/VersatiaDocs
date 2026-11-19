@@ -1,5 +1,6 @@
 ---
 counterpart: /admin/installation
+description: Installing VersatiaCore on the server, adding VersatiaAPI or VersatiaStarter and the KSP processor to a build, and the plugin.yml a plugin needs.
 ---
 
 # Installation

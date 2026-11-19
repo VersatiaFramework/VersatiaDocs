@@ -1,5 +1,6 @@
 ---
 counterpart: /docs/commands
+description: VersatiaCore's /versatia command, its reload and info subcommands, and the permissions of every plugin's commands.
 ---
 
 # Commands and permissions

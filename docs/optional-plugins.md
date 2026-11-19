@@ -1,3 +1,7 @@
+---
+description: 'Integrating with plugins that may be absent through @ConditionalOnPlugin: where it goes, conditional beans, softdepend and the checks.'
+---
+
 # Optional plugins
 
 import ExampleCard from '@site/src/components/ExampleCard';

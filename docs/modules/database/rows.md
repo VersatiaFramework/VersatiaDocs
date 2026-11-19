@@ -1,3 +1,7 @@
+---
+description: 'Mapping rows to Kotlin types both ways: reading rows into columns or classes, writing classes as rows, and codecs for types of your own.'
+---
+
 # Rows and types
 
 import Audience from '@site/src/components/Audience';

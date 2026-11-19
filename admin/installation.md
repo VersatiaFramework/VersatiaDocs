@@ -1,5 +1,6 @@
 ---
 counterpart: /docs/getting-started/installation
+description: Installing VersatiaCore on a Paper 26.3 server, its configuration, the soft dependencies, optional plugins and modules, and updating.
 ---
 
 # Installation

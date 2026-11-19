@@ -1,3 +1,7 @@
+---
+description: The three bean scopes, @LocalBean, @ExposeSingleton and @ExposePrototype, how long beans live and which scope to choose.
+---
+
 # Scopes and lifetime
 
 ## `@LocalBean` {/* #localbean */}

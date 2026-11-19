@@ -1,3 +1,7 @@
+---
+description: 'Background tasks: work that runs as long as the plugin does, ticks and time, reload and stop, and migrating from Bukkit tasks.'
+---
+
 # Background tasks
 
 import ExampleCard from '@site/src/components/ExampleCard';

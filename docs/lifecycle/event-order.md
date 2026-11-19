@@ -1,3 +1,7 @@
+---
+description: The fixed order in which the runtime handles a plugin at start and reload, and what each piece of code can see because of it.
+---
+
 # The order within an event
 
 At `START` and at `RELOAD` the runtime works through a plugin in a fixed order, and the order

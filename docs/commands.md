@@ -1,5 +1,6 @@
 ---
 counterpart: /admin/commands
+description: Declaring commands with the CommandAPI Kotlin DSL in an object, their permissions, registration at start and reload, and VersatiaCore's /versatia.
 ---
 
 # Commands

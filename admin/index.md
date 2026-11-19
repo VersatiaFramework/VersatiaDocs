@@ -1,6 +1,7 @@
 ---
 title: Server admin guide
 slug: /
+description: 'The guide for server admins: installing plugins built on Versatia, editing their files and running their commands, without touching code.'
 ---
 
 # Server admin guide

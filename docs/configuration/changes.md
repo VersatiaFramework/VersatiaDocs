@@ -1,3 +1,7 @@
+---
+description: Reacting when a @Value changes at a reload, and keeping values that derive from others current.
+---
+
 # Changes and derived values
 
 A [`@Value` property](index.md) is set again at every [reload](../lifecycle/reload.md). Code that
@@ -77,7 +81,7 @@ current in one of three ways, from the simplest:
     ```
 
 3. **React to a change** with a [`PreviousValueTracking`](#reacting-to-a-change), when the work
-   should happen only if the value changed, such as rescheduling a task: the `Announcer` above
+   should happen only if the value changed, such as rescheduling a task: the `Announcer` there
    checks `interval.changed`.
 
 ## Corner cases {/* #corner-cases */}

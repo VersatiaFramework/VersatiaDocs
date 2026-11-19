@@ -1,3 +1,7 @@
+---
+description: How the compile-time step and the runtime split the work, what enhancements are, and the design decisions behind them.
+---
+
 # Architecture
 
 Versatia is split into two projects with independent builds and repositories:

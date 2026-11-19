@@ -1,3 +1,7 @@
+---
+description: 'Styles: the names a message gives its parts, mapped to their look in the server''s styles.yml; the shared ones, your own and the server''s tag.'
+---
+
 # Styles
 
 import ExampleCard from '@site/src/components/ExampleCard';

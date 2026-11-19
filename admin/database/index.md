@@ -3,6 +3,7 @@ title: Database module
 sidebar_label: Overview
 pagination_label: Database module
 counterpart: /docs/modules/database
+description: What the Database module gives each plugin, installing it, the files it reads and the tasks an admin does most often.
 ---
 
 # Database module

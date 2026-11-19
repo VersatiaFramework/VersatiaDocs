@@ -1,3 +1,7 @@
+---
+description: 'Bukkit listeners registered automatically at start: which instance is registered, when, and how to switch it off.'
+---
+
 # Event listeners
 
 import ExampleCard from '@site/src/components/ExampleCard';

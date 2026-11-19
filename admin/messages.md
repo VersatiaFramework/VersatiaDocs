@@ -1,5 +1,6 @@
 ---
 counterpart: /docs/messages
+description: Rewording, restyling and translating the messages of plugins built on Versatia in plugins/<Name>/messages/, with their arguments and styles.
 ---
 
 # Editing messages

@@ -1,3 +1,7 @@
+---
+description: 'Conditions: a check evaluated again only when its events fire, how it is rechecked and closed, and the subject shorthands.'
+---
+
 # Conditions
 
 import ExampleCard from '@site/src/components/ExampleCard';

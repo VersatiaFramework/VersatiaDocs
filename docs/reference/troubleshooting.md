@@ -1,5 +1,6 @@
 ---
 counterpart: /admin/troubleshooting
+description: Messages from the build and from VersatiaCore at start-up, while a plugin runs and at a reload, what they mean and what to do.
 ---
 
 # Troubleshooting

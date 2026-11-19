@@ -1,3 +1,7 @@
+---
+description: How every framework annotation is an enhancement interpreted by a processor, and how to define scopes, attributes and enhancements of your own.
+---
+
 # Enhancements and processors
 
 import ExampleCard from '@site/src/components/ExampleCard';

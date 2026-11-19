@@ -1,3 +1,7 @@
+---
+description: 'Collection helpers in dev.versatia.util.collection: the OrThrow helpers, cycle and DeepMergeMap.'
+---
+
 # Collections
 
 Package `dev.versatia.util.collection`.

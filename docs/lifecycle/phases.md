@@ -1,3 +1,7 @@
+---
+description: The phases an element runs at, the lifecycle events that trigger them, what happens at stop and how an annotation declares its phase.
+---
+
 # Phases and events
 
 Every element in the descriptor (a bean, an auto-invoked function) carries the **phase** at which

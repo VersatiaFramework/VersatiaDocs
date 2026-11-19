@@ -7,7 +7,13 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Getting started',
       collapsed: false,
-      items: ['getting-started/installation', 'getting-started/first-plugin', 'getting-started/coming-from-bukkit', 'examples/index'],
+      items: [
+        'getting-started/installation',
+        'getting-started/first-plugin',
+        'getting-started/coming-from-bukkit',
+        'getting-started/ai-assistants',
+        'examples/index',
+      ],
     },
     {
       type: 'category',
@@ -87,9 +93,11 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: ['reference/compile-time-checks', 'reference/troubleshooting', 'reference/best-practices'],
     },
+    // llms: 'optional' lists a category's pages under Optional in llms.txt, which an assistant short of context may skip (plugins/llms.ts)
     {
       type: 'category',
       label: 'Under the hood',
+      customProps: {llms: 'optional'},
       items: [
         'internals/architecture',
         'internals/descriptor',
@@ -100,6 +108,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'Contributing',
+      customProps: {llms: 'optional'},
       items: ['contributing/building'],
     },
   ],

@@ -2,6 +2,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 import comparisons from './plugins/comparisons';
+import llms from './plugins/llms';
 
 // GitHub Pages address of this repository; adjust when the repository is published elsewhere
 const organizationName = 'VersatiaFramework';
@@ -34,6 +35,7 @@ const developerFooter = [
       {label: 'Introduction', to: '/docs'},
       {label: 'Installation', to: '/docs/getting-started/installation'},
       {label: 'Your first plugin', to: '/docs/getting-started/first-plugin'},
+      {label: 'Writing with AI assistants', to: '/docs/getting-started/ai-assistants'},
       {label: 'Server admin guide', to: '/admin'},
     ],
   },
@@ -78,6 +80,7 @@ const footerLinks = {
         {label: 'Introduction', to: '/docs'},
         {label: 'Installation', to: '/docs/getting-started/installation'},
         {label: 'Your first plugin', to: '/docs/getting-started/first-plugin'},
+        {label: 'Writing with AI assistants', to: '/docs/getting-started/ai-assistants'},
         {label: 'Examples', to: '/docs/examples'},
       ],
     },
@@ -199,6 +202,8 @@ const config: Config = {
     ],
     // Collects the Versatia/Bukkit pairs of the developer documentation for the gallery of Coming from Bukkit
     comparisons,
+    // Writes the documentation for AI assistants: every page as Markdown, llms.txt, llms-full.txt and symbols.md
+    llms,
   ],
 
   themes: [

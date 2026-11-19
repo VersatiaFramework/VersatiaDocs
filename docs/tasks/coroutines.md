@@ -1,3 +1,7 @@
+---
+description: 'Launching coroutines from the injected PluginScope: keyed jobs, per-player state, threads and failures.'
+---
+
 # Your own coroutines
 
 import ExampleCard from '@site/src/components/ExampleCard';

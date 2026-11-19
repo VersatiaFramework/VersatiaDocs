@@ -1,3 +1,7 @@
+---
+description: Arguments and their properties in messages, presentations of your own types and of the whole server, text without a file, and tags reading the arguments.
+---
+
 # Arguments and tags
 
 A [message](index.md) shows the values the code hands over: `{name}` inserts an argument,

@@ -1,3 +1,7 @@
+---
+description: How VersatiaCore takes a plugin from onEnable to its beans and functions, and the rules each processor applies.
+---
+
 # The runtime
 
 VersatiaCore interprets descriptors. This page follows a plugin from `onEnable` to its beans and
@@ -231,7 +235,7 @@ name). For each function the processor
 1. picks the receiver by `MemberOwner`: the plugin instance from the context, the `INSTANCE` of a
    Kotlin `object`, or, for `MemberOwner.INSTANCE`, the bean of that class from the plugin's
    session (`no bean X exists to call X.f() on` otherwise);
-2. resolves the parameters through the bean session with the rules above;
+2. resolves the parameters through the bean session with the [resolution rules](#resolution);
 3. calls the `Invoker`. Any exception is wrapped in an `EnhancementException` naming the function
    and the event, with the original as cause.
 

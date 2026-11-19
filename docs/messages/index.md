@@ -1,5 +1,6 @@
 ---
 counterpart: /admin/messages
+description: 'Sending messages from the YAML files under messages/: the files, sending with arguments, lines, reloading and errors.'
 ---
 # Sending messages
 
