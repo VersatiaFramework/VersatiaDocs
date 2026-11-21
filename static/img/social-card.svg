@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!-- Source of social-card.png, the link preview of every page; README.md says how to render it -->
+  <defs>
+    <radialGradient id="glow" cx="0.1" cy="0.05" r="0.85">
+      <stop offset="0" stop-color="#3f51b5" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#3f51b5" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0.92" cy="0.95" r="0.6">
+      <stop offset="0" stop-color="#8c9eff" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#8c9eff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3f51b5"/>
+      <stop offset="0.65" stop-color="#8c9eff"/>
+      <stop offset="1" stop-color="#ffd54f"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#15171f"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+  <rect width="1200" height="630" fill="url(#glow2)"/>
+  <rect y="622" width="1200" height="8" fill="url(#accent)"/>
+
+  <g transform="translate(74 84) scale(1.5)">
+    <rect x="4" y="4" width="56" height="56" rx="14" fill="#3f51b5"/>
+    <path d="M17 19 L32 47 L47 19" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="32" cy="19" r="4.5" fill="#ffd54f"/>
+  </g>
+
+  <g font-family="'Segoe UI', system-ui, sans-serif">
+    <text x="186" y="152" font-size="56" font-weight="600" fill="#e2e6ff">Versatia</text>
+    <text x="80" y="284" font-size="52" font-weight="700" fill="#fff">Kotlin framework</text>
+    <text x="80" y="346" font-size="52" font-weight="700" fill="#fff">for Paper plugins</text>
+    <text x="80" y="412" font-size="27" fill="#b7c2ff">Declare what your Paper plugin has.</text>
+    <text x="80" y="450" font-size="27" fill="#b7c2ff">Versatia takes care of when and how.</text>
+    <text x="80" y="562" font-size="30" font-weight="600" fill="#8c9eff">versatia.dev</text>
+    <text x="1136" y="562" font-size="20" fill="#7482cf" text-anchor="end">Paper 26.3 · Java 25 · Apache-2.0</text>
+  </g>
+
+  <g>
+    <rect x="600" y="96" width="536" height="214" rx="14" fill="#282c34"/>
+    <path d="M600 140 V110 A14 14 0 0 1 614 96 H1122 A14 14 0 0 1 1136 110 V140 Z" fill="#21252b"/>
+    <rect x="600" y="96" width="536" height="214" rx="14" fill="none" stroke="#8c9eff" stroke-opacity="0.25" stroke-width="1.5"/>
+    <text x="624" y="124" font-family="'Segoe UI', system-ui, sans-serif" font-size="16" fill="#8b93a3">ShopConfig.kt</text>
+    <g font-family="'Cascadia Mono', Consolas, monospace" font-size="18" fill="#abb2bf">
+      <text x="624" y="174" xml:space="preserve"><tspan fill="#98c379">@LocalBean</tspan></text>
+      <text x="624" y="202" xml:space="preserve"><tspan fill="#c678dd">class</tspan> <tspan fill="#d19a66">ShopConfig</tspan> {</text>
+      <text x="624" y="230" xml:space="preserve">    <tspan fill="#98c379">@Value</tspan>(<tspan fill="#98c379">"prices"</tspan>)</text>
+      <text x="624" y="258" xml:space="preserve">    <tspan fill="#c678dd">var</tspan> prices: Map<tspan fill="#61afef">&lt;</tspan>String, Int<tspan fill="#61afef">&gt;</tspan> <tspan fill="#61afef">=</tspan> <tspan fill="#61afef">emptyMap</tspan>()</text>
+      <text x="624" y="286" xml:space="preserve">}</text>
+    </g>
+  </g>
+
+  <g>
+    <rect x="672" y="338" width="464" height="154" rx="14" fill="#282c34"/>
+    <path d="M672 382 V352 A14 14 0 0 1 686 338 H1122 A14 14 0 0 1 1136 352 V382 Z" fill="#21252b"/>
+    <rect x="672" y="338" width="464" height="154" rx="14" fill="none" stroke="#8c9eff" stroke-opacity="0.25" stroke-width="1.5"/>
+    <text x="696" y="366" font-family="'Segoe UI', system-ui, sans-serif" font-size="16" fill="#8b93a3">config.yml</text>
+    <g font-family="'Cascadia Mono', Consolas, monospace" font-size="18" fill="#abb2bf">
+      <text x="696" y="416" xml:space="preserve"><tspan fill="#e06c75">prices</tspan>:</text>
+      <text x="696" y="444" xml:space="preserve">  <tspan fill="#e06c75">diamond</tspan>: <tspan fill="#d19a66">120</tspan></text>
+      <text x="696" y="472" xml:space="preserve">  <tspan fill="#e06c75">bread</tspan>: <tspan fill="#d19a66">2</tspan></text>
+    </g>
+  </g>
+</svg>

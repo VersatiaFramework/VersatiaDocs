@@ -12,6 +12,12 @@ The pages are Markdown files in three documentations, each with its own sidebar:
 The landing page is `src/pages/index.tsx` and the site settings, the navbar and the footer of each
 audience are in `docusaurus.config.ts`.
 
+Announcements and articles go to the blog, `blog/` at `/blog`, one file per post named
+`YYYY-MM-DD-slug.md`. The build fails on a post without a `{/* truncate */}` marker after its
+opening, or with an author or tag not declared in `blog/authors.yml` or `blog/tags.yml`. Until the
+first post its page is empty and linked from nowhere; the Blog link joins the navbar and the
+footers with that post.
+
 The site documents the framework as a whole, for plugin developers and server admins. The repositories of
 the individual projects (VersatiaAPI, VersatiaCore and the example plugins) keep their own
 `docs/*.md` with implementation notes.
@@ -83,6 +89,18 @@ write them; `npm run build` followed by `npm run serve` shows them.
 module APIs, which `npm run symbols` generates from their sources JARs in the local Maven
 repository (after `./gradlew publishToMavenLocal` in each). Commit the regenerated file with every
 change to the public API; `npm run symbols -- --check` fails while it is stale.
+
+## Link preview
+
+Links to the site shared on Discord, Reddit or social networks show `static/img/social-card.png`
+(1200 × 630, `themeConfig.image`). Edit `static/img/social-card.svg` and render it again on
+Windows, whose Segoe UI and Cascadia Mono set its text, with headless Edge from this folder in
+PowerShell. The paths must be absolute, and the file appears a second or two after the command
+returns:
+
+```powershell
+& "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe" --headless --hide-scrollbars --window-size=1200,630 "--user-data-dir=$env:TEMP\social-card" "--screenshot=$PWD\static\img\social-card.png" "$PWD\static\img\social-card.svg"
+```
 
 ## Publishing
 

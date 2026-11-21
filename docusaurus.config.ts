@@ -9,6 +9,13 @@ const organizationName = 'VersatiaFramework';
 const projectName = 'VersatiaDocs';
 const github = `https://github.com/${organizationName}`;
 
+// Versatia is its author's portfolio: the footer of every page and the blog feeds credit the author
+const author = {
+  name: 'Marcin Polak',
+  github: 'https://github.com/PolakMarcin',
+  linkedin: 'https://www.linkedin.com/in/marcin-polak-it',
+};
+
 // :::admin and :::developer mark what the server admin and the plugin developer must know (src/theme/Admonition/Types.tsx)
 const admonitions = {keywords: ['admin', 'developer'], extendDefaults: true};
 
@@ -28,6 +35,9 @@ const githubLinks = [
   {label: 'VersatiaStarter', href: `${github}/VersatiaStarter`},
   {label: 'VersatiaExamples', href: `${github}/VersatiaExamples`},
 ];
+// The blog's name and description, also those of its RSS and Atom feeds
+const blogTitle = 'Versatia blog';
+const blogDescription = 'Releases, new modules and articles about Versatia, the Kotlin framework for Paper plugins.';
 const developerFooter = [
   {
     title: 'Learn',
@@ -137,7 +147,21 @@ const config: Config = {
         sitemap: {
           ignorePatterns: ['/search/**', '/search'],
         },
-        blog: false,
+        // Announcements and articles in blog/; the Blog link joins the navbar and the footers with the first post
+        blog: {
+          blogTitle,
+          blogDescription,
+          editUrl: `${github}/${projectName}/edit/master/`,
+          feedOptions: {
+            title: blogTitle,
+            description: blogDescription,
+            copyright: `Copyright © ${new Date().getFullYear()} ${author.name}`,
+            xslt: true,
+          },
+          onInlineAuthors: 'throw',
+          onInlineTags: 'throw',
+          onUntruncatedBlogPosts: 'throw',
+        },
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -229,8 +253,13 @@ const config: Config = {
   ],
 
   themeConfig: {
+    // The link preview of every page; rendered from static/img/social-card.svg (README.md)
+    image: 'img/social-card.png',
     metadata: [
       {name: 'keywords', content: 'Paper, Minecraft, plugin, Kotlin, framework, dependency injection, KSP, Bukkit'},
+      // Link previews show the site's name above the title and Discord colours the embed's edge
+      {property: 'og:site_name', content: 'Versatia'},
+      {name: 'theme-color', content: '#3f51b5'},
     ],
     colorMode: {
       defaultMode: 'dark',
@@ -292,7 +321,7 @@ const config: Config = {
     footer: {
       style: 'dark',
       links: developerFooter,
-      copyright: `Copyright © ${new Date().getFullYear()} ${organizationName}. Versatia framework for Paper 26.3, licensed under the Apache License 2.0. Documentation built with Docusaurus.`,
+      copyright: `Created by <strong>${author.name}</strong> · <a href="${author.github}">GitHub</a> · <a href="${author.linkedin}">LinkedIn</a>. Copyright © ${new Date().getFullYear()} ${author.name}. Versatia framework for Paper 26.3, licensed under the Apache License 2.0.`,
     },
     prism: {
       theme: prismThemes.github,
