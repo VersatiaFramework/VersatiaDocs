@@ -18,7 +18,7 @@ Give the assistant the address of the index, or one of the files it lists:
 | [`/llms.txt`](pathname:///llms.txt)                     | the index for assistants: the [first notes](#what-the-assistant-is-told-first), the rules of [Best practices](../reference/best-practices.md), the Bukkit code Versatia replaces and a link to every page |
 | [`/llms-full.txt`](pathname:///llms-full.txt)           | the whole developer documentation and the symbol index in one file                                                 |
 | [`/admin/llms-full.txt`](pathname:///admin/llms-full.txt) | the whole [server admin guide](/admin) in one file                                                               |
-| [`/symbols.md`](pathname:///symbols.md)                 | the package, signature and first KDoc sentence of every public declaration of VersatiaAPI and the module APIs      |
+| [`/symbols.md`](pathname:///symbols.md)                 | the package, signature and first KDoc sentence of every public declaration of VersatiaAPI, the module APIs and the plugins built on Versatia |
 | a page's address plus `.md`                             | that page as Markdown, such as [`/docs/dependency-injection.md`](pathname:///docs/dependency-injection.md)         |
 
 Every page also has a **Copy as Markdown** button next to its title, for pasting it into a chat, and

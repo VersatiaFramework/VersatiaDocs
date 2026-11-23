@@ -1,6 +1,6 @@
 import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
 
-// An experimental module's pages go under experimental/, where they open with the experimental warning (src/theme/DocItem/Content)
+// The pages of an experimental module or plugin go under experimental/, where they open with the experimental warning (src/theme/DocItem/Content)
 const sidebars: SidebarsConfig = {
   admin: [
     'index',
@@ -19,6 +19,12 @@ const sidebars: SidebarsConfig = {
           items: ['database/index', 'database/configuration', 'database/connections', 'database/data', 'database/operations'],
         },
       ],
+    },
+    {
+      type: 'category',
+      label: 'Experimental',
+      collapsed: false,
+      items: ['experimental/interactions', 'experimental/trade'],
     },
     'troubleshooting',
   ],

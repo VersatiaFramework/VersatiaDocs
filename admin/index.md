@@ -16,6 +16,7 @@ Writing such a plugin is covered by the [developer documentation](/docs).
 | edit a plugin's files, hand over a password                 | [Configuration files](configuration-files.md) |
 | apply an edited file without a restart, see what a plugin has | [Commands and permissions](commands.md)        |
 | reword, recolour or translate what a plugin says              | [Editing messages](messages.md)                |
+| let players trade, or send each other requests from a menu    | [VersatiaTrade](experimental/trade.md) and [VersatiaInteractions](experimental/interactions.md), experimental |
 | understand a message in the log                               | [Troubleshooting](troubleshooting.md)          |
 
 ## What Versatia is on a server {/* #what-versatia-is */}

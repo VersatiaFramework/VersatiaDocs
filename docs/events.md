@@ -1,5 +1,5 @@
 ---
-description: 'Bukkit listeners registered automatically at start: which instance is registered, when, and how to switch it off.'
+description: 'Bukkit listeners registered automatically at start (which instance, when, how to switch it off) and the events the Versatia modules and plugins fire.'
 ---
 
 # Event listeners
@@ -93,6 +93,28 @@ class MyPlugin : VersatiaPlugin()
 The plugin then registers its listeners itself, as any Bukkit plugin does. Every feature a plugin
 inherits and its switch are listed under
 [Enhancements on a base class](internals/enhancements.md#enhancements-on-a-base-class).
+
+## Events Versatia fires {/* #events-versatia-fires */}
+
+VersatiaCore fires no events of its own. Its modules and the plugins the Versatia team builds on it
+fire these, each explained in the section it links; the plugins are
+[experimental](/experimental/plugins).
+
+| Event                              | Fired by             | When                                           | Explained in |
+|------------------------------------|----------------------|------------------------------------------------|--------------|
+| `StoreAutosaveStartEvent`          | Database module      | before an autosave with changed entries starts | [Autosave events](modules/database/player-stores.md#autosave-events) |
+| `StoreAutosaveEndEvent`            | Database module      | after that autosave ended                      | [Autosave events](modules/database/player-stores.md#autosave-events) |
+| `InteractionRequestSendEvent`      | VersatiaInteractions | before a request is sent                       | [Denying a request](/experimental/plugins/interactions#denying-a-request) |
+| `InteractionRequestAcceptEvent`    | VersatiaInteractions | before a request is accepted                   | [Denying a request](/experimental/plugins/interactions#denying-a-request) |
+| `InteractionRequestAcceptedEvent`  | VersatiaInteractions | after an accepted request's action started     | [How a request ends](/experimental/plugins/interactions#how-a-request-ends) |
+| `InteractionRequestDeclinedEvent`  | VersatiaInteractions | after the receiver declined                    | [How a request ends](/experimental/plugins/interactions#how-a-request-ends) |
+| `InteractionRequestExpiredEvent`   | VersatiaInteractions | after a request waited its whole time          | [How a request ends](/experimental/plugins/interactions#how-a-request-ends) |
+| `InteractionRequestCancelledEvent` | VersatiaInteractions | after a request ended otherwise                | [How a request ends](/experimental/plugins/interactions#how-a-request-ends) |
+| `TradeStartEvent`                  | VersatiaTrade        | before a trade opens                           | [Stopping a trade](/experimental/plugins/trade#stopping-a-trade) |
+| `TradeItemOfferEvent`              | VersatiaTrade        | a player clicks an item to offer it            | [Keeping items out of trades](/experimental/plugins/trade#keeping-items-out-of-trades) |
+| `TradeItemRenderEvent`             | VersatiaTrade        | a window shows an item the partner offers      | [Showing offered items](/experimental/plugins/trade#showing-offered-items) |
+| `TradeCompletedEvent`              | VersatiaTrade        | after an exchange                              | [After a trade](/experimental/plugins/trade#after-a-trade) |
+| `TradeCancelledEvent`              | VersatiaTrade        | after a trade ended without an exchange        | [After a trade](/experimental/plugins/trade#after-a-trade) |
 
 ## How it works {/* #how-it-works */}
 

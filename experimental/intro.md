@@ -11,8 +11,8 @@ This part of the site documents features of Versatia that are **experimental**: 
 tested and usable, but their design is still open. They live here, apart from the
 [stable documentation](/docs), so that nothing in the stable pages depends on them. While anything
 is experimental, a Stable / Experimental switch in the navigation bar moves between the two. These
-pages are for the plugin developer; the server admin's part of an experimental module is in the
-[server admin guide](/admin), under Experimental modules.
+pages are for the plugin developer; the server admin's part of an experimental feature is in the
+[server admin guide](/admin), under Experimental.
 
 ## What experimental means {/* #what-experimental-means */}
 

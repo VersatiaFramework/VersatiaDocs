@@ -444,11 +444,13 @@ export default function llms(context: LoadContext): Plugin {
     const artifacts: Record<string, string> = {
       VersatiaAPI: `Every plugin compiles against it with \`compileOnly\`, together with the \`ksp\` processor ([Installation](${mdUrl(page('/docs/getting-started/installation'))}#in-your-build)).`,
       'VersatiaModule-Database': `A plugin using the Database module compiles against VersatiaStarter instead, which brings this API ([Database module](${mdUrl(page('/docs/modules/database'))})).`,
+      VersatiaInteractions: `Experimental. A plugin adding an action to its menu or listening to its events compiles against it with \`compileOnly\` ([VersatiaInteractions](${mdUrl(page('/experimental/plugins/interactions'))})).`,
+      VersatiaTrade: `Experimental. A plugin listening to its events or giving its items an identity compiles against it with \`compileOnly\` ([VersatiaTrade](${mdUrl(page('/experimental/plugins/trade'))})).`,
     };
     const lines = [
       '# Versatia symbol index',
       '',
-      `> Every public declaration of VersatiaAPI ${index.version} and of the module APIs: package, signature and the first sentence of its KDoc, generated from the published sources. Import a declaration as \`import <package>.<name>\`.`,
+      `> Every public declaration of VersatiaAPI ${index.version}, of the module APIs and of the plugins built on Versatia: package, signature and the first sentence of its KDoc, generated from the published sources. Import a declaration as \`import <package>.<name>\`.`,
       '',
       'Extensions on `VersatiaEngine.Companion` are called on the class, `VersatiaEngine.broadcast(...)`; extensions on `Plugin` on a plugin, `plugin.runTaskLater(...)`, and in the main class without `plugin.`. Declarations marked `@VersatiaInternalApi` are left out: they are plumbing for KSP and VersatiaCore.',
     ];
@@ -530,7 +532,7 @@ export default function llms(context: LoadContext): Plugin {
       '',
       `- [llms-full.txt](${site}/llms-full.txt): the whole developer documentation, then the symbol index`,
       `- [admin/llms-full.txt](${site}/admin/llms-full.txt): the whole server admin guide`,
-      `- [symbols.md](${site}/symbols.md): package, signature and summary of every public declaration of VersatiaAPI and the module APIs`,
+      `- [symbols.md](${site}/symbols.md): package, signature and summary of every public declaration of VersatiaAPI, the module APIs and the plugins built on Versatia`,
       ...[...groups].flatMap(([group, docs]) => ['', `## ${group}`, '', ...docs.map(doc => `- [${label(doc)}](${mdUrl(doc)})${doc.description ? `: ${doc.description}` : ''}`)]),
     ].join('\n')}\n`;
   }

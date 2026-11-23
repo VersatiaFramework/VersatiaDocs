@@ -2,7 +2,9 @@
   "version": "0.0.1",
   "artifacts": [
     "VersatiaAPI",
-    "VersatiaModule-Database"
+    "VersatiaModule-Database",
+    "VersatiaInteractions",
+    "VersatiaTrade"
   ],
   "symbols": [
     {
@@ -2399,6 +2401,125 @@
       "summary": "Spawns a particle at this location; does nothing when its world is not set or no longer loaded."
     },
     {
+      "name": "Interaction",
+      "package": "dev.versatia.interactions",
+      "kind": "interface",
+      "artifact": "VersatiaInteractions",
+      "signature": "interface Interaction",
+      "summary": "What an `InteractionAction` does."
+    },
+    {
+      "name": "InteractionAction",
+      "package": "dev.versatia.interactions",
+      "kind": "annotation",
+      "artifact": "VersatiaInteractions",
+      "signature": "@InteractionAction(id: String, exclusive: Boolean = true, messages: String = \"interaction\")",
+      "summary": "Adds a button to the interaction menu that VersatiaInteractions opens with Shift + right click on a player: `@InteractionAction(\"trade\") class TradeInteraction(...) : Interaction`."
+    },
+    {
+      "name": "InteractionCheck",
+      "package": "dev.versatia.interactions",
+      "kind": "interface",
+      "artifact": "VersatiaInteractions",
+      "signature": "sealed interface InteractionCheck",
+      "summary": "The answer of `Interaction.check`."
+    },
+    {
+      "name": "InteractionProcessors",
+      "package": "dev.versatia.interactions",
+      "kind": "object",
+      "artifact": "VersatiaInteractions",
+      "signature": "object InteractionProcessors",
+      "summary": "The processors of VersatiaInteractions, by name: the descriptor of a contributing plugin names them."
+    },
+    {
+      "name": "Interactions",
+      "package": "dev.versatia.interactions",
+      "kind": "interface",
+      "artifact": "VersatiaInteractions",
+      "signature": "interface Interactions",
+      "summary": "The interactions of the server, a bean VersatiaInteractions exposes to the plugins started after it."
+    },
+    {
+      "name": "InteractionsPlugin",
+      "package": "dev.versatia.interactions",
+      "kind": "class",
+      "artifact": "VersatiaInteractions",
+      "signature": "class InteractionsPlugin : VersatiaPlugin()"
+    },
+    {
+      "name": "InteractionActionEnhancementProcessor",
+      "package": "dev.versatia.interactions.action",
+      "kind": "class",
+      "artifact": "VersatiaInteractions",
+      "signature": "class InteractionActionEnhancementProcessor : EnhancementProcessor",
+      "summary": "Registers the `@InteractionAction` beans of a plugin with VersatiaInteractions once its beans exist, and withdraws them when the plugin stops: the registration is an entry of the plugin's state, closed when that state goes, whether the plugin stops or its start fails."
+    },
+    {
+      "name": "DeniableInteractionRequestEvent",
+      "package": "dev.versatia.interactions.event",
+      "kind": "class",
+      "artifact": "VersatiaInteractions",
+      "signature": "abstract class DeniableInteractionRequestEvent : InteractionRequestEvent(from, to, action), Cancellable",
+      "summary": "An `InteractionRequestEvent` another plugin may `deny`, such as a combat tag or a region rule: the request then does not go ahead, and the player who clicked sees `reason`, a whole sentence from the denying plugin's messages."
+    },
+    {
+      "name": "InteractionRequestAcceptEvent",
+      "package": "dev.versatia.interactions.event",
+      "kind": "class",
+      "artifact": "VersatiaInteractions",
+      "signature": "class InteractionRequestAcceptEvent : DeniableInteractionRequestEvent(from, to, action)",
+      "summary": "Before `to` accepts the request of `from`, or before two requests sent to each other accept each other."
+    },
+    {
+      "name": "InteractionRequestAcceptedEvent",
+      "package": "dev.versatia.interactions.event",
+      "kind": "class",
+      "artifact": "VersatiaInteractions",
+      "signature": "class InteractionRequestAcceptedEvent : InteractionRequestEvent(from, to, action)",
+      "summary": "After `to` accepted the request of `from` and the action started."
+    },
+    {
+      "name": "InteractionRequestCancelledEvent",
+      "package": "dev.versatia.interactions.event",
+      "kind": "class",
+      "artifact": "VersatiaInteractions",
+      "signature": "class InteractionRequestCancelledEvent : InteractionRequestEvent(from, to, action)",
+      "summary": "After the request of `from` to `to` ended for `cause` without its action starting; a declined and an expired request have events of their own."
+    },
+    {
+      "name": "InteractionRequestDeclinedEvent",
+      "package": "dev.versatia.interactions.event",
+      "kind": "class",
+      "artifact": "VersatiaInteractions",
+      "signature": "class InteractionRequestDeclinedEvent : InteractionRequestEvent(from, to, action)",
+      "summary": "After `to` declined the request of `from`."
+    },
+    {
+      "name": "InteractionRequestEvent",
+      "package": "dev.versatia.interactions.event",
+      "kind": "class",
+      "artifact": "VersatiaInteractions",
+      "signature": "abstract class InteractionRequestEvent : Event()",
+      "summary": "A request of the action `action` (its id) that `from` sends to `to`."
+    },
+    {
+      "name": "InteractionRequestExpiredEvent",
+      "package": "dev.versatia.interactions.event",
+      "kind": "class",
+      "artifact": "VersatiaInteractions",
+      "signature": "class InteractionRequestExpiredEvent : InteractionRequestEvent(from, to, action)",
+      "summary": "After the request of `from` to `to` waited its whole time without an answer."
+    },
+    {
+      "name": "InteractionRequestSendEvent",
+      "package": "dev.versatia.interactions.event",
+      "kind": "class",
+      "artifact": "VersatiaInteractions",
+      "signature": "class InteractionRequestSendEvent : DeniableInteractionRequestEvent(from, to, action)",
+      "summary": "Before `from` sends the request, once VersatiaInteractions' own rules and the action's check allow it."
+    },
+    {
       "name": "Database",
       "package": "dev.versatia.database",
       "kind": "interface",
@@ -2839,6 +2960,93 @@
       "receiver": "StoreTransaction<UUID, V>",
       "signature": "fun <V : Any> StoreTransaction<UUID, V>.update(player: OfflinePlayer, change: (V) -> V)",
       "summary": "`update(killer) { it.copy(coins = it.coins + bounty) }` in a player store's transaction."
+    },
+    {
+      "name": "ItemIdentity",
+      "package": "dev.versatia.trade",
+      "kind": "interface",
+      "artifact": "VersatiaTrade",
+      "signature": "interface ItemIdentity",
+      "summary": "Tells VersatiaTrade which stacks are the same item, for a plugin whose items change while they lie in an inventory, a lore rendered for the holder say: `@TradeItemIdentity class RpgItemIdentity(...) : ItemIdentity`."
+    },
+    {
+      "name": "TradeItemIdentity",
+      "package": "dev.versatia.trade",
+      "kind": "annotation",
+      "artifact": "VersatiaTrade",
+      "signature": "@TradeItemIdentity",
+      "summary": "Contributes an `ItemIdentity` to VersatiaTrade: the annotated class implements it and is a local bean of its plugin, so its constructor is injected."
+    },
+    {
+      "name": "TradePlugin",
+      "package": "dev.versatia.trade",
+      "kind": "class",
+      "artifact": "VersatiaTrade",
+      "signature": "class TradePlugin : VersatiaPlugin()"
+    },
+    {
+      "name": "TradeProcessors",
+      "package": "dev.versatia.trade",
+      "kind": "object",
+      "artifact": "VersatiaTrade",
+      "signature": "object TradeProcessors",
+      "summary": "The processors of VersatiaTrade, by name: the descriptor of a contributing plugin names them."
+    },
+    {
+      "name": "DeniableTradeEvent",
+      "package": "dev.versatia.trade.event",
+      "kind": "class",
+      "artifact": "VersatiaTrade",
+      "signature": "abstract class DeniableTradeEvent : Event(), Cancellable",
+      "summary": "A trade event another plugin may `deny`, such as a combat tag, a region rule or a rule for items bound to their owner: what it announces does not happen, and the players it names read `reason`, a whole sentence from the denying plugin's messages, or VersatiaTrade's own sentence when a plugin cancels the event without one."
+    },
+    {
+      "name": "TradeCancelledEvent",
+      "package": "dev.versatia.trade.event",
+      "kind": "class",
+      "artifact": "VersatiaTrade",
+      "signature": "class TradeCancelledEvent : Event()",
+      "summary": "After a trade between `first`, who asked, and `second` ended without an exchange, for `cause`."
+    },
+    {
+      "name": "TradeCompletedEvent",
+      "package": "dev.versatia.trade.event",
+      "kind": "class",
+      "artifact": "VersatiaTrade",
+      "signature": "class TradeCompletedEvent : Event()",
+      "summary": "After the exchange of a trade between `first`, who asked, and `second`, once both players' data are saved: `firstGave` and `secondGave` are copies of the stacks that changed hands, `firstMoney` and `secondMoney` the money, zero when none."
+    },
+    {
+      "name": "TradeItemOfferEvent",
+      "package": "dev.versatia.trade.event",
+      "kind": "class",
+      "artifact": "VersatiaTrade",
+      "signature": "class TradeItemOfferEvent : DeniableTradeEvent()",
+      "summary": "When `player` clicks an item of their inventory to offer it to `partner`, before it joins the offer: `item` is a copy, one item of the kind, and `amount` how many the click asks for, of which fewer join when the player has no more or the offer is full."
+    },
+    {
+      "name": "TradeItemRenderEvent",
+      "package": "dev.versatia.trade.event",
+      "kind": "class",
+      "artifact": "VersatiaTrade",
+      "signature": "class TradeItemRenderEvent : Event()",
+      "summary": "Whenever the trade window of `viewer` shows an item `owner` offers: `item` is a copy for the viewer's eyes alone, which a listener may replace or change, such as to colour the requirements the viewer meets."
+    },
+    {
+      "name": "TradeStartEvent",
+      "package": "dev.versatia.trade.event",
+      "kind": "class",
+      "artifact": "VersatiaTrade",
+      "signature": "class TradeStartEvent : DeniableTradeEvent()",
+      "summary": "Before a trade between `first`, who asked, and `second` opens, once VersatiaTrade's own checks passed, however the trade was asked for."
+    },
+    {
+      "name": "ItemIdentityEnhancementProcessor",
+      "package": "dev.versatia.trade.identity",
+      "kind": "class",
+      "artifact": "VersatiaTrade",
+      "signature": "class ItemIdentityEnhancementProcessor : EnhancementProcessor",
+      "summary": "Registers the `@TradeItemIdentity` beans of a plugin with VersatiaTrade once its beans exist, and withdraws them when the plugin stops: the registration is an entry of the plugin's state, closed when that state goes."
     }
   ]
 }
