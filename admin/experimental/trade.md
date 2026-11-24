@@ -15,13 +15,14 @@ walks away, or when the server stops or crashes. Every completed trade goes into
 ## Installing {/* #installing */}
 
 Put `VersatiaTrade-0.0.1.jar` into `plugins/` next to VersatiaCore. Each of the other plugins adds a
-part, and players need at least one of the first and the last to ask for a trade:
+part, and players need VersatiaInteractions or CommandAPI to ask for a trade:
 
-| Plugin | Adds |
-|---|---|
-| [VersatiaInteractions](interactions.md) | a Trade button in its menu (Shift + right click on a player), with its waiting countdown; `/trade` then sends that menu's offer |
-| Vault ([VaultUnlocked](https://modrinth.com/plugin/vaultunlocked) or the original) and an economy plugin | money in trades; without them trades are items only |
-| [CommandAPI](https://commandapi.dev/) 12.x | `/trade` |
+| Plugin | Dependency | Adds |
+|---|---|---|
+| VersatiaCore | required | everything: VersatiaTrade runs on it |
+| [VersatiaInteractions](interactions.md) | optional | a Trade button in its menu (Shift + right click on a player), with its waiting countdown; `/trade` then sends that menu's offer |
+| Vault ([VaultUnlocked](https://modrinth.com/plugin/vaultunlocked) or the original) and an economy plugin | optional | money in trades; without them trades are items only |
+| [CommandAPI](https://commandapi.dev/) 12.x | optional | `/trade` |
 
 Install or remove one of them, then restart ([Optional plugins](../installation.md#optional-plugins)).
 An economy plugin that registers with Vault after VersatiaTrade started is found at the next trade.

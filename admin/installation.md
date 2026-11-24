@@ -43,9 +43,9 @@ switches it without a restart; a deleted file comes back at that reload.
 VersatiaCore works on its own. Some of its features appear only when another plugin is installed
 next to it:
 
-| Plugin                                   | Version | What it enables                                          |
-|------------------------------------------|---------|----------------------------------------------------------|
-| [CommandAPI](https://commandapi.dev/)    | 12.x    | the [`/versatia` command](commands.md), and the commands of plugins built on Versatia |
+| Plugin                                   | Version | Dependency | What it enables                                          |
+|------------------------------------------|---------|------------|----------------------------------------------------------|
+| [CommandAPI](https://commandapi.dev/)    | 12.x    | optional   | the [`/versatia` command](commands.md), and the commands of plugins built on Versatia |
 
 Without CommandAPI every plugin still runs; only the commands are missing. A CommandAPI release
 VersatiaCore is not compatible with costs only the commands, and VersatiaCore logs one warning:
@@ -75,7 +75,7 @@ Paper names the missing module at start.
 
 | Module JAR                          | Plugin name               | Needs        |
 |-------------------------------------|---------------------------|--------------|
-| `VersatiaModule-Database-0.0.1.jar` | `VersatiaModule-Database` | VersatiaCore; downloads its libraries at the first start ([Database module](database/index.md)) |
+| `VersatiaModule-Database-0.0.1.jar` | `VersatiaModule-Database` | VersatiaCore, required; downloads its libraries at the first start ([Database module](database/index.md)) |
 
 ## Updating {/* #updating */}
 

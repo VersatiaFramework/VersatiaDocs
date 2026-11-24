@@ -14,9 +14,14 @@ is, the general one.
 
 ## Installing {/* #installing */}
 
-Put `VersatiaChat-0.0.1.jar` into `plugins/` next to VersatiaCore, its only dependency, and start the
-server. VersatiaChat writes its datapack into the main world's `datapacks` folder and logs that it
-did; the frame needs one more restart ([The datapack](#the-datapack)). Players install nothing.
+Put `VersatiaChat-0.0.1.jar` into `plugins/` next to VersatiaCore and start the server:
+
+| Plugin | Dependency | Needed for |
+|---|---|---|
+| VersatiaCore | required | everything: VersatiaChat runs on it |
+
+VersatiaChat writes its datapack into the main world's `datapacks` folder and logs that it did; the
+frame needs one more restart ([The datapack](#the-datapack)). Players install nothing.
 
 ## The datapack {/* #the-datapack */}
 

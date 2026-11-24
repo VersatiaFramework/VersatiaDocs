@@ -18,11 +18,11 @@ or walks away. Two players who send each other an offer start the action at once
 Put `VersatiaInteractions-0.0.1.jar` into `plugins/` next to VersatiaCore, together with the plugins
 that provide actions: on a server where no plugin provides one, Shift + right click opens nothing.
 
-| Plugin | Needed for |
-|---|---|
-| VersatiaCore | always |
-| a plugin providing an action, such as [VersatiaTrade](trade.md) | the buttons of the menu |
-| [CommandAPI](https://commandapi.dev/) 12.x | `/interact`, which the [Accept] and [Decline] of the receiver's chat line run |
+| Plugin | Dependency | Needed for |
+|---|---|---|
+| VersatiaCore | required | always |
+| a plugin providing an action, such as [VersatiaTrade](trade.md) | optional | the buttons of the menu |
+| [CommandAPI](https://commandapi.dev/) 12.x | optional | `/interact`, which the [Accept] and [Decline] of the receiver's chat line run |
 
 Without CommandAPI, `/interact` does not exist and the chat line's buttons cannot answer: players
 answer in the menu, or you set `receiver.notify` to `dialog`, whose buttons need no command
