@@ -24,7 +24,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Experimental',
       collapsed: false,
-      items: ['experimental/interactions', 'experimental/trade'],
+      items: ['experimental/interactions', 'experimental/trade', 'experimental/chat'],
     },
     'troubleshooting',
   ],

@@ -18,15 +18,17 @@ plugin can work with them: add a button to a menu, stop a trade, follow what hap
 |---|---|---|
 | [VersatiaInteractions](interactions.md) | a menu opened with Shift + right click on a player, with a button per action (a trade, a duel), and requests that wait, expire and end on their own | add an action, send its request from code, deny or follow requests |
 | [VersatiaTrade](trade.md) | a secure two-player trade window for items and money | deny a trade or an offered item, change how offered items look, follow how a trade ends, say which stacks are the same item |
+| [VersatiaChat](chat.md) | chat lines in a frame of their own, the channel's name in front of the sender, kept as the players' signed messages, with a card on the sender's name | stop, hide or style a line through Paper's chat events, with no dependency |
 
-Their sources are in the [VersatiaInteractions](https://github.com/VersatiaFramework/VersatiaInteractions)
-and [VersatiaTrade](https://github.com/VersatiaFramework/VersatiaTrade) repositories.
+Their sources are in the [VersatiaInteractions](https://github.com/VersatiaFramework/VersatiaInteractions),
+[VersatiaTrade](https://github.com/VersatiaFramework/VersatiaTrade) and
+[VersatiaChat](https://github.com/VersatiaFramework/VersatiaChat) repositories.
 
 :::admin
 
 Installing and configuring these plugins is covered by the server admin guide, on the
-[VersatiaInteractions](/admin/experimental/interactions) and [VersatiaTrade](/admin/experimental/trade)
-pages.
+[VersatiaInteractions](/admin/experimental/interactions), [VersatiaTrade](/admin/experimental/trade)
+and [VersatiaChat](/admin/experimental/chat) pages.
 
 :::
 

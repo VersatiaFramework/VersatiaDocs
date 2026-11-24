@@ -8,7 +8,7 @@ const sidebars: SidebarsConfig = {
       type: 'category',
       label: 'Plugins',
       collapsed: false,
-      items: ['plugins/index', 'plugins/interactions', 'plugins/trade'],
+      items: ['plugins/index', 'plugins/interactions', 'plugins/trade', 'plugins/chat'],
     },
   ],
 };
