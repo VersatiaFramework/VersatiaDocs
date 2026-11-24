@@ -33,7 +33,9 @@ quest:
 
 ```yaml
 # Default styles of VersatiaCore
-neutral: "<gray>"
+neutral:
+  style: "<yellow>"
+  accent: "<gold>"
 positive:
   style: "<green>"
   accent: "<#AAFFAA>"
@@ -41,14 +43,13 @@ negative:
   style: "<red>"
   accent: "<#FFAAAA>"
 warning:
-  style: "<yellow>"
-  accent: "<gold>"
+  style: "<#FF8000>"
+  accent: "<#FFC080>"
 accent: "<white>"
 hint: "<dark_gray><italic>"
-clickable: "<aqua><underlined>"
+clickable: "<aqua><italic>"
 label: "<gold>"
 heading: "<aqua><bold>"
-serverTag: ""
 ```
 
 </CodeCard>
@@ -56,8 +57,8 @@ serverTag: ""
 
 The quest's name and the reward stand out without a tag around them: light green on the green
 of the first message, light red on the red of the second. Those are the accents of `positive` and
-`negative`, as `warning` has one of its own, gold on yellow. `/quest` in the hint is white, the
-accent of the top level, which applies wherever a tone has none of its own.
+`negative`, as `warning` has one of its own, light orange on orange. `/quest` in the hint is white,
+the accent of the top level, which applies wherever a tone has none of its own.
 
 ## The shared styles {/* #shared-styles */}
 
@@ -71,8 +72,7 @@ message opens with its **tone**:
 | `warning`  | nothing failed, but the player should take note  | `<warning>The server restarts in {time}.`  |
 | `neutral`  | a fact, neither good nor bad                     | `<neutral>You have {count} quests.`        |
 
-Inside it, three names mark the parts, and a fourth, `serverTag`, is
-[the server's tag](#server-tag) in front of the message:
+Inside it, three names mark the parts:
 
 | Style       | The part is                                                                            | For example                                     |
 |-------------|----------------------------------------------------------------------------------------|-------------------------------------------------|
@@ -112,17 +112,16 @@ or a `<gradient:gold:yellow>`, and the text shows exactly as if you had written 
 where the style opens and closed them where it closes.
 
 A name is looked up where it stands: in the styles around it, the nearest first, then at the top
-level of the file. With the file above, where `positive`, `negative` and `warning` have accents of
-their own:
+level of the file. With the file above, where every tone has an accent of its own:
 
 | In the text                              | `<accent>` is                                       |
 |------------------------------------------|-----------------------------------------------------|
 | `<accent>x`                              | `<white>`, the top level                            |
-| `<warning>... <accent>x`                 | `<gold>`, the one of `warning`                      |
-| `<negative><warning>... <accent>x`       | `<gold>`: `warning` is the nearer one               |
-| `<warning><bold>... <accent>x`           | `<gold>`: `<bold>` is no style and hides nothing    |
+| `<warning>... <accent>x`                 | `<#FFC080>`, the one of `warning`                   |
+| `<negative><warning>... <accent>x`       | `<#FFC080>`: `warning` is the nearer one            |
+| `<warning><bold>... <accent>x`           | `<#FFC080>`: `<bold>` is no style and hides nothing |
 | `<warning>...</warning> <accent>x`       | `<white>`: `warning` was closed                     |
-| `<neutral>... <accent>x`                 | `<white>`: `neutral` has no accent of its own       |
+| `<neutral>... <accent>x`                 | `<gold>`, the one of `neutral`                      |
 
 ## Styles of your own {/* #default-styles */}
 
@@ -197,43 +196,44 @@ The file, its format and what a reload re-reads are explained to the server admi
 
 :::
 
-## The server's tag {/* #server-tag */}
+## Tags {/* #tags */}
 
-Many servers open their chat messages with their name, `[Realm] Welcome!`. That tag is the shared
-style `serverTag`: a style may hold text, and written self-closing it inserts that text. It stands
-right after the tone:
+A style may hold text, and written self-closing it inserts that text: a tag in front of a message,
+`[Quests] Quest done.`. A plugin that opens its messages with its name ships that name as a tag of
+its own, named after the plugin and ending in `Tag`, and writes it right after the tone:
 
 <CodeCards>
-<CodeCard title="messages/welcome.yml">
+<CodeCard title="messages/quests.yml">
 
 ```yaml
-welcome: "<neutral><serverTag/>Welcome to the server, {player}!"
+done: "<positive><questTag/>Quest {quest} done."
 ```
 
 </CodeCard>
-<CodeCard title="plugins/VersatiaCore/styles.yml">
+<CodeCard title="src/main/resources/styles.yml">
 
 ```yaml
-serverTag: "<gold><bold>[Realm]</bold></gold> "
+questTag: "<dark_purple><bold>[Quests]</bold></dark_purple> "
 ```
 
 </CodeCard>
 </CodeCards>
 
-VersatiaCore ships the tag empty, so a message shows none until the admin writes the server's.
-The space after the tag is part of the style for that reason: an empty tag leaves no gap. The tag
-above looks the same in every message, whatever the tone, since it says who speaks and not what
-kind of news follows. A tag written without a colour takes the tone's instead, and a tone may
-hold a tag of its own, `negative.serverTag`, like any name.
+The space after the tag is part of the style, so a server that empties it, `questTag: ""`, leaves
+no gap. Written with colours of its own, the tag looks the same whatever the tone, since it says
+who speaks and not what kind of news follows; a tag without a colour takes the tone's, and a tone
+may hold a tag of its own, `negative.questTag`, like any name. Versatia ships no tag of the
+server's: a server that wants one writes a style of its own into its file and the tag into its
+copies of the messages.
 
 ```yaml title="Wrong: every server has to edit the name out of every file"
 # error-next-line
-welcome: "<neutral>[Realm] Welcome to the server, {player}!"
+done: "<positive>[Quests] Quest {quest} done."
 ```
 
-```yaml title="Right: the server writes its tag once"
+```yaml title="Right: the server's file says how the tag looks, or empties it"
 # fix-next-line
-welcome: "<neutral><serverTag/>Welcome to the server, {player}!"
+done: "<positive><questTag/>Quest {quest} done."
 ```
 
 A tag opens a chat message that stands alone. A line of a list, a hint under another message and
@@ -322,7 +322,7 @@ won: "<positive><!bold>{player.displayName}</!bold> wins"
 
 ## Clickable text {/* #clickable-text */}
 
-The text of every `<click>` takes the `clickable` style by itself, aqua and underlined unless the
+The text of every `<click>` takes the `clickable` style by itself, aqua and italic unless the
 server says otherwise, so a player sees at once what they can click: a button that accepts an
 offer, a command to run, a link. A message writes the click and nothing inside it to make it look
 clickable:
@@ -341,7 +341,7 @@ The style is looked up where the click stands, like a style's tag: a tone may de
 of its own (`warning.clickable` in the server's file), and a style inside the click is nearer and
 wins over what it defines, for a button that must read as a tone:
 `<click:run_command:'/quest abandon'><negative>[Abandon]</negative></click>` turns red and stays
-underlined.
+italic.
 
 ## Tags that do not exist {/* #tags-that-do-not-exist */}
 
@@ -351,7 +351,7 @@ Your messages are checked once your plugin has started, so the tags your start f
 count, and again at every reload when the files are read:
 
 ```text
-Plugin Quests: message "quest.done" in messages/quests.yml cannot be shown: <positiv> is neither a MiniMessage tag nor a style; the styles in plugins/VersatiaCore/styles.yml are: accent, hint, negative, neutral, positive, serverTag, warning. Write \<positiv> to show it as text
+Plugin Quests: message "quest.done" in messages/quests.yml cannot be shown: <positiv> is neither a MiniMessage tag nor a style; the styles in plugins/VersatiaCore/styles.yml are: accent, hint, negative, neutral, positive, warning. Write \<positiv> to show it as text
 ```
 
 At start the plugin does not enable; at a reload the previous messages stay.
@@ -412,7 +412,7 @@ single-quoted one once.
   plugins/VersatiaCore/styles.yml to use it anywhere`.
 - **A name** is letters, digits, `_` and `-`, and neither a MiniMessage tag (`bold`, `red`, `b`,
   `key`) nor `style`, which is the key of a section's own style. Upper and lower case are one
-  name, as in MiniMessage's own tags: `<serverTag/>` and `<servertag/>` are the same style, and a
+  name, as in MiniMessage's own tags: `<questTag/>` and `<questtag/>` are the same style, and a
   file cannot define both.
 - **A style holds MiniMessage only**: another style inside it is a tag that does not exist, and
   `&6` is an error naming `<gold>`. Text in a style is shown before what the style encloses, so
@@ -422,7 +422,7 @@ single-quoted one once.
 - **Hover text is a text of its own**: styles in `<hover:show_text:'...'>` are looked up from the
   top level, not from the styles around the hover.
 - **A style inside a click changes only what it defines**: with `<negative>` inside, the button is
-  red and keeps the underline of `clickable`.
+  red and keeps the italic of `clickable`.
 - **A value a click holds alone takes `clickable`**, as under any tag holding it alone:
   `<click:suggest_command:'/msg {player.name} '>{player}</click>` shows the name in the clickable
   look, not in `player`.

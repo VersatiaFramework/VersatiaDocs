@@ -80,7 +80,7 @@ trade:
 money:
   steps: [1, 10, 100, 1000]
 request:
-  timeout: 30s
+  timeout: 15s
 log:
   enabled: true
 window:
@@ -123,7 +123,7 @@ A wrong value fails the start or the reload naming the key.
 
 | Section | What it says |
 |---|---|
-| `interaction` | the Trade button of VersatiaInteractions' menu: its name, the sentences saying a player is trading, its lore |
+| `interaction` | the Trade button of VersatiaInteractions' menu: its name, the sentences saying a player is trading, its lore, and the chat lines and the dialog of an offer |
 | `deny` | why a trade cannot start, also shown on the Trade button |
 | `request` | requests by `/trade` on a server without VersatiaInteractions, with their chat line |
 | `window` | the window: its title, the lore of the items, the money, the accept buttons and the status line |
@@ -132,6 +132,18 @@ A wrong value fails the start or the reload naming the key.
 A message that reads wrong is yours to fix, in this file. A reason another plugin gives when it
 stops a trade or keeps an item out of one, a combat plugin say, comes from that plugin's messages;
 when it gives none, players read `deny.unavailable` or `trade.item-denied`.
+
+The button that accepts a request or an offer has a style of its own, which VersatiaTrade adds
+to the server's file when it starts:
+
+```yaml title="plugins/VersatiaCore/styles.yml"
+# Default styles of VersatiaTrade
+accept: "<green><!italic>"
+```
+
+It is green and upright inside the italic of `clickable`. A player who does not want to trade lets
+the request expire or types `/trade decline <player>`; with VersatiaInteractions,
+`/interact decline <player> trade`.
 
 ## The trade log {/* #the-trade-log */}
 
@@ -150,8 +162,8 @@ written when the plugin stops. `log.enabled: false` switches the log off.
 - **Two distances with VersatiaInteractions.** An offer from its menu needs the players within its
   `requests.max-distance` and the trade within `trade.max-distance`: the smaller one applies,
   10 blocks by default.
-- **Two timeouts.** With VersatiaInteractions, a trade offer waits its `requests.timeout`, 10 s by
-  default; `request.timeout` applies only to `/trade` without it.
+- **Two timeouts.** With VersatiaInteractions, a trade offer waits its `requests.timeout`, 15 s by
+  default; `request.timeout`, also 15 s, applies only to `/trade` without it.
 - **An exchange that cannot happen** when the countdown ends (an item is gone, a side lacks room or
   money) does not end the trade: the acceptances go, both players read why, and they may accept
   again.

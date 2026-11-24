@@ -22,7 +22,7 @@ that provide actions: on a server where no plugin provides one, Shift + right cl
 |---|---|---|
 | VersatiaCore | required | always |
 | a plugin providing an action, such as [VersatiaTrade](trade.md) | optional | the buttons of the menu |
-| [CommandAPI](https://commandapi.dev/) 12.x | optional | `/interact`, which the [Accept] and [Decline] of the receiver's chat line run |
+| [CommandAPI](https://commandapi.dev/) 12.x | optional | `/interact`, which the receiver's [Click to accept] runs and a player types to decline |
 
 Without CommandAPI, `/interact` does not exist and the chat line's buttons cannot answer: players
 answer in the menu, or you set `receiver.notify` to `dialog`, whose buttons need no command
@@ -57,7 +57,7 @@ VersatiaInteractions writes the file at its first start:
 
 ```yaml title="plugins/VersatiaInteractions/config.yml"
 requests:
-  timeout: 10s
+  timeout: 15s
   countdown: true
   max-distance: 16
   cancel-on: [distance, world-change, death]
@@ -120,21 +120,32 @@ and the answers; [Editing messages](../messages.md) explains the format and the 
 |---|---|
 | `window.title` | the menu's title; `{target}` is the player it was opened on |
 | `button.<state>.name`, `.lore` | each button, in each state |
-| `offer.*` | the offer sent, received (the chat line with [Accept] and [Decline]), accepted, declined, expired and cancelled, for an action whose plugin words none of its own |
+| `offer.*` | the offer sent, received (the chat line with [Click to accept]), accepted, declined, expired and cancelled, for an action whose plugin words none of its own |
 | `too-far`, `busy`, `busy-self`, `unavailable` | why an offer cannot be sent or accepted |
-| `dialog.*` | the dialog of `receiver.notify: dialog` or `both` |
+| `dialog.*` | the dialog of `receiver.notify: dialog` or `both`, for an action whose plugin words none of its own |
 | `command.*` | the answers of `/interact` |
 
 The sentences about one action come from the plugin providing it. VersatiaTrade's
 `plugins/VersatiaTrade/messages/trade.yml` holds, under `interaction`, the trade's name ("Trade"),
-the sentences saying a player is trading, the lore of its button and the chat lines of an offer
-(`interaction.offer.*`: "Steve offers you a trade."), which replace the menu's defaults for that
-action alone. The menu names an action only by its bare name after a colon (`Offer: Trade`), so a
-translation never has to inflect it.
+the sentences saying a player is trading, the lore of its button, the chat lines of an offer
+(`interaction.offer.*`: "Steve offers you a trade.") and its dialog (`interaction.dialog.*`),
+which replace the menu's defaults for that action alone. The menu names an action only by its bare
+name after a colon (`Offer: Trade`), so a translation never has to inflect it.
 
 A message that reads wrong is yours to fix, in these files. A reason another plugin gives, on a
 button or when it stops an offer, comes from that plugin's messages; when such a plugin gives none,
 players read the `unavailable` sentence.
+
+The button that accepts an offer has a style of its own, which VersatiaInteractions adds to the
+server's file when it starts, as VersatiaTrade does:
+
+```yaml title="plugins/VersatiaCore/styles.yml"
+# Default styles of VersatiaInteractions
+accept: "<green><!italic>"
+```
+
+It is green and upright inside the italic of `clickable`. A player who does not want the offer
+lets it expire or types `/interact decline <player> <action>`.
 
 ## Icons and sounds {/* #icons-and-sounds */}
 
@@ -160,7 +171,7 @@ actions:
 - **A busy player cannot be asked.** While two players trade, neither can send, receive or accept
   an offer of an action that keeps players busy, such as a trade or a duel, and the buttons say who
   is busy.
-- **Two offers to each other** start the action at once, without a click on [Accept].
+- **Two offers to each other** start the action at once, without a click on [Click to accept].
 - **An action's own distance.** A plugin may need the two players closer than
   `requests.max-distance`: VersatiaTrade opens a trade only within its own `trade.max-distance`,
   10 blocks by default, so its button reads "too far away to trade" beyond that

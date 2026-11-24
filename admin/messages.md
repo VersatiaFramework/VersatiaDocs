@@ -134,7 +134,9 @@ first starts:
 
 ```yaml title="plugins/VersatiaCore/styles.yml"
 # Default styles of VersatiaCore
-neutral: "<gray>"
+neutral:
+  style: "<yellow>"
+  accent: "<gold>"
 positive:
   style: "<green>"
   accent: "<#AAFFAA>"
@@ -142,14 +144,13 @@ negative:
   style: "<red>"
   accent: "<#FFAAAA>"
 warning:
-  style: "<yellow>"
-  accent: "<gold>"
+  style: "<#FF8000>"
+  accent: "<#FFC080>"
 accent: "<white>"
 hint: "<dark_gray><italic>"
-clickable: "<aqua><underlined>"
+clickable: "<aqua><italic>"
 label: "<gold>"
 heading: "<aqua><bold>"
-serverTag: ""
 ```
 
 | Style                                        | Where plugins use it                                                                    |
@@ -158,7 +159,6 @@ serverTag: ""
 | `accent`                                     | what matters most; every value a message fills in (a name, a number) takes it by itself |
 | `hint`                                       | what matters least, or what to do next                                                  |
 | `clickable`                                  | what a player can click, such as `[Accept]` under an offer; every click takes it itself |
-| `serverTag`                                  | the tag in front of chat messages, such as `[Realm]`; nothing until you write yours     |
 
 | In the file                       | Means                                                                 |
 |-----------------------------------|-----------------------------------------------------------------------|
@@ -190,15 +190,21 @@ quiet: "<neutral>By <hint>{player.displayName}</hint>"                    # the 
 With a word inside the tag, `<!bold>{player.displayName} bought</!bold>`, the name keeps its own
 formatting.
 
-**Your server's tag.** Messages that speak for the server open with `<serverTag/>`, which shows
-nothing until you write the tag, together with the space that follows it:
+**A tag of your own.** A style may hold text, such as your server's name in front of messages,
+together with the space that follows it. Define it here and write it into the messages that should
+show it, right after their tone:
 
 ```yaml title="plugins/VersatiaCore/styles.yml"
-serverTag: "<gold><bold>[Realm]</bold></gold> "
+realmTag: "<gold><bold>[Realm]</bold></gold> "
+```
+
+```yaml title="plugins/VersatiaTrade/messages/trade.yml"
+trade:
+  completed: "<positive><realmTag/>Trade with {partner} completed."
 ```
 
 Written like this it looks the same in every message. A tag without a colour, `"[Realm] "`, takes
-the colour of the message it opens, and `negative.serverTag` gives bad news a tag of its own. A
+the colour of the message it opens, and `negative.realmTag` gives bad news a tag of its own. A
 plugin may bring a tag of its own (`questTag`), which you edit or empty the same way.
 
 **Plugins fill the file in.** When a plugin starts, the styles of its own that your file does not
@@ -238,7 +244,7 @@ A style is written in MiniMessage tags, never in `&` codes, and it cannot use an
 | `"shop" is a message in messages/general.yml and a group of messages in messages/shop.yml; rename one of them` | a key cannot hold a text and further keys |
 | `Plugin Shop has no message "shop.byu"; ...`                           | a key was renamed or deleted; the message lists the keys that start the same way |
 | `Plugin Shop: message "shop.bought" in messages/shop.yml cannot be shown: No argument "nmae"; the arguments are: player, item, price` | fix the name in braces |
-| `... cannot be shown: <sucess> is neither a MiniMessage tag nor a style; the styles in plugins/VersatiaCore/styles.yml are: accent, hint, negative, neutral, positive, serverTag, warning. Write \<sucess> to show it as text` | fix the tag, define the style, or write `\<` when the brackets are text |
+| `... cannot be shown: <sucess> is neither a MiniMessage tag nor a style; the styles in plugins/VersatiaCore/styles.yml are: accent, hint, negative, neutral, positive, warning. Write \<sucess> to show it as text` | fix the tag, define the style, or write `\<` when the brackets are text |
 | `... cannot be shown: <accent> is a style only inside <negative>, <positive>; define it at the top level of plugins/VersatiaCore/styles.yml to use it anywhere` | add a top-level `accent`, or use the tag only inside those styles |
 | `style "accent" in plugins/VersatiaCore/styles.yml uses <gol>, which is not a MiniMessage tag; ...`, `"my accent" ... cannot name a style: ...`, `... is not valid YAML at line 3, column 5: ...` | fix `styles.yml`; names are letters, digits, `_` and `-`, and not a MiniMessage tag such as `bold` or `red` |
 | `styles.yml in the JAR of Shop ...`                                    | the plugin's own default styles are broken: report it to the plugin's author |
@@ -268,11 +274,12 @@ message once in game.
   VersatiaCore alone the new styles apply at once, but the other plugins' messages are not
   checked against them until those plugins reload.
 - **Brackets around something without a letter**, `<3` or `<->`, are text as they always were.
-- **Upper and lower case are one name**: `serverTag` and `servertag` are the same style, and the
+- **Upper and lower case are one name**: `questTag` and `questtag` are the same style, and the
   file cannot define both.
 - **`clickable` marks every click** in every plugin's messages. A message may put a style of its
   own inside the click, such as `negative` on a button that ends something: the button turns red
-  and stays underlined. A section may define its own, `warning.clickable: "<gold><underlined>"`,
-  for the clicks inside `<warning>`; it replaces the whole look, so it repeats the underline.
+  and stays italic. A section may define its own, `warning.clickable: "<gold><italic>"`,
+  for the clicks inside `<warning>`; it replaces the whole look, so it repeats the italic, and
+  `<!italic>` in a style inside the click takes the italic off that part.
 - **A gradient or a rainbow around a value alone** colours only the parts without a colour of their
   own; every other tag holding the value alone wins over its colours.

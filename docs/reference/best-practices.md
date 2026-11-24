@@ -69,11 +69,10 @@ fun connect() {
   a synonym for one.
 - **`label` and `heading` are reserved names**: the name before a value and the title of a list
   or of a page are called that in every plugin, and a plugin that has one ships its default.
-- **The server's name is `<serverTag/>`, never text.** A message carrying
-  [the tag](../messages/styles.md#server-tag) has it right after the tone,
-  `<neutral><serverTag/>Welcome!`. A plugin speaking in its own name ships a tag of its own, named
-  after the plugin and ending in `Tag` (`<questTag/>`). The space after a tag belongs to the
-  style; lines of a list, hints under a message and menus carry no tag.
+- **A plugin's name in front of its messages is a tag of its own, never text**: a
+  [style that holds the text](../messages/styles.md#tags), named after the plugin and ending in
+  `Tag`, written right after the tone, `<positive><questTag/>Quest done.` The space after a tag
+  belongs to the style; lines of a list, hints under a message and menus carry no tag.
 - **A value is not wrapped in a tag**: whatever a brace inserts takes the `accent` by itself, or
   the style of its type. `<accent>` is for fixed text, such as a command to type. A type that
   always looks its own way names its style, `override val style get() = "quest"` in a
