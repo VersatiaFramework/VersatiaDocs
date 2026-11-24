@@ -79,6 +79,10 @@ fun connect() {
   always looks its own way names its style, `override val style get() = "quest"` in a
   `Presentable` class or `text.present<Town>(style = "town")` for a type you do not own, instead
   of a tag around every brace.
+- **A click is not styled by hand**: the text of every `<click>` takes the
+  [`clickable` style](../messages/styles.md#clickable-text) by itself, so a button carries no
+  colour or style of its own, unless it must read as a tone:
+  `<click:run_command:'/quest abandon'><negative>[Abandon]</negative></click>`.
 - **One plugin decides how a type looks on the whole server.** The plugin owning a type's look,
   an RPG plugin's player card, declares a
   [`@ServerPresentation`](../messages/arguments.md#server-presentations); other plugins write

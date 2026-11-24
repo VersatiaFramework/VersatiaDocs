@@ -143,6 +143,7 @@ after a colon (`Offer: Duel`), so no language has to inflect it:
 | `interaction.busy` | no | the reason on a button while another player is busy with the action; `{target}` is that player |
 | `interaction.busy-self` | no | the reason while the viewer is busy with it |
 | `interaction.button.<state>.name`, `.lore` | no | the button's name or lore in one state, in place of the menu's default |
+| `interaction.offer.<event>` | no | a chat line of an offer in the action's own words, `{sender} challenges you to a duel.`, in place of VersatiaInteractions' `offer.<event>`: `sent`, `received`, `accepted`, `declined`, `expired` or `cancelled` |
 
 The states are `available`, `waiting`, `offered`, `busy`, `denied` and `active`; a button's text
 takes `{target}`, the other player, `{action}`, `{seconds}`, the seconds left, and `{reason}`:
@@ -158,6 +159,10 @@ interaction:
         - "<hint>Challenge {target} to a duel."
         - "<hint>Click to send the challenge."
 ```
+
+An action's own `offer.received` writes the answer buttons itself, as VersatiaInteractions' does:
+`<click:run_command:'/interact accept {sender.name} {action.id}'>[Accept]</click>`, and the same
+with `decline`.
 
 A plugin with a second action gives it a prefix of its own:
 `@InteractionAction("spar", messages = "spar")` reads `spar.name`.

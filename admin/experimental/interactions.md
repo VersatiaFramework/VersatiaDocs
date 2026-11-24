@@ -120,16 +120,17 @@ and the answers; [Editing messages](../messages.md) explains the format and the 
 |---|---|
 | `window.title` | the menu's title; `{target}` is the player it was opened on |
 | `button.<state>.name`, `.lore` | each button, in each state |
-| `offer.*` | the offer sent, received (the chat line with [Accept] and [Decline]), accepted, declined, expired and cancelled |
+| `offer.*` | the offer sent, received (the chat line with [Accept] and [Decline]), accepted, declined, expired and cancelled, for an action whose plugin words none of its own |
 | `too-far`, `busy`, `busy-self`, `unavailable` | why an offer cannot be sent or accepted |
 | `dialog.*` | the dialog of `receiver.notify: dialog` or `both` |
 | `command.*` | the answers of `/interact` |
 
 The sentences about one action come from the plugin providing it. VersatiaTrade's
 `plugins/VersatiaTrade/messages/trade.yml` holds, under `interaction`, the trade's name ("Trade"),
-the sentences saying a player is trading and the lore of its button, which replace the menu's
-defaults for that button alone. The menu names an action only by its bare name after a colon
-(`Offer: Trade`), so a translation never has to inflect it.
+the sentences saying a player is trading, the lore of its button and the chat lines of an offer
+(`interaction.offer.*`: "Steve offers you a trade."), which replace the menu's defaults for that
+action alone. The menu names an action only by its bare name after a colon (`Offer: Trade`), so a
+translation never has to inflect it.
 
 A message that reads wrong is yours to fix, in these files. A reason another plugin gives, on a
 button or when it stops an offer, comes from that plugin's messages; when such a plugin gives none,

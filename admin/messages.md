@@ -135,13 +135,18 @@ first starts:
 ```yaml title="plugins/VersatiaCore/styles.yml"
 # Default styles of VersatiaCore
 neutral: "<gray>"
-positive: "<green>"
-negative: "<red>"
+positive:
+  style: "<green>"
+  accent: "<#AAFFAA>"
+negative:
+  style: "<red>"
+  accent: "<#FFAAAA>"
 warning:
   style: "<yellow>"
   accent: "<gold>"
 accent: "<white>"
 hint: "<dark_gray><italic>"
+clickable: "<aqua><underlined>"
 label: "<gold>"
 heading: "<aqua><bold>"
 serverTag: ""
@@ -152,6 +157,7 @@ serverTag: ""
 | `positive`, `negative`, `warning`, `neutral` | the tone of a message: good news, bad news, something to note, a plain fact             |
 | `accent`                                     | what matters most; every value a message fills in (a name, a number) takes it by itself |
 | `hint`                                       | what matters least, or what to do next                                                  |
+| `clickable`                                  | what a player can click, such as `[Accept]` under an offer; every click takes it itself |
 | `serverTag`                                  | the tag in front of chat messages, such as `[Realm]`; nothing until you write yours     |
 
 | In the file                       | Means                                                                 |
@@ -264,5 +270,9 @@ message once in game.
 - **Brackets around something without a letter**, `<3` or `<->`, are text as they always were.
 - **Upper and lower case are one name**: `serverTag` and `servertag` are the same style, and the
   file cannot define both.
+- **`clickable` marks every click** in every plugin's messages. A message may put a style of its
+  own inside the click, such as `negative` on a button that ends something: the button turns red
+  and stays underlined. A section may define its own, `warning.clickable: "<gold><underlined>"`,
+  for the clicks inside `<warning>`; it replaces the whole look, so it repeats the underline.
 - **A gradient or a rainbow around a value alone** colours only the parts without a colour of their
   own; every other tag holding the value alone wins over its colours.

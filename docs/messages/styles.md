@@ -34,13 +34,18 @@ quest:
 ```yaml
 # Default styles of VersatiaCore
 neutral: "<gray>"
-positive: "<green>"
-negative: "<red>"
+positive:
+  style: "<green>"
+  accent: "<#AAFFAA>"
+negative:
+  style: "<red>"
+  accent: "<#FFAAAA>"
 warning:
   style: "<yellow>"
   accent: "<gold>"
 accent: "<white>"
 hint: "<dark_gray><italic>"
+clickable: "<aqua><underlined>"
 label: "<gold>"
 heading: "<aqua><bold>"
 serverTag: ""
@@ -49,10 +54,10 @@ serverTag: ""
 </CodeCard>
 </CodeCards>
 
-The quest's name and the reward stand out without a tag around them: white on the green of the
-first message and on the red of the second, like `/quest` in the hint. That white is the accent of
-the top level, which applies wherever a tone has none of its own; `warning` has one, gold on
-yellow.
+The quest's name and the reward stand out without a tag around them: light green on the green
+of the first message, light red on the red of the second. Those are the accents of `positive` and
+`negative`, as `warning` has one of its own, gold on yellow. `/quest` in the hint is white, the
+accent of the top level, which applies wherever a tone has none of its own.
 
 ## The shared styles {/* #shared-styles */}
 
@@ -66,13 +71,14 @@ message opens with its **tone**:
 | `warning`  | nothing failed, but the player should take note  | `<warning>The server restarts in {time}.`  |
 | `neutral`  | a fact, neither good nor bad                     | `<neutral>You have {count} quests.`        |
 
-Inside it, two names mark the parts, and a third, `serverTag`, is
+Inside it, three names mark the parts, and a fourth, `serverTag`, is
 [the server's tag](#server-tag) in front of the message:
 
-| Style     | The part is                                                               | For example                           |
-|-----------|---------------------------------------------------------------------------|---------------------------------------|
-| `accent`  | what matters most; every value takes it [by itself](#values-in-a-style)   | `<accent>/quest</accent>`             |
-| `hint`    | what matters least, or what to do next                                    | `<hint>Type <accent>/quest</accent>.` |
+| Style       | The part is                                                                            | For example                                     |
+|-------------|----------------------------------------------------------------------------------------|-------------------------------------------------|
+| `accent`    | what matters most; every value takes it [by itself](#values-in-a-style)                | `<accent>/quest</accent>`                       |
+| `hint`      | what matters least, or what to do next                                                 | `<hint>Type <accent>/quest</accent>.`           |
+| `clickable` | what a player can click; the text of every click takes it [by itself](#clickable-text) | `<click:run_command:'/quests'>[Quests]</click>` |
 
 Two more names are **reserved**: they are what these parts are called in every plugin, never
 `title` or `header`. VersatiaCore ships their look, since its own commands show labels and
@@ -106,7 +112,8 @@ or a `<gradient:gold:yellow>`, and the text shows exactly as if you had written 
 where the style opens and closed them where it closes.
 
 A name is looked up where it stands: in the styles around it, the nearest first, then at the top
-level of the file. With the file above, where `warning` has an accent of its own:
+level of the file. With the file above, where `positive`, `negative` and `warning` have accents of
+their own:
 
 | In the text                              | `<accent>` is                                       |
 |------------------------------------------|-----------------------------------------------------|
@@ -115,7 +122,7 @@ level of the file. With the file above, where `warning` has an accent of its own
 | `<negative><warning>... <accent>x`       | `<gold>`: `warning` is the nearer one               |
 | `<warning><bold>... <accent>x`           | `<gold>`: `<bold>` is no style and hides nothing    |
 | `<warning>...</warning> <accent>x`       | `<white>`: `warning` was closed                     |
-| `<positive>... <accent>x`                | `<white>`: `positive` has no accent of its own      |
+| `<neutral>... <accent>x`                 | `<white>`: `neutral` has no accent of its own       |
 
 ## Styles of your own {/* #default-styles */}
 
@@ -280,8 +287,8 @@ stands like any other name:
 bought: "<positive>{player} bought {item} for {price} coins."
 ```
 
-On a server as VersatiaCore sets it up, all three are white, the accent. An admin who adds
-`player: "<aqua>"` sees player names in aqua in every message of every plugin, and a
+On a server as VersatiaCore sets it up, all three are light green, the accent of `positive`. An
+admin who adds `player: "<aqua>"` sees player names in aqua in every message of every plugin, and a
 `positive: { player: "<gold>" }` makes them gold inside a positive one. A list is styled element
 by element, and a property is a value of its own: `{player.name}` and `{player.displayName}` take
 the accent. A `Component` your code builds is a value like any other. A value that brings
@@ -312,6 +319,29 @@ won: "<positive><!bold>{player.displayName} wins</!bold>"
 # fix-next-line
 won: "<positive><!bold>{player.displayName}</!bold> wins"
 ```
+
+## Clickable text {/* #clickable-text */}
+
+The text of every `<click>` takes the `clickable` style by itself, aqua and underlined unless the
+server says otherwise, so a player sees at once what they can click: a button that accepts an
+offer, a command to run, a link. A message writes the click and nothing inside it to make it look
+clickable:
+
+```yaml title="Wrong: a colour inside the click overrides the server's clickable style"
+# error-next-line
+received: "<neutral>{sender} wants to trade. <click:run_command:'/trade accept {sender.name}'><aqua>[Accept]</aqua></click>"
+```
+
+```yaml title="Right: the click takes the clickable style by itself"
+# fix-next-line
+received: "<neutral>{sender} wants to trade. <click:run_command:'/trade accept {sender.name}'>[Accept]</click>"
+```
+
+The style is looked up where the click stands, like a style's tag: a tone may define a `clickable`
+of its own (`warning.clickable` in the server's file), and a style inside the click is nearer and
+wins over what it defines, for a button that must read as a tone:
+`<click:run_command:'/quest abandon'><negative>[Abandon]</negative></click>` turns red and stays
+underlined.
 
 ## Tags that do not exist {/* #tags-that-do-not-exist */}
 
@@ -391,6 +421,16 @@ single-quoted one once.
 - **A tag you register with `text.tag` wins** over a style of its name, in your plugin only.
 - **Hover text is a text of its own**: styles in `<hover:show_text:'...'>` are looked up from the
   top level, not from the styles around the hover.
+- **A style inside a click changes only what it defines**: with `<negative>` inside, the button is
+  red and keeps the underline of `clickable`.
+- **A value a click holds alone takes `clickable`**, as under any tag holding it alone:
+  `<click:suggest_command:'/msg {player.name} '>{player}</click>` shows the name in the clickable
+  look, not in `player`.
+- **A click a value brings stays the value's**: a component built in code with a click event is a
+  value like any other and takes the accent, not `clickable`. Write the click into the message to
+  show it as clickable.
+- **A click a style holds is the style's own**: with `link: "<click:open_url:'https://example.com'><underlined>"`,
+  the text in `<link>` has the look of `link`, not `clickable`.
 - **A tag for a plugin that may be missing** must exist either way. Register a fallback that
   inserts nothing when the other plugin is absent, or every message using the tag fails the start.
 - **A tag registered in a start function** exists for the check, but not for an earlier function
