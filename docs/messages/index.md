@@ -262,7 +262,12 @@ A tag that does not exist is never left as text, as plain MiniMessage would leav
   such as an `AsyncChatEvent` renderer. The built-in presentations read Bukkit state
   (`{player.location}`, `{world.players}`), which is safe on the main thread only.
 - **A missing key never falls back** to a copy of the file in the plugin JAR: the bank is what the
-  data folder holds.
+  data folder holds. At the plugin's start, a message the JAR ships that no file of the data folder
+  has is first appended to the file of the same name, `messages/shop.yml`, under its key in dots,
+  in double quotes and with its comments, and logged: `Added the new messages "shop.closed" to
+  plugins/Shop/messages/shop.yml`. A message the files have, a key that is a group of theirs or
+  lies inside one of their messages, and a file the data folder lacks are left alone; a reload adds
+  nothing.
 - **Legacy codes are found by the character before them.** `x&a` and `5&l` are not reported, since
   a letter or digit precedes the code; `&a&l` is two codes. Hex forms (`&#55ff55`, `&x&5&5...`)
   are not detected. The warning comes again at every reload until the message or the setting

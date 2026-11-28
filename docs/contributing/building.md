@@ -95,7 +95,9 @@ Alternatives: `./gradlew build -PpluginsDir="D:/server/plugins"`, or a `pluginsD
 skipped and the build still succeeds.
 
 The copy is named after the project without the version, `VersatiaExample-DI-Beans.jar`, so a newer
-build replaces the deployed JAR instead of landing next to it.
+build replaces the deployed JAR instead of landing next to it. It works while the server runs too: the
+task does not track `plugins/` (`doNotTrackState`), whose files a running server keeps open, and the
+server loads the new JAR at its next start.
 
 ## Versions {/* #versions */}
 

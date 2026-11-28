@@ -446,6 +446,7 @@ export default function llms(context: LoadContext): Plugin {
       'VersatiaModule-Database': `A plugin using the Database module compiles against VersatiaStarter instead, which brings this API ([Database module](${mdUrl(page('/docs/modules/database'))})).`,
       VersatiaInteractions: `Experimental. A plugin adding an action to its menu or listening to its events compiles against it with \`compileOnly\` ([VersatiaInteractions](${mdUrl(page('/experimental/plugins/interactions'))})).`,
       VersatiaTrade: `Experimental. A plugin listening to its events or giving its items an identity compiles against it with \`compileOnly\` ([VersatiaTrade](${mdUrl(page('/experimental/plugins/trade'))})).`,
+      VersatiaRegions: `Experimental. A plugin reading regions or listening to its events compiles against it with \`compileOnly\` ([VersatiaRegions](${mdUrl(page('/experimental/plugins/regions'))})).`,
     };
     const lines = [
       '# Versatia symbol index',

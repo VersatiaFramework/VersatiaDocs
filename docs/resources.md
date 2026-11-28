@@ -41,8 +41,12 @@ The server admin's side, editing the copies and getting a default back, is in
 
 ## Existing files are never overwritten {/* #existing-files-are-never-overwritten */}
 
-A file that already exists in the data folder is left exactly as it is, whatever the JAR contains.
+A file that already exists in the data folder is never replaced, whatever the JAR contains.
 Server owners edit the extracted copies, and an update of the plugin does not undo their changes.
+Only what a new version adds reaches an existing file, at the plugin's start and appended at its
+end, never changing what is there: a required `@Value` key the file lacks
+([Missing and invalid values](configuration/index.md#missing-and-invalid-values)) and a message the
+files lack ([Messages](messages/index.md#corner-cases)).
 To get a fresh copy of a file, delete it and run [`/versatia reload <name>`](lifecycle/reload.md)
 or restart the plugin.
 

@@ -115,6 +115,29 @@ fire these, each explained in the section it links; the plugins are
 | `TradeItemRenderEvent`             | VersatiaTrade        | a window shows an item the partner offers      | [Showing offered items](/experimental/plugins/trade#showing-offered-items) |
 | `TradeCompletedEvent`              | VersatiaTrade        | after an exchange                              | [After a trade](/experimental/plugins/trade#after-a-trade) |
 | `TradeCancelledEvent`              | VersatiaTrade        | after a trade ended without an exchange        | [After a trade](/experimental/plugins/trade#after-a-trade) |
+| `PlayerRegionChangeEvent`          | VersatiaRegions      | before a player moves or teleports into other regions | [Events](/experimental/plugins/regions#events) |
+| `PlayerRegionChangedEvent`         | VersatiaRegions      | after a player's regions changed               | [Events](/experimental/plugins/regions#events) |
+| `RegionShapesChangedEvent`         | VersatiaRegions      | after a builder filled, cut or deleted regions | [Events](/experimental/plugins/regions#events) |
+| `CharacterCreateEvent`              | VersatiaRpg-Characters | before a character is created in a free slot | [Events](/experimental/plugins/rpg/characters#events) |
+| `CharacterSelectEvent`              | VersatiaRpg-Characters | before a player starts playing a character | [Events](/experimental/plugins/rpg/characters#events) |
+| `CharacterCreatedEvent`             | VersatiaRpg-Characters | after a character was created | [Events](/experimental/plugins/rpg/characters#events) |
+| `CharacterSelectedEvent`            | VersatiaRpg-Characters | after a player started playing a character | [Events](/experimental/plugins/rpg/characters#events) |
+| `CharacterDeselectedEvent`          | VersatiaRpg-Characters | after a player left a character for another | [Events](/experimental/plugins/rpg/characters#events) |
+| `CharacterDeletedEvent`             | VersatiaRpg-Characters | after an admin deleted a character | [Events](/experimental/plugins/rpg/characters#events) |
+| `CharacterSkinChangeEvent`          | VersatiaRpg-Characters | before a player takes the skin of their look | [Skins](/experimental/plugins/rpg/characters#skins) |
+| `LobbyEnteredEvent`                 | VersatiaRpg-Characters | after a player came to play no character | [Events](/experimental/plugins/rpg/characters#events) |
+| `CharacterSlotShowEvent`            | VersatiaRpg-Characters | before a player in the lobby is shown the mannequin of a slot | [Events](/experimental/plugins/rpg/characters#events) |
+| `StatsChangedEvent`                 | VersatiaRpg-Stats      | after a part or a reload of stats.yml changed an entity's stats | [Events](/experimental/plugins/rpg/stats#events) |
+| `ItemCreateEvent`                   | VersatiaRpg-Items      | while new items of a type are made, before anyone gets them | [Values of your own](/experimental/plugins/rpg/items#values-of-your-own) |
+| `ItemStatsEvent`                    | VersatiaRpg-Items      | whenever the stats of an item are read, off the server thread while a lore is rendered for a player | [Values of your own](/experimental/plugins/rpg/items#values-of-your-own) |
+| `CombatStartEvent`                  | VersatiaRpg-Combat   | before a player enters combat mode             | [Events](/experimental/plugins/rpg/combat#events) |
+| `CombatStartedEvent`                | VersatiaRpg-Combat   | after a player entered combat mode             | [Events](/experimental/plugins/rpg/combat#events) |
+| `CombatEndedEvent`                  | VersatiaRpg-Combat   | after a player left combat mode                | [Events](/experimental/plugins/rpg/combat#events) |
+| `SkillUseEvent`                     | VersatiaRpg-Skills     | before a player uses a skill that is ready | [Events](/experimental/plugins/rpg/skills#events) |
+| `SkillUsedEvent`                    | VersatiaRpg-Skills     | after a player used a skill | [Events](/experimental/plugins/rpg/skills#events) |
+| `SkillGrantedEvent`                 | VersatiaRpg-Skills     | after a player learned a skill | [Events](/experimental/plugins/rpg/skills#events) |
+| `SkillRevokedEvent`                 | VersatiaRpg-Skills     | after a player forgot a skill | [Events](/experimental/plugins/rpg/skills#events) |
+| `SkillIconShowEvent`                | VersatiaRpg-Skills     | before a skill's icon shows on a player's bar | [Events](/experimental/plugins/rpg/skills#events) |
 
 ## How it works {/* #how-it-works */}
 

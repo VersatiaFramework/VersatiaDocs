@@ -257,8 +257,12 @@ message once in game.
 
 ## Corner cases {/* #corner-cases */}
 
+- **A new message comes by itself.** When a new version of a plugin has a message your files lack,
+  it is added at the end of the plugin's file of the same name as the plugin starts, in the
+  plugin's own language, under `# Added by <plugin>: messages of its new version`, and the log
+  names it: translate it there.
 - **A missing key never falls back** to the default text in the plugin JAR: the plugin shows what
-  the folder holds, and a deleted key is an error until you put it back.
+  the folder holds, and a key you delete is an error until the next start adds it back.
 - **Hex codes** (`&#55ff55`) are not reported as colour codes; write `<#55ff55>`.
 - **The colour-code warning repeats** at every reload until the message or the setting changes.
 - **A style a plugin needs comes back.** Delete one from `styles.yml` and it is added again when the

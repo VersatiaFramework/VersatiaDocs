@@ -25,6 +25,11 @@ plugins/Shop/
   not by an update of the plugin.
 - **A newer default does not reach your copy.** When an update of the plugin changes a default,
   your file keeps what it had; compare it with the plugin's changelog.
+- **A new setting comes by itself.** When a new version of a plugin needs a setting your file lacks,
+  the plugin adds it at the end of the file as it starts, with its default and its comment, under
+  `# Added by <plugin>: settings of its new version`, and the log names it. A setting inside a
+  section is written in dots, `lore.unusable: requirements`, and counts as part of that section;
+  move it there if you like.
 - **A deleted file comes back.** Delete it and run `/versatia reload <name>` (or restart) to get
   the default copy back.
 
@@ -139,12 +144,15 @@ Plugin Shop: config.yml could not be read
 ```
 
 The first line means a key is missing: put it back, with the value from the plugin's
-documentation or from a fresh default copy. The third means the file is not valid YAML; the cause
+documentation or from a fresh default copy. As the plugin starts, a key its JAR has is added by
+itself, so you meet this line at a reload, after removing or mistyping a key. The third means the file is not valid YAML; the cause
 below it gives the line and column. A tab used for indentation and a missing space after a colon
 are the usual culprits. More messages are in [Troubleshooting](troubleshooting.md#configuration).
 
 ## Corner cases {/* #corner-cases */}
 
+- **A setting you remove comes back at the next start**, with its default, since the plugin needs
+  it; at `/versatia reload` the reload fails instead, naming it.
 - **An absent key is not an empty list.** Write `hours: []`; leaving the key out is a missing
   value.
 - **A single value where a list belongs** (`hours: 9`) is an error, not a list of one. Write

@@ -186,6 +186,29 @@ reaches the sender of `/versatia reload` and is logged as one warning, without a
 Every value of the plugin is read before any property is set, so a broken file leaves the plugin
 running with the values it had.
 
+At the plugin's start, before the values are read, every file is completed from the plugin JAR: a
+key that a property of a non-nullable type reads, which the file lacks and the JAR's copy has, is
+appended at the end of the file with the comments it is shipped with, under a comment naming the
+plugin, and the log names it. A new version of the plugin that adds a setting therefore starts on
+servers whose files are older:
+
+```yaml title="plugins/Shop/config.yml"
+shop:
+  hours: [8, 20]
+
+# Added by Shop: settings of its new version
+# The share of every price the shop keeps
+shop.tax: 5%
+```
+
+```text
+[Shop] Added the new settings "shop.tax" to plugins/Shop/config.yml
+```
+
+A key of a section the file has is written in dots, which Bukkit reads as a path, so the section is
+extended and never opened twice. A reload completes nothing: a key an administrator removed or
+mistyped fails it, naming the key.
+
 ## In a constructor {/* #in-a-constructor */}
 
 A bean, or a plain listener or task, may declare a value as a property of its primary constructor:
@@ -320,6 +343,11 @@ created, like any other [reloadable state](../lifecycle/reload.md#designing-for-
 - **An override is annotated once.** When a base class declares `@Value("limit") open var
   limit`, a subclass overrides it without `@Value`: the value set through the base property
   already reaches the override, and annotating both is a compile error.
+- **Only what a property needs is added to a file.** The key of a nullable property is an optional
+  setting, whose absence is a choice, so nothing adds it; a key the JAR's copy lacks fails as
+  before; a section one [mapper](types.md#mappers) reads gets no new keys inside it, which is why
+  every setting is a key of its own ([Best practices](../reference/best-practices.md#reloadable-plugins)).
+  A plugin that switches resource extraction off gets no completion either.
 - **Both annotation targets work on a constructor property.** `@Value("k") var x: Int` and
   `@property:Value("k") var x: Int` in a primary constructor are the same: the value is passed to
   the constructor and updated at every reload.

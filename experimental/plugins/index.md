@@ -10,25 +10,30 @@ description: The plugins the Versatia team builds on the framework, what each gi
 import CodeCards, {CodeCard} from '@site/src/components/CodeCards';
 
 Besides the framework, the Versatia team publishes plugins built on it, which a server installs like
-any other plugin. Each lives in a repository of its own under the Apache License 2.0, and its name
-starts with `Versatia`, which keeps it apart from the other plugins called Trade on a server. Your
-plugin can work with them: add a button to a menu, stop a trade, follow what happens.
+any other plugin. Each lives in a repository of its own (the RPG engine's plugins share one) under
+the Apache License 2.0, and its name starts with `Versatia`, which keeps it apart from the other
+plugins called Trade on a server. Your plugin can work with them: add a button to a menu, stop a
+trade, follow what happens.
 
 | Plugin | What it gives a server | What your plugin can do with it |
 |---|---|---|
 | [VersatiaInteractions](interactions.md) | a menu opened with Shift + right click on a player, with a button per action (a trade, a duel), and requests that wait, expire and end on their own | add an action, send its request from code, deny or follow requests |
 | [VersatiaTrade](trade.md) | a secure two-player trade window for items and money | deny a trade or an offered item, change how offered items look, follow how a trade ends, say which stacks are the same item |
 | [VersatiaChat](chat.md) | chat lines in a frame of their own, the channel's name in front of the sender, kept as the players' signed messages, with a card on the sender's name | stop, hide or style a line through Paper's chat events, with no dependency |
+| [VersatiaRegions](regions.md) | regions of any shape in layers, painted in game, each place inheriting from the regions around it | read the regions of a place and their values, stop or follow players crossing into other regions |
+| [VersatiaRpg](rpg/index.md) | an RPG engine of small plugins, one idea each: characters, a slot per class for every player, combat mode, stats, items and a skill bar | read the character a player plays, their combat mode or stats, make items of the server's types, add and grant skills, keep data per character, stop or follow what the plugins do |
 
 Their sources are in the [VersatiaInteractions](https://github.com/VersatiaFramework/VersatiaInteractions),
-[VersatiaTrade](https://github.com/VersatiaFramework/VersatiaTrade) and
-[VersatiaChat](https://github.com/VersatiaFramework/VersatiaChat) repositories.
+[VersatiaTrade](https://github.com/VersatiaFramework/VersatiaTrade),
+[VersatiaChat](https://github.com/VersatiaFramework/VersatiaChat),
+[VersatiaRegions](https://github.com/VersatiaFramework/VersatiaRegions) and
+[VersatiaRpg](https://github.com/VersatiaFramework/VersatiaRpg) repositories.
 
 :::admin
 
 Installing and configuring these plugins is covered by the server admin guide, on the
-[VersatiaInteractions](/admin/experimental/interactions), [VersatiaTrade](/admin/experimental/trade)
-and [VersatiaChat](/admin/experimental/chat) pages.
+[VersatiaInteractions](/admin/experimental/interactions), [VersatiaTrade](/admin/experimental/trade),
+[VersatiaChat](/admin/experimental/chat), [VersatiaRegions](/admin/experimental/regions) and [VersatiaRpg](/admin/experimental/rpg) pages.
 
 :::
 
@@ -106,7 +111,8 @@ class TradeRules(private val arenas: Arenas, private val messages: Messages) : L
 ## Events {/* #events */}
 
 Each plugin fires events wherever another plugin may want to react or to stop something, listed
-on its page: [VersatiaInteractions](interactions.md#events) and [VersatiaTrade](trade.md#events).
+on its page: [VersatiaInteractions](interactions.md#events), [VersatiaTrade](trade.md#events) and
+[VersatiaRegions](regions.md#events).
 An event fired before something happens is named in the present and can be denied with
 `deny(reason)`, a whole sentence from your plugin's messages that the players read; one fired after
 it is named in the past and only informs. [Events Versatia fires](/docs/events#events-versatia-fires)

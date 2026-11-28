@@ -10,7 +10,7 @@ import {inflateRawSync} from 'node:zlib';
 
 const version = process.env.VERSATIA_VERSION ?? '0.0.1';
 const repository = process.env.MAVEN_LOCAL ?? path.join(homedir(), '.m2', 'repository');
-const artifacts = ['VersatiaAPI', 'VersatiaModule-Database', 'VersatiaInteractions', 'VersatiaTrade'];
+const artifacts = ['VersatiaAPI', 'VersatiaModule-Database', 'VersatiaModule-ItemViews', 'VersatiaInteractions', 'VersatiaTrade', 'VersatiaRegions', 'VersatiaRpg-Characters', 'VersatiaRpg-Combat', 'VersatiaRpg-Stats', 'VersatiaRpg-Items', 'VersatiaRpg-Skills'];
 const output = fileURLToPath(new URL('../plugins/symbols.json', import.meta.url));
 
 /** The `.kt` files of a ZIP archive by path; Gradle stores or deflates every entry. */

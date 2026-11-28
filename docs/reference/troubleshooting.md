@@ -317,7 +317,9 @@ type. See [Scopes](../dependency-injection/scopes.md#exposeprototype).
 ### `Plugin X: Y.z could not be read from f.yml: ...` {/* #plugin-x-yz-could-not-be-read-from-fyml- */}
 
 A `@Value` property could not be set: the rest of the message says why, with the full key path.
-`No value present at "k"` means the key is missing and the property is not nullable; `Value at
+`No value present at "k"` means the key is missing and the property is not nullable. At start a
+key the JAR's copy of the file has is added by itself, so this comes at a reload, or for a key the
+plugin does not ship: put it into `resources/<file>` of the JAR. `Value at
 "k" is not an int` and friends mean the wrong shape, including a single value where a list
 belongs. Nothing was set, so at start the plugin stays disabled and at a reload it keeps its
 previous values. See [Configuration values](../configuration/index.md#missing-and-invalid-values).

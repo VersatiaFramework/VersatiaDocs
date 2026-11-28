@@ -3,8 +3,15 @@
   "artifacts": [
     "VersatiaAPI",
     "VersatiaModule-Database",
+    "VersatiaModule-ItemViews",
     "VersatiaInteractions",
-    "VersatiaTrade"
+    "VersatiaTrade",
+    "VersatiaRegions",
+    "VersatiaRpg-Characters",
+    "VersatiaRpg-Combat",
+    "VersatiaRpg-Stats",
+    "VersatiaRpg-Items",
+    "VersatiaRpg-Skills"
   ],
   "symbols": [
     {
@@ -2960,6 +2967,537 @@
       "receiver": "StoreTransaction<UUID, V>",
       "signature": "fun <V : Any> StoreTransaction<UUID, V>.update(player: OfflinePlayer, change: (V) -> V)",
       "summary": "`update(killer) { it.copy(coins = it.coins + bounty) }` in a player store's transaction."
+    },
+    {
+      "name": "ItemLook",
+      "package": "dev.versatia.itemviews",
+      "kind": "class",
+      "artifact": "VersatiaModule-ItemViews",
+      "signature": "data class ItemLook",
+      "summary": "What a view shows of an item instead of its own: its `name` and the lines of its `lore`, each null to keep the item's own."
+    },
+    {
+      "name": "ItemView",
+      "package": "dev.versatia.itemviews",
+      "kind": "fun interface",
+      "artifact": "VersatiaModule-ItemViews",
+      "signature": "interface ItemView",
+      "summary": "How a family of items looks to each player, registered with `ItemViews.register`; implementations are named after the items they show and end in `View`."
+    },
+    {
+      "name": "ItemViews",
+      "package": "dev.versatia.itemviews",
+      "kind": "interface",
+      "artifact": "VersatiaModule-ItemViews",
+      "signature": "interface ItemViews",
+      "summary": "Items as each player sees them."
+    },
+    {
+      "name": "Region",
+      "package": "dev.versatia.regions",
+      "kind": "interface",
+      "artifact": "VersatiaRegions",
+      "signature": "interface Region",
+      "summary": "A region of regions.yml."
+    },
+    {
+      "name": "RegionStack",
+      "package": "dev.versatia.regions",
+      "kind": "interface",
+      "artifact": "VersatiaRegions",
+      "signature": "interface RegionStack",
+      "summary": "The regions one column lies in, one per layer."
+    },
+    {
+      "name": "Regions",
+      "package": "dev.versatia.regions",
+      "kind": "interface",
+      "artifact": "VersatiaRegions",
+      "signature": "interface Regions",
+      "summary": "The regions of the server's worlds, in layers: in each layer a column (x, z) lies in at most one region, and a column inherits from the regions it lies in, the innermost layer winning."
+    },
+    {
+      "name": "RegionsPlugin",
+      "package": "dev.versatia.regions",
+      "kind": "class",
+      "artifact": "VersatiaRegions",
+      "signature": "class RegionsPlugin : VersatiaPlugin()"
+    },
+    {
+      "name": "value",
+      "package": "dev.versatia.regions",
+      "kind": "function",
+      "artifact": "VersatiaRegions",
+      "receiver": "RegionStack",
+      "signature": "inline fun <reified T : Any> RegionStack.value(key: String)",
+      "summary": "The value `key` of the innermost region that sets it: `stack.value<String>(\"respawn\")`."
+    },
+    {
+      "name": "PlayerRegionChangeEvent",
+      "package": "dev.versatia.regions.event",
+      "kind": "class",
+      "artifact": "VersatiaRegions",
+      "signature": "class PlayerRegionChangeEvent : PlayerEvent(player), Cancellable",
+      "summary": "Before `player` moves or teleports (`cause`) into a column whose regions differ from those they are in, `from`; once VersatiaRegions' own checks passed."
+    },
+    {
+      "name": "PlayerRegionChangedEvent",
+      "package": "dev.versatia.regions.event",
+      "kind": "class",
+      "artifact": "VersatiaRegions",
+      "signature": "class PlayerRegionChangedEvent : PlayerEvent(player)",
+      "summary": "After `player`'s regions changed from `from` to `to` (`cause`); `from` is empty after a join."
+    },
+    {
+      "name": "RegionChangeCause",
+      "package": "dev.versatia.regions.event",
+      "kind": "enum",
+      "artifact": "VersatiaRegions",
+      "signature": "enum class RegionChangeCause",
+      "entries": [
+        {
+          "name": "MOVE",
+          "summary": "They walked, swam, flew or rode into another column."
+        },
+        {
+          "name": "TELEPORT",
+          "summary": "They teleported, through a portal too."
+        },
+        {
+          "name": "JOIN",
+          "summary": "They joined the server."
+        },
+        {
+          "name": "RESPAWN",
+          "summary": "They respawned."
+        },
+        {
+          "name": "REGIONS",
+          "summary": "The regions under them were painted or deleted while they stood there."
+        }
+      ],
+      "summary": "Why a player's regions changed."
+    },
+    {
+      "name": "RegionShapesChangedEvent",
+      "package": "dev.versatia.regions.event",
+      "kind": "class",
+      "artifact": "VersatiaRegions",
+      "signature": "class RegionShapesChangedEvent : Event()",
+      "summary": "After the columns of `regions` of `layer` of `world` changed: a shape filled, cut or deleted."
+    },
+    {
+      "name": "Character",
+      "package": "dev.versatia.rpg.characters",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Characters",
+      "signature": "data class Character",
+      "summary": "A character of a player, in the slot of its class: made the first time the player plays the class, kept until an admin deletes it."
+    },
+    {
+      "name": "Characters",
+      "package": "dev.versatia.rpg.characters",
+      "kind": "interface",
+      "artifact": "VersatiaRpg-Characters",
+      "signature": "interface Characters",
+      "summary": "The characters of the players, a bean VersatiaRpg-Characters exposes to the plugins started after it."
+    },
+    {
+      "name": "CharactersPlugin",
+      "package": "dev.versatia.rpg.characters",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Characters",
+      "signature": "class CharactersPlugin : VersatiaPlugin()"
+    },
+    {
+      "name": "CharacterCreateEvent",
+      "package": "dev.versatia.rpg.characters.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Characters",
+      "signature": "class CharacterCreateEvent : DeniableCharacterEvent()",
+      "summary": "Before `player` gets a character of `classId` in its free slot, as the first step of playing it."
+    },
+    {
+      "name": "CharacterCreatedEvent",
+      "package": "dev.versatia.rpg.characters.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Characters",
+      "signature": "class CharacterCreatedEvent : Event()",
+      "summary": "After `character` was created for `player`, who plays it by then; `CharacterSelectedEvent` follows."
+    },
+    {
+      "name": "CharacterDeletedEvent",
+      "package": "dev.versatia.rpg.characters.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Characters",
+      "signature": "class CharacterDeletedEvent : Event()",
+      "summary": "After an admin deleted `character`; its player may be offline."
+    },
+    {
+      "name": "CharacterDeselectedEvent",
+      "package": "dev.versatia.rpg.characters.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Characters",
+      "signature": "class CharacterDeselectedEvent : Event()",
+      "summary": "After `player` stopped playing `character` without leaving the server, its state put away; another one follows."
+    },
+    {
+      "name": "CharacterSelectEvent",
+      "package": "dev.versatia.rpg.characters.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Characters",
+      "signature": "class CharacterSelectEvent : DeniableCharacterEvent()",
+      "summary": "Before `player` starts playing `target` instead of `current`, null while they play none."
+    },
+    {
+      "name": "CharacterSelectedEvent",
+      "package": "dev.versatia.rpg.characters.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Characters",
+      "signature": "class CharacterSelectedEvent : Event()",
+      "summary": "After `character` became the one `player` plays: they joined the server playing it, or switched to it."
+    },
+    {
+      "name": "CharacterSkinChangeEvent",
+      "package": "dev.versatia.rpg.characters.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Characters",
+      "signature": "class CharacterSkinChangeEvent : Event(), Cancellable",
+      "summary": "Before `player` takes the skin of `look`, a look of skins.yml: the class of `character`, or `none` while they play no character (null)."
+    },
+    {
+      "name": "CharacterSlotShowEvent",
+      "package": "dev.versatia.rpg.characters.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Characters",
+      "signature": "class CharacterSlotShowEvent : Event(), Cancellable",
+      "summary": "Before `player`, in the lobby, is shown the mannequin of their slot of `classId`: `character` in it, or null for a free slot."
+    },
+    {
+      "name": "DeniableCharacterEvent",
+      "package": "dev.versatia.rpg.characters.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Characters",
+      "signature": "abstract class DeniableCharacterEvent : Event(), Cancellable",
+      "summary": "A character event another plugin may `deny`: what it announces does not happen, and the player reads `reason`, a whole sentence from the denying plugin's messages, or VersatiaRpg-Characters' own sentence when a plugin cancels the event without one."
+    },
+    {
+      "name": "LobbyEnteredEvent",
+      "package": "dev.versatia.rpg.characters.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Characters",
+      "signature": "class LobbyEnteredEvent : Event()",
+      "summary": "After `player` came to play no character: they joined without one, their character was put away as they joined (`resume-last-character: false`) or deleted."
+    },
+    {
+      "name": "Combat",
+      "package": "dev.versatia.rpg.combat",
+      "kind": "interface",
+      "artifact": "VersatiaRpg-Combat",
+      "signature": "interface Combat",
+      "summary": "Combat mode, a bean VersatiaRpg-Combat exposes to the plugins started after it."
+    },
+    {
+      "name": "CombatPlugin",
+      "package": "dev.versatia.rpg.combat",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Combat",
+      "signature": "class CombatPlugin : VersatiaPlugin()"
+    },
+    {
+      "name": "CombatEndCause",
+      "package": "dev.versatia.rpg.combat.event",
+      "kind": "enum",
+      "artifact": "VersatiaRpg-Combat",
+      "signature": "enum class CombatEndCause",
+      "entries": [
+        {
+          "name": "EXPIRED",
+          "summary": "Its timer ran out: no hit reset it for `duration`."
+        },
+        {
+          "name": "DEATH",
+          "summary": "The player died."
+        },
+        {
+          "name": "QUIT",
+          "summary": "The player left the server."
+        },
+        {
+          "name": "ENDED",
+          "summary": "A plugin ended it (`Combat.leave`), or VersatiaRpg-Combat stopped."
+        }
+      ],
+      "summary": "Why combat mode ended."
+    },
+    {
+      "name": "CombatEndedEvent",
+      "package": "dev.versatia.rpg.combat.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Combat",
+      "signature": "class CombatEndedEvent : Event()",
+      "summary": "After `player` left combat mode, for `cause`."
+    },
+    {
+      "name": "CombatStartEvent",
+      "package": "dev.versatia.rpg.combat.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Combat",
+      "signature": "class CombatStartEvent : Event(), Cancellable",
+      "summary": "Before `player` enters combat mode, by a hit with `opponent` (dealt or taken), or from code when `opponent` is null."
+    },
+    {
+      "name": "CombatStartedEvent",
+      "package": "dev.versatia.rpg.combat.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Combat",
+      "signature": "class CombatStartedEvent : Event()",
+      "summary": "After `player` entered combat mode, by a hit with `opponent`, or from code when `opponent` is null."
+    },
+    {
+      "name": "ItemNameHook",
+      "package": "dev.versatia.rpg.items",
+      "kind": "fun interface",
+      "artifact": "VersatiaRpg-Items",
+      "signature": "interface ItemNameHook",
+      "summary": "A change to the name of items, added with `Items.addNameHook`."
+    },
+    {
+      "name": "ItemPart",
+      "package": "dev.versatia.rpg.items",
+      "kind": "fun interface",
+      "artifact": "VersatiaRpg-Items",
+      "signature": "interface ItemPart",
+      "summary": "A part of the lore of items, added with `Items.addPart`; implementations are named after the part and end in `Part`."
+    },
+    {
+      "name": "ItemRequirements",
+      "package": "dev.versatia.rpg.items",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Items",
+      "signature": "data class ItemRequirements",
+      "summary": "The requirements of a type that Items reads itself; the kinds other plugins add are read by them (`Requirement`)."
+    },
+    {
+      "name": "ItemScopeHook",
+      "package": "dev.versatia.rpg.items",
+      "kind": "fun interface",
+      "artifact": "VersatiaRpg-Items",
+      "signature": "interface ItemScopeHook",
+      "summary": "A style around the whole lore of items, added with `Items.addScopeHook`, such as their tier's: a scope of the server's styles whose names (heading, label, accent) apply inside it, and whose own style the lines take beneath their own."
+    },
+    {
+      "name": "ItemType",
+      "package": "dev.versatia.rpg.items",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Items",
+      "signature": "data class ItemType",
+      "summary": "A type of items.yml: what every item of it is, gives and requires."
+    },
+    {
+      "name": "Items",
+      "package": "dev.versatia.rpg.items",
+      "kind": "interface",
+      "artifact": "VersatiaRpg-Items",
+      "signature": "interface Items",
+      "summary": "The items of items.yml, a bean VersatiaRpg-Items exposes to the plugins started after it."
+    },
+    {
+      "name": "ItemsPlugin",
+      "package": "dev.versatia.rpg.items",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Items",
+      "signature": "class ItemsPlugin : VersatiaPlugin()"
+    },
+    {
+      "name": "LoreView",
+      "package": "dev.versatia.rpg.items",
+      "kind": "interface",
+      "artifact": "VersatiaRpg-Items",
+      "signature": "interface LoreView",
+      "summary": "Who reads a lore being rendered, and where."
+    },
+    {
+      "name": "Requirement",
+      "package": "dev.versatia.rpg.items",
+      "kind": "interface",
+      "artifact": "VersatiaRpg-Items",
+      "signature": "interface Requirement<T : Any>",
+      "summary": "A kind of requirement written in the `requires` of items.yml beside level, classes and stats, such as `rank: noble`, added with `Items.addRequirement`; `T` is what `read` makes of the value."
+    },
+    {
+      "name": "ItemCreateEvent",
+      "package": "dev.versatia.rpg.items.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Items",
+      "signature": "class ItemCreateEvent : Event()",
+      "summary": "While `item`, new items of `type`, is made, before anyone gets it: a listener writes values of its own into the item's data, such as a tier rolled for it."
+    },
+    {
+      "name": "ItemStatsEvent",
+      "package": "dev.versatia.rpg.items.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Items",
+      "signature": "class ItemStatsEvent : Event(!VersatiaEngine.isPrimaryThread())",
+      "summary": "Whenever the stats of `item`, of `type`, are read, for what it gives and for its lore: `stats` starts as the type's, and a listener changes it from the item's data, such as a tier's multiplier or bonuses."
+    },
+    {
+      "name": "Skill",
+      "package": "dev.versatia.rpg.skills",
+      "kind": "annotation",
+      "artifact": "VersatiaRpg-Skills",
+      "signature": "@Skill(id: String)",
+      "summary": "Adds a skill to the skill bar of VersatiaRpg-Skills: `@Skill(\"whirlwind\") class Whirlwind(...) : SkillAction`."
+    },
+    {
+      "name": "SkillAction",
+      "package": "dev.versatia.rpg.skills",
+      "kind": "interface",
+      "artifact": "VersatiaRpg-Skills",
+      "signature": "interface SkillAction",
+      "summary": "What a `Skill` does."
+    },
+    {
+      "name": "SkillProcessors",
+      "package": "dev.versatia.rpg.skills",
+      "kind": "object",
+      "artifact": "VersatiaRpg-Skills",
+      "signature": "object SkillProcessors",
+      "summary": "The processors of VersatiaRpg-Skills, by name: the descriptor of a contributing plugin names them."
+    },
+    {
+      "name": "SkillUse",
+      "package": "dev.versatia.rpg.skills",
+      "kind": "interface",
+      "artifact": "VersatiaRpg-Skills",
+      "signature": "interface SkillUse",
+      "summary": "One use of a skill: `player` uses the skill `id` at `level`, 1 unless a listener of `SkillUseEvent` set another."
+    },
+    {
+      "name": "Skills",
+      "package": "dev.versatia.rpg.skills",
+      "kind": "interface",
+      "artifact": "VersatiaRpg-Skills",
+      "signature": "interface Skills",
+      "summary": "The skills of the players, a bean VersatiaRpg-Skills exposes to the plugins started after it; a plugin injects it into a bean carrying `@ConditionalOnPlugin(\"VersatiaRpg-Skills\")`."
+    },
+    {
+      "name": "SkillsPlugin",
+      "package": "dev.versatia.rpg.skills",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Skills",
+      "signature": "class SkillsPlugin : VersatiaPlugin()"
+    },
+    {
+      "name": "DeniableSkillEvent",
+      "package": "dev.versatia.rpg.skills.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Skills",
+      "signature": "abstract class DeniableSkillEvent : Event(), Cancellable",
+      "summary": "A skill event another plugin may `deny`: what it announces does not happen, and the player reads `reason`, a whole sentence from the denying plugin's messages, or VersatiaRpg-Skills' own sentence when a plugin cancels the event without one."
+    },
+    {
+      "name": "SkillGrantedEvent",
+      "package": "dev.versatia.rpg.skills.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Skills",
+      "signature": "class SkillGrantedEvent : Event()",
+      "summary": "After `player` learned the skill `id`, which took `place` of their bar, 0 being the first; null when it was full."
+    },
+    {
+      "name": "SkillIconShowEvent",
+      "package": "dev.versatia.rpg.skills.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Skills",
+      "signature": "class SkillIconShowEvent : Event()",
+      "summary": "Before the icon of the skill `id` shows on the bar of `player`, whenever VersatiaRpg-Skills makes it: when it first shows, when its cooldown starts or ends, at a reload of VersatiaRpg-Skills and when a plugin calls `Skills.refresh`."
+    },
+    {
+      "name": "SkillRevokedEvent",
+      "package": "dev.versatia.rpg.skills.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Skills",
+      "signature": "class SkillRevokedEvent : Event()",
+      "summary": "After `player` forgot the skill `id`; its place on the bar is free."
+    },
+    {
+      "name": "SkillUseEvent",
+      "package": "dev.versatia.rpg.skills.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Skills",
+      "signature": "class SkillUseEvent : DeniableSkillEvent(player)",
+      "summary": "Before `player` uses the skill `id`, which is ready: they picked its slot, or a plugin uses it for them."
+    },
+    {
+      "name": "SkillUsedEvent",
+      "package": "dev.versatia.rpg.skills.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Skills",
+      "signature": "class SkillUsedEvent : Event()",
+      "summary": "After `player` used the skill `id` at `level`; its cooldown has started."
+    },
+    {
+      "name": "SkillEnhancementProcessor",
+      "package": "dev.versatia.rpg.skills.registry",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Skills",
+      "signature": "class SkillEnhancementProcessor : EnhancementProcessor",
+      "summary": "Registers the `@Skill` beans of a plugin with VersatiaRpg-Skills once its beans exist, reads their icons again at every reload of the plugin, and withdraws them when it stops: the registration is an entry of the plugin's state, closed when that state goes, whether the plugin stops or its start fails."
+    },
+    {
+      "name": "Contribution",
+      "package": "dev.versatia.rpg.stats",
+      "kind": "interface",
+      "artifact": "VersatiaRpg-Stats",
+      "signature": "interface Contribution",
+      "summary": "The part one source gives one entity, built in `Stats.contribute` with the operations of vanilla's attribute modifiers; the calls for one stat add up."
+    },
+    {
+      "name": "Sheet",
+      "package": "dev.versatia.rpg.stats",
+      "kind": "interface",
+      "artifact": "VersatiaRpg-Stats",
+      "signature": "interface Sheet",
+      "summary": "The stats of one entity, read when asked."
+    },
+    {
+      "name": "Stat",
+      "package": "dev.versatia.rpg.stats",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Stats",
+      "signature": "data class Stat",
+      "summary": "A stat of a living entity, by its `key`: a vanilla attribute (`minecraft:max_health`), whose effect vanilla gives, or a stat of the server's stats.yml (`rpg:critical_chance`), whose meaning the plugin reading it gives."
+    },
+    {
+      "name": "Stats",
+      "package": "dev.versatia.rpg.stats",
+      "kind": "interface",
+      "artifact": "VersatiaRpg-Stats",
+      "signature": "interface Stats",
+      "summary": "The stats of living entities, players and mobs, summed up from the parts sources give: a plugin sets its whole part of an entity whenever it changes (an item put on, a buff over) and reads the sum."
+    },
+    {
+      "name": "StatsPlugin",
+      "package": "dev.versatia.rpg.stats",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Stats",
+      "signature": "class StatsPlugin : VersatiaPlugin()"
+    },
+    {
+      "name": "StatChange",
+      "package": "dev.versatia.rpg.stats.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Stats",
+      "signature": "data class StatChange",
+      "summary": "A stat's value before and after a change."
+    },
+    {
+      "name": "StatsChangedEvent",
+      "package": "dev.versatia.rpg.stats.event",
+      "kind": "class",
+      "artifact": "VersatiaRpg-Stats",
+      "signature": "class StatsChangedEvent : Event()",
+      "summary": "After a source's part, or a reload of stats.yml, changed stats of `entity`: `changes` holds each stat that changed."
     },
     {
       "name": "ItemIdentity",

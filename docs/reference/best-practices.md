@@ -27,6 +27,9 @@ rather than around it. Each links to the page with the details.
 
 - **Configuration is [`@Value` properties](../configuration/index.md)**; the default is in the shipped
   file, not in the code.
+- **Each setting is its own `@Value` key**, `triggers.player-hits-player`, never a field inside a
+  section one mapper reads: a setting a new version adds then reaches existing servers by itself,
+  appended to their file at the plugin's start ([Missing and invalid values](../configuration/index.md#missing-and-invalid-values)).
 - **What derives from a value is never computed in a constructor**: read it in a getter, rebuild it
   in a `PLUGIN_RELOAD_OR_START` function, or react with [`PreviousValueTracking`](../configuration/changes.md#reacting-to-a-change).
   The same holds for what derives from another plugin's beans. See
